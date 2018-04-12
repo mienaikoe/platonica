@@ -1,27 +1,24 @@
 var camera, scene, renderer;
-var geometry, material, mesh;
+var geometry, material, mesh, csgMesh;
 
-init();
-animate();
+window.onload = function(){
+	init();
+	animate();
+};
 
 function init() {
-
-	if( typeof(THREE) === 'undefined' ){
-		setTimeout( init, 100 );
-		return;
-	} 
 
 	camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.01, 10 );
 	camera.position.z = 3;
 
 	scene = new THREE.Scene();
 
-	sphere = new THREE.SphereGeometry( 1, 1, 1 );
-	hole = new THREE.CylinderGeometry( 1, 1, 3, 32 );
-
+	sphere = new THREE.SphereGeometry( 1, 32, 32 );
 	sphereMesh = new THREE.Mesh( sphere );
-	holeMesh = new THREE.Mesh( hole );
 	spherebsp = new ThreeBSP(sphere);
+	
+	hole = new THREE.CylinderGeometry( 0.1, 0.1, 2, 32 );
+	holeMesh = new THREE.Mesh( hole );
 	holebsp = new ThreeBSP(hole);
 
 	csgMesh = spherebsp.subtract(holebsp).toMesh();
@@ -39,8 +36,8 @@ function animate() {
 
 	requestAnimationFrame( animate );
 
-	//mesh.rotation.x += 0.01;
-	//mesh.rotation.y += 0.02;
+	csgMesh.rotation.x += 0.01;
+	csgMesh.rotation.y += 0.02;
 
 	renderer.render( scene, camera );
 
