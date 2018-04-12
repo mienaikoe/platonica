@@ -1,20 +1,10 @@
 var camera, scene, renderer;
 var geometry, material, mesh, csgMesh, ballMesh;
-
+var pausing = false;
 var velocityX = 0, velocityY = 0;
 var halfWidth = window.innerWidth / 2;
 var halfHeight = window.innerHeight / 2;
 var meshes = [];
-
-const HOLE_COORDINATES = [
-	[
-		0 * Math.PI,
-		0 * Math.PI
-	],[
-		Math.PI / 2,
-		0
-	]
-];
 
 window.onload = function(){
 	init();
@@ -24,7 +14,7 @@ window.onload = function(){
 function getMaterial(){
   var material = new THREE.MeshNormalMaterial();
   material.transparent = true;
-  material.opacity = 0.8;
+  material.opacity = 1.0;
   material.depthTest = true;
   material.depthWrite = false;
   return material;
@@ -78,31 +68,51 @@ function makeShaders(){
     return material;
 }
 
+// Please Use Spherical Coordinates to denote the hole locations
+const HOLE_COORDINATES = [
+	[
+		0 * Math.PI,
+		0 * Math.PI
+	],[
+		Math.PI * 0.50,
+		0
+	],[
+		0,
+		Math.PI * 0.50
+	],[
+		0,
+		Math.PI * 0.25
+	],[
+		0,
+		Math.PI * 0.75
+	]
+];
+
 function init() {
 	camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 100 );
 	camera.position.z = 20;
 
 	scene = new THREE.Scene();
 
+	var axesHelper = new THREE.AxesHelper( 20 );
+	scene.add( axesHelper );
+
 	sphere = new THREE.SphereGeometry( 10, 32, 32 );
   //sphere.computeVertexNormals();
 	sphereMesh = new THREE.Mesh( sphere );
 	spherebsp = new ThreeBSP(sphere);
 
-	// var nextBsp = spherebsp;
-	// HOLE_COORDINATES.forEach( function(hole){
-	// 	nextBsp = pokeHole( nextBsp, 10, hole );
-	// });
-	// csgMesh = nextBsp.toMesh();
-	// csgMesh.material = new THREE.MeshNormalMaterial();
-  var tetra = makeHaloObject(THREE.IcosahedronGeometry, 0.85);
-
-	var pokedbsp = pokeHole( tetra, 10, HOLE_COORDINATES );
-
-	csgMesh = tetra.toMesh();
-	csgMesh.material = makeShaders();
-  //getMaterial();
-
+	var nextBsp = spherebsp;
+	HOLE_COORDINATES.forEach( function(hole){
+		nextBsp = pokeHole( nextBsp, 10, hole );
+	});
+	csgMesh = nextBsp.toMesh();
+	csgMesh.material = new THREE.MeshNormalMaterial();
+	/*
+	csgMesh.material.opacity = 0.1;
+	csgMesh.material.depthTest = true;
+	csgMesh.material.depthWrite = false;
+	*/
 	scene.add( csgMesh );
 
 	makeBall();
@@ -118,12 +128,8 @@ function pokeHole(shapebsp, extent, coordinates){
 	var hole = new THREE.CylinderGeometry( 0.6, 0.6, 2 * extent, 32 );
 	var holeMesh = new THREE.Mesh( hole );
 
-	holeMesh.position.x = (extent/2) * Math.sin(coordinates[0]) * Math.cos(coordinates[1]);
-	holeMesh.position.y = (extent/2) * Math.sin(coordinates[0]) * Math.sin(coordinates[1]);
-	holeMesh.position.z = (extent/2) * Math.cos(coordinates[0]);
-
-	holeMesh.rotation.x = coordinates[0] + (Math.PI/2);
-	holeMesh.rotation.y = coordinates[1];
+	holeMesh.rotation.x = coordinates[1] + (Math.PI / 2);
+	holeMesh.rotation.z = coordinates[0];
 
 	var holebsp = new ThreeBSP(holeMesh);
 	return shapebsp.subtract(holebsp);
@@ -156,7 +162,7 @@ function animate() {
 }
 
 
-var THRESHOLD = 0.1;
+var THRESHOLD = 0.5;
 
 function evaluateCollision(){
 	var xDist = Math.abs(csgMesh.rotation.x - HOLE_COORDINATES[0])
@@ -167,11 +173,14 @@ function evaluateCollision(){
 	    (xDist < THRESHOLD && zDist < THRESHOLD) ||
 	    (yDist < THRESHOLD && zDist < THRESHOLD) ){
 		console.log("HIT");
-
+		pausing = true;
+		// do animations
 	}
 }
 
 window.onmousemove = function(ev){
-	velocityY = (halfWidth - ev.clientX) / -10000;
-	velocityX = (halfHeight - ev.clientY) / -10000;
+	if( !pausing ){
+		velocityY = (halfWidth - ev.clientX) / -10000;
+		velocityX = (halfHeight - ev.clientY) / -10000;
+	}
 }
