@@ -58,8 +58,7 @@ function makeShapes(haloRatio){
 
 const HOLE_COORDINATES = [
 	0 * Math.PI, 
-	0 * Math.PI, 
-	0.5 * Math.PI
+	0 * Math.PI 
 ];
 
 function init() {
@@ -88,14 +87,20 @@ function init() {
 }
 
 function pokeHole(shapebsp, extent, coordinates){
-	var hole = new THREE.CylinderGeometry( 0.6, 0.6, extent*2, 32 );
+	var hole = new THREE.SphereGeometry( 0.6, 32, 32 );
 	var holeMesh = new THREE.Mesh( hole );
-	// TODO: position and rotation aren't working
-	holeMesh.position.x = extent;
-	holeMesh.rotation.x = coordinates[0] * Math.PI;
-	holeMesh.rotation.y = coordinates[1] * Math.PI;
-	holeMesh.rotation.z = coordinates[2] * Math.PI;
-	var holebsp = new ThreeBSP(hole);
+
+	holeMesh.position.x = extent * Math.sin(coordinates[0]) * Math.cos(coordinates[1]);
+	holeMesh.position.y = extent * Math.sin(coordinates[0]) * Math.sin(coordinates[1]);
+	holeMesh.position.z = extent * Math.cos(coordinates[0]);	
+
+	/*
+	holeMesh.rotation.x = coordinates[0];
+	holeMesh.rotation.y = coordinates[1] + (Math.PI/2);
+	holeMesh.rotation.z = coordinates[2];
+	*/
+
+	var holebsp = new ThreeBSP(holeMesh);
 	return shapebsp.subtract(holebsp);
 }
 
@@ -108,11 +113,14 @@ function makeBall(){
 }
 
 
+
+var TWOPI = Math.PI * 2;
+
 function animate() {
 	requestAnimationFrame( animate );
 
-	csgMesh.rotation.x += velocityX;
-	csgMesh.rotation.y += velocityY;
+	csgMesh.rotation.x = (csgMesh.rotation.x + velocityX) % TWOPI;
+	csgMesh.rotation.y = (csgMesh.rotation.y + velocityY) % TWOPI;
 
 	ballMesh.position.y = -velocityX * 30;
 	ballMesh.position.x = velocityY * 30;
