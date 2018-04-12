@@ -57,8 +57,13 @@ function makeShapes(haloRatio){
 }
 
 const HOLE_COORDINATES = [
-	0 * Math.PI, 
-	0 * Math.PI 
+	[ 
+		0 * Math.PI, 
+		0 * Math.PI 
+	],[
+		Math.PI / 2,
+		0
+	]
 ];
 
 function init() {
@@ -71,11 +76,12 @@ function init() {
 	sphereMesh = new THREE.Mesh( sphere );
 	spherebsp = new ThreeBSP(sphere);
 
-	var pokedbsp = pokeHole( spherebsp, 10, HOLE_COORDINATES );
-
-	csgMesh = pokedbsp.toMesh();
+	var nextBsp = spherebsp;
+	HOLE_COORDINATES.forEach( function(hole){
+		nextBsp = pokeHole( nextBsp, 10, hole );
+	}); 
+	csgMesh = nextBsp.toMesh();
 	csgMesh.material = new THREE.MeshNormalMaterial();
-
 	scene.add( csgMesh );
 
 	makeBall();
@@ -87,18 +93,16 @@ function init() {
 }
 
 function pokeHole(shapebsp, extent, coordinates){
-	var hole = new THREE.SphereGeometry( 0.6, 32, 32 );
+	//var hole = new THREE.SphereGeometry( 0.6, 32, 32 );
+	var hole = new THREE.CylinderGeometry( 0.6, 0.6, 2 * extent, 32 );
 	var holeMesh = new THREE.Mesh( hole );
 
-	holeMesh.position.x = extent * Math.sin(coordinates[0]) * Math.cos(coordinates[1]);
-	holeMesh.position.y = extent * Math.sin(coordinates[0]) * Math.sin(coordinates[1]);
-	holeMesh.position.z = extent * Math.cos(coordinates[0]);	
+	holeMesh.position.x = (extent/2) * Math.sin(coordinates[0]) * Math.cos(coordinates[1]);
+	holeMesh.position.y = (extent/2) * Math.sin(coordinates[0]) * Math.sin(coordinates[1]);
+	holeMesh.position.z = (extent/2) * Math.cos(coordinates[0]);	
 
-	/*
-	holeMesh.rotation.x = coordinates[0];
-	holeMesh.rotation.y = coordinates[1] + (Math.PI/2);
-	holeMesh.rotation.z = coordinates[2];
-	*/
+	holeMesh.rotation.x = coordinates[0] + (Math.PI/2);
+	holeMesh.rotation.y = coordinates[1];
 
 	var holebsp = new ThreeBSP(holeMesh);
 	return shapebsp.subtract(holebsp);
