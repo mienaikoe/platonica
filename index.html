@@ -4,11 +4,33 @@
 		#canvas{
 			background-color: black;
 		}
-	</style>	
+	</style>
 </head>
 <body>
+  <script id="vertexShader" type="x-shader/x-vertex">
+  attribute vec4 position;
+  attribute vec3 normal;
+
+  uniform mat4 projectionMatrix;
+  uniform mat4 modelViewMatrix;
+
+  varying vec3 vNormal;
+
+  void main () {
+    vNormal = normal;
+    gl_Position = projectionMatrix * modelViewMatrix * position;
+  }
+  </script>
+  <script id="fragmentShader" type="x-shader/x-fragment">
+  precision highp float;
+  varying vec3 vNormal;
+
+  void main () {
+    gl_FragColor = vec4(clamp(vNormal, vec3(0.1,0.1,0.1), vec3(1.0,1.0,1.0)), 0.9);
+  }
+  </script>
 	<script src="node_modules/three/build/three.min.js"></script>
-	<script src="js/three-csg.js"></script>	
+	<script src="js/three-csg.js"></script>
 	<script src="js/index.js"></script>
 </body>
 </html>

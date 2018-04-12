@@ -6,6 +6,16 @@ var halfWidth = window.innerWidth / 2;
 var halfHeight = window.innerHeight / 2;
 var meshes = [];
 
+const HOLE_COORDINATES = [
+	[
+		0 * Math.PI,
+		0 * Math.PI
+	],[
+		Math.PI / 2,
+		0
+	]
+];
+
 window.onload = function(){
 	init();
 	animate();
@@ -21,8 +31,8 @@ function getMaterial(){
 }
 
 function makeHaloObject(shapeFunc, ratio){
-  var outerShape = new shapeFunc(1, 0);
-  var innerShape = new shapeFunc(ratio, 0);
+  var outerShape = new shapeFunc(10, 0);
+  var innerShape = new shapeFunc(10*ratio, 0);
   return (new ThreeBSP(outerShape)).subtract(new ThreeBSP(innerShape));
 }
 
@@ -56,15 +66,17 @@ function makeShapes(haloRatio){
 
 }
 
-const HOLE_COORDINATES = [
-	[ 
-		0 * Math.PI, 
-		0 * Math.PI 
-	],[
-		Math.PI / 2,
-		0
-	]
-];
+function makeShaders(){
+  var material = new THREE.RawShaderMaterial( {
+			vertexShader: document.getElementById( 'vertexShader' ).textContent,
+			fragmentShader: document.getElementById( 'fragmentShader' ).textContent
+		});
+    material.transparent = true;
+    material.opacity = 0.8;
+    material.depthTest = true;
+    material.depthWrite = false;
+    return material;
+}
 
 function init() {
 	camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 0.1, 100 );
@@ -73,15 +85,24 @@ function init() {
 	scene = new THREE.Scene();
 
 	sphere = new THREE.SphereGeometry( 10, 32, 32 );
+  //sphere.computeVertexNormals();
 	sphereMesh = new THREE.Mesh( sphere );
 	spherebsp = new ThreeBSP(sphere);
 
-	var nextBsp = spherebsp;
-	HOLE_COORDINATES.forEach( function(hole){
-		nextBsp = pokeHole( nextBsp, 10, hole );
-	}); 
-	csgMesh = nextBsp.toMesh();
-	csgMesh.material = new THREE.MeshNormalMaterial();
+	// var nextBsp = spherebsp;
+	// HOLE_COORDINATES.forEach( function(hole){
+	// 	nextBsp = pokeHole( nextBsp, 10, hole );
+	// });
+	// csgMesh = nextBsp.toMesh();
+	// csgMesh.material = new THREE.MeshNormalMaterial();
+  var tetra = makeHaloObject(THREE.IcosahedronGeometry, 0.85);
+
+	var pokedbsp = pokeHole( tetra, 10, HOLE_COORDINATES );
+
+	csgMesh = tetra.toMesh();
+	csgMesh.material = makeShaders();
+  //getMaterial();
+
 	scene.add( csgMesh );
 
 	makeBall();
@@ -99,7 +120,7 @@ function pokeHole(shapebsp, extent, coordinates){
 
 	holeMesh.position.x = (extent/2) * Math.sin(coordinates[0]) * Math.cos(coordinates[1]);
 	holeMesh.position.y = (extent/2) * Math.sin(coordinates[0]) * Math.sin(coordinates[1]);
-	holeMesh.position.z = (extent/2) * Math.cos(coordinates[0]);	
+	holeMesh.position.z = (extent/2) * Math.cos(coordinates[0]);
 
 	holeMesh.rotation.x = coordinates[0] + (Math.PI/2);
 	holeMesh.rotation.y = coordinates[1];
@@ -138,15 +159,15 @@ function animate() {
 var THRESHOLD = 0.1;
 
 function evaluateCollision(){
-	var xDist = Math.abs(csgMesh.rotation.x - HOLE_COORDINATES[0]) 
-	var yDist = Math.abs(csgMesh.rotation.y - HOLE_COORDINATES[1]) 
-	var zDist = Math.abs(csgMesh.rotation.z - HOLE_COORDINATES[2]) 
+	var xDist = Math.abs(csgMesh.rotation.x - HOLE_COORDINATES[0])
+	var yDist = Math.abs(csgMesh.rotation.y - HOLE_COORDINATES[1])
+	var zDist = Math.abs(csgMesh.rotation.z - HOLE_COORDINATES[2])
 
 	if( (xDist < THRESHOLD && yDist < THRESHOLD) ||
 	    (xDist < THRESHOLD && zDist < THRESHOLD) ||
 	    (yDist < THRESHOLD && zDist < THRESHOLD) ){
 		console.log("HIT");
-		
+
 	}
 }
 
