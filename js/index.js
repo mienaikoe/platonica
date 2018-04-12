@@ -1,5 +1,5 @@
 var camera, scene, renderer;
-var geometry, material, mesh, worldMesh, csgMesh, ballMesh;
+var geometry, material, mesh, csgMesh, ballMesh;
 
 var velocityX = 0, velocityY = 0;
 var halfWidth = window.innerWidth / 2;
@@ -57,9 +57,9 @@ function makeShapes(haloRatio){
 }
 
 const HOLE_COORDINATES = [
-	0 * Math.PI,
-	0 * Math.PI,
-	0 * Math.PI
+	0 * Math.PI, 
+	0 * Math.PI, 
+	0.5 * Math.PI
 ];
 
 function init() {
@@ -68,10 +68,6 @@ function init() {
 
 	scene = new THREE.Scene();
 
-	var world = new THREE.CubeGeometry( 100, 100, 100 );
-	worldMesh = new THREE.Mesh( world );
-	worldMesh.material = new THREE.MeshBasicMaterial();
-
 	sphere = new THREE.SphereGeometry( 10, 32, 32 );
 	sphereMesh = new THREE.Mesh( sphere );
 	spherebsp = new ThreeBSP(sphere);
@@ -79,7 +75,6 @@ function init() {
 	var pokedbsp = pokeHole( spherebsp, 10, HOLE_COORDINATES );
 
 	csgMesh = pokedbsp.toMesh();
-	csgMesh.parent = worldMesh;
 	csgMesh.material = new THREE.MeshNormalMaterial();
 
 	scene.add( csgMesh );
@@ -108,7 +103,6 @@ function makeBall(){
 	ball = new THREE.SphereGeometry( 0.5, 32, 32 );
 	ballMesh = new THREE.Mesh( ball );
 	ballMesh.material = new THREE.MeshNormalMaterial();
-	ballMesh.parent = worldMesh;
 	scene.add(ballMesh);
 	ballMesh.position.set(0, 0, 11);
 }
@@ -117,7 +111,6 @@ function makeBall(){
 function animate() {
 	requestAnimationFrame( animate );
 
-	worldMesh.rotation.copy( csgMesh.rotation );
 	csgMesh.rotation.x += velocityX;
 	csgMesh.rotation.y += velocityY;
 
@@ -129,10 +122,19 @@ function animate() {
 	renderer.render( scene, camera );
 }
 
+
+var THRESHOLD = 0.1;
+
 function evaluateCollision(){
-	if( Math.abs(csgMesh.rotation.x - HOLE_COORDINATES[0]) < 0.1 &&
-	    Math.abs(csgMesh.rotation.y - HOLE_COORDINATES[1]) < 0.1 ){
+	var xDist = Math.abs(csgMesh.rotation.x - HOLE_COORDINATES[0]) 
+	var yDist = Math.abs(csgMesh.rotation.y - HOLE_COORDINATES[1]) 
+	var zDist = Math.abs(csgMesh.rotation.z - HOLE_COORDINATES[2]) 
+
+	if( (xDist < THRESHOLD && yDist < THRESHOLD) ||
+	    (xDist < THRESHOLD && zDist < THRESHOLD) ||
+	    (yDist < THRESHOLD && zDist < THRESHOLD) ){
 		console.log("HIT");
+		
 	}
 }
 
