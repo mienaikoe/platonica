@@ -1,5 +1,4 @@
 # Example file showing a basic pygame "game loop"
-from enum import Enum
 import pygame
 import moderngl as mgl
 from constants.dimensions import SCREEN_DIMENSIONS
