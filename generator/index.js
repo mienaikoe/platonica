@@ -1,5 +1,5 @@
 import { UNIT_HEIGHT, UNIT_WIDTH, SVG_PADDING } from "./constants.js";
-import drawShape from "./drawShape.js";
+import drawShape, { shapeScales } from "./drawShape.js";
 
 const shapeEl = document.getElementById("shapeInput");
 const depthEl = document.getElementById("depthInput");
@@ -62,8 +62,9 @@ const resetCanvas = () => {
   svg.innerHTML = "";
   const segmentHeight = UNIT_HEIGHT * (depth - 1);
   const segmentWidth = UNIT_WIDTH * (depth - 1);
-  svg.setAttribute("height", 2 * segmentHeight + 2 * SVG_PADDING);
-  svg.setAttribute("width", 2 * segmentWidth + 2 * SVG_PADDING);
+  const shapeScale = shapeScales[shape];
+  svg.setAttribute("height", shapeScale[1] * segmentHeight + 2 * SVG_PADDING);
+  svg.setAttribute("width", shapeScale[0] * segmentWidth + 2 * SVG_PADDING);
 };
 
 const render = () => {
