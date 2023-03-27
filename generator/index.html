@@ -1,18 +1,51 @@
 <html>
 <head>
+  <style>
+    body{
+      margin: 0;
+      padding: 1rem;
+    }
+
+    #controls {
+      margin: 1rem 0;
+    }
+
+    svg {
+      border: 1px solid #eee;
+    }
+
+    line.edge {
+      stroke: #555;
+      stroke-dasharray: 4 4;
+    }
+
+    line:not(.edge):hover {
+      opacity: 1;
+      cursor: pointer;
+    }
+
+    circle:not(.edge):hover{
+      fill: #888;
+      cursor: pointer;
+    }
+  </style>
 </head>
 
 <body>
   <h1>Platonica Maze Generator</h1>
+  <div id="controls">
+    <select id="shapeInput">
+      <option value="tetrahedron">tetrahedron</option>
+      <option value="cube">cube</option>
+      <option value="octahedron">octahedron</option>
+      <option value="dodecahedron">dodecahedron</option>
+      <option value="icosahedron">icosahedron</option>
+    </select>
+    <input type="number" id="depthInput" value="5" />
+    <button id="exportButton">Export</button>
+  </div>
+
   <svg width="800" height="600" id="svg" xmlns="http://www.w3.org/2000/svg" version="1.1"></svg>
-  <select id="shape">
-    <option value="tetrahedron">tetrahedron</option>
-    <option value="cube">cube</option>
-    <option value="octahedron">octahedron</option>
-    <option value="dodecahedron">dodecahedron</option>
-    <option value="icosahedron">icosahedron</option>
-  </select>
-  <input type="number" id="depth" value="5" />
 
   <script type="module" src="./index.js"></script>
 </body>

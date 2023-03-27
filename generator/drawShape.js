@@ -1,88 +1,231 @@
-const DEG_TO_RAD = Math.PI / 180;
+import { UNIT_HEIGHT, UNIT_WIDTH, TAN30, SVG_PADDING } from "./constants.js";
+import { drawLine, drawDot, drawGroup } from "./drawSvg.js";
 
-const depthDistance = 30; // pixels between each line, also triangle height
-const depthDistance60 = depthDistance / Math.sin(60 * DEG_TO_RAD);
+const strokeWidthInactive = 5;
+const opacityInactive = 0.3;
+const strokeWidthActive = 9;
+const opacityActive = 1;
+const colorActive = "black";
 
-const width = 800;
-const height = 600;
+const RED = "red";
+const GREEN = "green";
+const BLUE = "blue";
 
-const RED = "#FAA";
-const GREEN = "#AFA";
-const BLUE = "#AAF";
+/**
+ * type Vertex {
+    indices: [number, number], // red, blue
+    coordinates: [number, number], // x, y
+    paths: Path[],
+    type: "hole" | "start" | null
+  }
 
-const drawLine = (svg, color, from, to) => {
-  const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-  line.setAttribute("x1", from[0]);
-  line.setAttribute("y1", height - from[1]);
-  line.setAttribute("x2", to[0]);
-  line.setAttribute("y2", height - to[1]);
-  line.setAttribute("stroke", color);
-  line.setAttribute("stroke-width", "1");
-  svg.appendChild(line);
+  type Path {
+    from: [number, number], // red, blue
+    to: [number, number], // red, blue
+    active: boolean,
+  }
+ *
+ */
+
+const toggleEdge = (edge, line) => {
+  if (edge.active) {
+    edge.active = false;
+    line.setAttribute("stroke-width", strokeWidthInactive);
+    line.setAttribute("opacity", opacityInactive);
+    line.setAttribute("stroke", line.getAttribute("data-color-default"));
+  } else {
+    edge.active = true;
+    line.setAttribute("stroke-width", strokeWidthActive);
+    line.setAttribute("opacity", opacityActive);
+    line.setAttribute("stroke", colorActive);
+  }
 };
 
-const drawDot = (svg, position) => {
-  const dot = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-  dot.setAttribute("cx", position[0]);
-  dot.setAttribute("cy", height - position[1]);
-  dot.setAttribute("r", "2");
-  svg.appendChild(dot);
+const toggleVertex = (vertex, dot) => {
+  switch (vertex.type) {
+    case "hole":
+      vertex.type = "start";
+      dot.setAttribute("stroke", "goldenrod");
+      dot.setAttribute("fill", "goldenrod");
+      break;
+    case "start":
+      vertex.type = null;
+      dot.setAttribute("stroke", "black");
+      dot.setAttribute("fill", "black");
+      break;
+    default:
+      vertex.type = "hole";
+      dot.setAttribute("stroke", "black");
+      dot.setAttribute("fill", "white");
+      break;
+  }
 };
 
-const tetrahedron = (svg, depth) => {
-  const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
-  group.setAttribute("transform", "translate(20, -20)");
-  svg.appendChild(group);
+const createPath = (svgGroup, from, to, color, depth) => {
+  const newPath = {
+    indices: [from.indices, to.indices],
+    active: false,
+  };
 
+  const pathKeyA = newPath.indices.toString();
+  const pathKeyB = newPath.indices.reverse().toString();
+
+  const existingFrom = from.paths.find((path) => {
+    const pathKey = path.indices.toString();
+    return pathKey === pathKeyA || pathKey === pathKeyB;
+  });
+  if (!existingFrom) {
+    from.paths.push(newPath);
+  }
+
+  const existingTo = to.paths.find((path) => {
+    const pathKey = path.indices.toString();
+    return pathKey === pathKeyA || pathKey === pathKeyB;
+  });
+  if (!existingTo) {
+    to.paths.push(newPath);
+  }
+
+  const line = drawLine(svgGroup, from.coordinates, to.coordinates, {
+    stroke: color,
+    "data-color-default": color,
+    "stroke-width": strokeWidthInactive,
+    opacity: opacityInactive,
+  });
+
+  const isEdgePiece =
+    (from.indices[0] === 0 && to.indices[0] === 0) || // red
+    (from.indices[1] === 0 && to.indices[1] === 0) || // blue
+    (from.indices[0] + from.indices[1] === depth - 1 &&
+      to.indices[0] + to.indices[1] === depth - 1); // green
+
+  if (isEdgePiece) {
+    line.setAttribute("class", "edge");
+  } else {
+    line.addEventListener("click", () => {
+      toggleEdge(newPath, line);
+    });
+  }
+};
+
+const renderVertex = (group, vertex, depth) => {
+  const dot = drawDot(group, vertex, {
+    r: 6,
+    fill: "black",
+    "stroke-width": 4,
+    stroke: "black",
+  });
+
+  const isEdgePiece =
+    vertex.indices[0] === 0 || // red
+    vertex.indices[1] === 0 || // blue
+    vertex.indices[0] + vertex.indices[1] === depth - 1; // green
+
+  if (isEdgePiece) {
+    dot.setAttribute("class", "edge");
+  } else {
+    dot.addEventListener("click", () => {
+      toggleVertex(vertex, dot);
+    });
+  }
+};
+
+const drawTriangle = (group, depth) => {
   // construct vertices
-  const vertexGroups = [];
-  for (let greenIdx = 0; greenIdx <= depth; greenIdx++) {
-    vertexGroups[greenIdx] = [];
-    const shift60 = greenIdx * depthDistance60;
-    const vertexCount = depth - greenIdx;
-    for (let redIdx = 0; redIdx <= vertexCount; redIdx++) {
-      const yToX = Math.tan(30 * DEG_TO_RAD);
-      const coordinates = [
-        yToX * redIdx * depthDistance + shift60,
-        redIdx * depthDistance,
-      ];
-      vertexGroups[greenIdx][redIdx] = coordinates;
+  const vertices = []; // Vertex[][]
+  for (let redIdx = 0; redIdx < depth; redIdx++) {
+    vertices[redIdx] = [];
+    const redShift = redIdx * UNIT_WIDTH;
+    const vertexCount = depth - redIdx - 1;
+    for (let blueIdx = 0; blueIdx <= vertexCount; blueIdx++) {
+      const y = blueIdx * UNIT_HEIGHT;
+      const x = TAN30 * y + redShift;
+
+      vertices[redIdx][blueIdx] = {
+        indices: [redIdx, blueIdx],
+        coordinates: [x, y],
+        paths: [],
+        type: null,
+      };
     }
   }
 
-  for (
-    let vertexGroupIx = 0;
-    vertexGroupIx < vertexGroups.length;
-    vertexGroupIx++
-  ) {
-    const vertices = vertexGroups[vertexGroupIx];
-    for (let vertexIx = 0; vertexIx < vertices.length; vertexIx++) {
-      const vertex = vertices[vertexIx];
+  for (let redIdx = 0; redIdx < vertices.length; redIdx++) {
+    const redVertices = vertices[redIdx];
+    for (let blueIdx = 0; blueIdx < redVertices.length; blueIdx++) {
+      const vertex = redVertices[blueIdx];
 
-      const redVertex = vertices[vertexIx + 1];
+      const redVertex = redVertices[blueIdx + 1];
       if (redVertex) {
-        drawLine(group, RED, vertex, redVertex);
+        createPath(group, vertex, redVertex, RED, depth);
       }
 
-      const greenVertexGroup = vertexGroups[vertexGroupIx + 1];
-      const greenVertex = greenVertexGroup && greenVertexGroup[vertexIx - 1];
+      const greenVertices = vertices[redIdx + 1];
+      const greenVertex = greenVertices && greenVertices[blueIdx - 1];
       if (greenVertex) {
-        drawLine(group, GREEN, vertex, greenVertex);
+        createPath(group, vertex, greenVertex, GREEN, depth);
       }
 
-      const blueVertexGroup = vertexGroups[vertexGroupIx + 1];
-      const blueVertex = blueVertexGroup && blueVertexGroup[vertexIx];
+      const blueVertices = vertices[redIdx + 1];
+      const blueVertex = blueVertices && blueVertices[blueIdx];
       if (blueVertex) {
-        drawLine(group, BLUE, vertex, blueVertex);
+        createPath(group, vertex, blueVertex, BLUE, depth);
       }
 
-      drawDot(group, vertex);
+      renderVertex(group, vertex, depth);
     }
   }
+
+  return vertices;
+};
+
+const drawTetrahedron = (svg, depth) => {
+  const midpoint = [
+    svg.getAttribute("width") / 2,
+    svg.getAttribute("height") / 2,
+  ];
+
+  const containerGroup = drawGroup(svg);
+  containerGroup.setAttribute(
+    "transform",
+    `translate(-${SVG_PADDING}, -${SVG_PADDING}) rotate(180, ${midpoint[0]}, ${midpoint[1]})`
+  );
+
+  const fullPoint = [UNIT_WIDTH * (depth - 1), UNIT_HEIGHT * (depth - 1)];
+  const segmentVertices = {};
+
+  const triangleA = drawGroup(containerGroup);
+  segmentVertices.A = drawTriangle(triangleA, depth);
+
+  const triangleB = drawGroup(containerGroup);
+  triangleB.setAttribute("transform", `translate(${fullPoint[0]}, 0)`);
+  segmentVertices.B = drawTriangle(triangleB, depth);
+
+  const triangleC = drawGroup(containerGroup);
+  triangleC.setAttribute(
+    "transform",
+    `
+    translate(${fullPoint[0] / 2} ${fullPoint[1]})
+    rotate(180 ${fullPoint[0] / 2} 0)
+    `
+  );
+  segmentVertices.C = drawTriangle(triangleC, depth);
+
+  const triangleD = drawGroup(containerGroup);
+  triangleD.setAttribute(
+    "transform",
+    `
+    translate(${fullPoint[0] / 2}, ${fullPoint[1]})
+    `
+  );
+  segmentVertices.D = drawTriangle(triangleD, depth);
+
+  return segmentVertices;
 };
 
 const drawShape = {
-  tetrahedron,
+  triangle: drawTriangle,
+  tetrahedron: drawTetrahedron,
 };
 
 export default drawShape;
