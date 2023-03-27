@@ -60,11 +60,9 @@ const svg = document.getElementById("svg");
 
 const resetCanvas = () => {
   svg.innerHTML = "";
-  const segmentHeight = UNIT_HEIGHT * (depth - 1);
-  const segmentWidth = UNIT_WIDTH * (depth - 1);
   const shapeScale = shapeScales[shape];
-  svg.setAttribute("height", shapeScale[1] * segmentHeight + 2 * SVG_PADDING);
-  svg.setAttribute("width", shapeScale[0] * segmentWidth + 2 * SVG_PADDING);
+  svg.setAttribute("height", shapeScale[1] * (depth - 1) + 2 * SVG_PADDING);
+  svg.setAttribute("width", shapeScale[0] * (depth - 1) + 2 * SVG_PADDING);
 };
 
 const render = () => {

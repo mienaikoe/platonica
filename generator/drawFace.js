@@ -137,6 +137,25 @@ const CoordinateSystems = {
       ); // green
     },
   },
+  square: {
+    isPathEdge: (vertexA, vertexB, depth) => {
+      return (
+        (vertexA.indices[0] === 0 && vertexB.indices[0] === 0) ||
+        (vertexA.indices[1] === 0 && vertexB.indices[1] === 0) ||
+        (vertexA.indices[0] === depth - 1 &&
+          vertexB.indices[0] === depth - 1) ||
+        (vertexA.indices[1] === depth - 1 && vertexB.indices[1] === depth - 1)
+      );
+    },
+    isVertexEdge: (vertex, depth) => {
+      return (
+        vertex.indices[0] === 0 ||
+        vertex.indices[1] === 0 ||
+        vertex.indices[0] === depth - 1 ||
+        vertex.indices[1] === depth - 1
+      );
+    },
+  },
 };
 
 export const drawTriangle = (group, depth) => {
@@ -186,6 +205,63 @@ export const drawTriangle = (group, depth) => {
           greenVertex,
           GREEN,
           coordinateSystem.isPathEdge(vertex, greenVertex, depth)
+        );
+      }
+
+      const blueVertices = vertices[redIdx + 1];
+      const blueVertex = blueVertices && blueVertices[blueIdx];
+      if (blueVertex) {
+        createPath(
+          group,
+          vertex,
+          blueVertex,
+          BLUE,
+          coordinateSystem.isPathEdge(vertex, blueVertex, depth)
+        );
+      }
+
+      renderVertex(
+        group,
+        vertex,
+        depth,
+        coordinateSystem.isVertexEdge(vertex, depth)
+      );
+    }
+  }
+
+  return vertices;
+};
+
+export const drawSquare = (group, depth) => {
+  const coordinateSystem = CoordinateSystems.square;
+
+  // construct vertices
+  const vertices = []; // Vertex[][]
+  for (let redIdx = 0; redIdx < depth; redIdx++) {
+    vertices[redIdx] = [];
+    for (let blueIdx = 0; blueIdx < depth; blueIdx++) {
+      vertices[redIdx][blueIdx] = {
+        indices: [redIdx, blueIdx],
+        coordinates: [redIdx * UNIT_WIDTH, blueIdx * UNIT_WIDTH],
+        paths: [],
+        type: null,
+      };
+    }
+  }
+
+  for (let redIdx = 0; redIdx < vertices.length; redIdx++) {
+    const redVertices = vertices[redIdx];
+    for (let blueIdx = 0; blueIdx < redVertices.length; blueIdx++) {
+      const vertex = redVertices[blueIdx];
+
+      const redVertex = redVertices[blueIdx + 1];
+      if (redVertex) {
+        createPath(
+          group,
+          vertex,
+          redVertex,
+          RED,
+          coordinateSystem.isPathEdge(vertex, redVertex, depth)
         );
       }
 
