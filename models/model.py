@@ -9,15 +9,19 @@ MOVEMENT_DEG_PER_DELTA = 0.001
 
 
 class Model:
-    def __init__(self, ctx: moderngl.Context, camera: Camera):
+    def __init__(self, ctx: moderngl.Context, camera: Camera, texture = None):
         self.ctx = ctx
         self.camera = camera
-        self.shader_program = self.get_shader_program("default")
+        self.shader_program = self.get_shader_program("image" if texture else "default")
+        self.shader_program['u_texture_0'] = 0
+        if texture:
+            texture.use()
         self.shader_program["m_proj"].write(camera.projection_matrix)
         self.shader_program["m_view"].write(camera.view_matrix)
         self.m_model = glm.mat4()
         self.vertex_buffer_object = self.get_vertex_buffer_object()
         self.vertex_array_object = self.get_vertex_array_object()
+
 
     def render(self, delta_time: int):
         self.shader_program["m_model"].write(self.m_model)
