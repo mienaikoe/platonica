@@ -1,4 +1,4 @@
-import { UNIT_HEIGHT, UNIT_WIDTH, SVG_PADDING } from "./constants.js";
+import { UNIT_HEIGHT, UNIT_WIDTH_60, SVG_PADDING } from "./constants.js";
 import drawShape, { shapeScales } from "./drawShape.js";
 
 const shapeEl = document.getElementById("shapeInput");
@@ -31,8 +31,8 @@ exportEl.addEventListener("click", () => {
         return {
           ...vertex,
           coordinates: [
-            vertex.coordinates[0] / UNIT_WIDTH,
-            vertex.coordinates[1] / UNIT_WIDTH,
+            vertex.coordinates[0] / UNIT_HEIGHT,
+            vertex.coordinates[1] / UNIT_HEIGHT,
           ],
           paths: vertex.paths.filter((path) => path.active),
         };

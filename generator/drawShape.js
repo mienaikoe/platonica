@@ -1,6 +1,12 @@
-import { UNIT_HEIGHT, UNIT_WIDTH, SVG_PADDING } from "./constants.js";
+import {
+  UNIT_HEIGHT,
+  UNIT_WIDTH_60,
+  SVG_PADDING,
+  UNIT_WIDTH_72,
+  UNIT_WIDTH_54,
+} from "./constants.js";
 import { drawGroup } from "./drawSvg.js";
-import { drawSquare, drawTriangle } from "./drawFace.js";
+import { drawPentagon, drawSquare, drawTriangle } from "./drawFace.js";
 
 const drawTetrahedron = (svg, depth) => {
   const midpoint = [
@@ -14,7 +20,7 @@ const drawTetrahedron = (svg, depth) => {
     `translate(-${SVG_PADDING}, -${SVG_PADDING}) rotate(180, ${midpoint[0]}, ${midpoint[1]})`
   );
 
-  const fullPoint = [UNIT_WIDTH * (depth - 1), UNIT_HEIGHT * (depth - 1)];
+  const fullPoint = [UNIT_WIDTH_60 * (depth - 1), UNIT_HEIGHT * (depth - 1)];
   const segmentVertices = {};
 
   const triangleA = drawGroup(containerGroup);
@@ -58,7 +64,7 @@ const drawCube = (svg, depth) => {
     `translate(-${SVG_PADDING}, -${SVG_PADDING}) rotate(180, ${midpoint[0]}, ${midpoint[1]})`
   );
 
-  const fullPoint = UNIT_WIDTH * (depth - 1);
+  const fullPoint = UNIT_HEIGHT * (depth - 1);
   const segmentTranslations = {
     A: [0, 1],
     B: [1, 0],
@@ -95,7 +101,7 @@ const drawOctahedron = (svg, depth) => {
     `translate(-${SVG_PADDING}, -${SVG_PADDING}) rotate(180, ${midpoint[0]}, ${midpoint[1]})`
   );
 
-  const fullPoint = [UNIT_WIDTH * (depth - 1), UNIT_HEIGHT * (depth - 1)];
+  const fullPoint = [UNIT_WIDTH_60 * (depth - 1), UNIT_HEIGHT * (depth - 1)];
   const segmentVertices = {};
 
   const segmentPairs = [
@@ -139,7 +145,7 @@ const drawIcosahedron = (svg, depth) => {
     `translate(-${SVG_PADDING}, -${SVG_PADDING}) rotate(180, ${midpoint[0]}, ${midpoint[1]})`
   );
 
-  const fullPoint = [UNIT_WIDTH * (depth - 1), UNIT_HEIGHT * (depth - 1)];
+  const fullPoint = [UNIT_WIDTH_60 * (depth - 1), UNIT_HEIGHT * (depth - 1)];
   const segmentVertices = {};
 
   const segmentQuads = [
@@ -187,18 +193,46 @@ const drawIcosahedron = (svg, depth) => {
   return segmentVertices;
 };
 
+const drawDodecahedron = (svg, depth) => {
+  const midpoint = [
+    svg.getAttribute("width") / 2,
+    svg.getAttribute("height") / 2,
+  ];
+
+  const containerGroup = drawGroup(svg);
+  containerGroup.setAttribute(
+    "transform",
+    `translate(-${SVG_PADDING}, -${SVG_PADDING})`
+  );
+
+  const fullPoint = [UNIT_WIDTH_60 * (depth - 1), UNIT_HEIGHT * (depth - 1)];
+  const segmentVertices = {};
+
+  const segmentGroups = [
+    ["A", "B", "C", "D", "E", "F"],
+    ["G", "H", "I", "J", "K", "L"],
+  ];
+
+  segmentGroups.forEach((segmentGroup, ix) => {
+    const bottomLeftPentagon = drawGroup(containerGroup);
+    segmentVertices[segmentGroup[0]] = drawPentagon(bottomLeftPentagon, depth);
+  });
+};
+
 const drawShape = {
   tetrahedron: drawTetrahedron,
   cube: drawCube,
   octahedron: drawOctahedron,
+  dodecahedron: drawDodecahedron,
   icosahedron: drawIcosahedron,
 };
 
 export const shapeScales = {
-  tetrahedron: [2 * UNIT_WIDTH, 2 * UNIT_HEIGHT],
-  cube: [3 * UNIT_WIDTH, 3 * UNIT_WIDTH],
-  octahedron: [4 * UNIT_WIDTH, 2 * UNIT_HEIGHT],
-  icosahedron: [5.5 * UNIT_WIDTH, 3 * UNIT_HEIGHT],
+  tetrahedron: [2 * UNIT_WIDTH_60, 2 * UNIT_HEIGHT],
+  cube: [3 * UNIT_HEIGHT, 3 * UNIT_HEIGHT],
+  octahedron: [4 * UNIT_WIDTH_60, 2 * UNIT_HEIGHT],
+  dodecahedron: [6 * UNIT_WIDTH_54 * 3, 3 * UNIT_WIDTH_54 * 3],
+  icosahedron: [5.5 * UNIT_WIDTH_60, 3 * UNIT_HEIGHT],
 };
 
 export default drawShape;

@@ -1,4 +1,12 @@
-import { UNIT_HEIGHT, UNIT_WIDTH, TAN30 } from "./constants.js";
+import {
+  UNIT_HEIGHT,
+  UNIT_WIDTH_60,
+  TAN30,
+  DEG_TO_RAD,
+  UNIT_WIDTH_72,
+  SIN72,
+  UNIT_WIDTH_54,
+} from "./constants.js";
 import { drawLine, drawDot } from "./drawSvg.js";
 
 const strokeWidthInactive = 5;
@@ -14,6 +22,13 @@ const BLUE = "blue";
 /**
  * type Vertex {
     indices: [number, number], // red, blue
+    coordinates: [number, number], // x, y
+    paths: Path[],
+    type: "hole" | "start" | null
+  }
+
+  type PentagonVertex {
+    indices: [number, number], // red, blue, segment [0,1,2,3,4] clockwise from the bottom
     coordinates: [number, number], // x, y
     paths: Path[],
     type: "hole" | "start" | null
@@ -126,7 +141,7 @@ const CoordinateSystems = {
         (vertexA.indices[0] === 0 && vertexB.indices[0] === 0) ||
         (vertexA.indices[1] === 0 && vertexB.indices[1] === 0) ||
         (vertexA.indices[0] + vertexA.indices[1] === depth - 1 &&
-          vertexB.indices[0] + vertexA.indices[1] === depth - 1)
+          vertexB.indices[0] + vertexB.indices[1] === depth - 1)
       );
     },
     isVertexEdge: (vertex, depth) => {
@@ -156,6 +171,14 @@ const CoordinateSystems = {
       );
     },
   },
+  pentagon: {
+    isPathEdge: (vertexA, vertexB, depth) => {
+      return vertexA.indices[2] === 0 && vertexB.indices[2] === 0;
+    },
+    isVertexEdge: (vertex, depth) => {
+      return vertex.indices[2] === 0;
+    },
+  },
 };
 
 export const drawTriangle = (group, depth) => {
@@ -165,7 +188,7 @@ export const drawTriangle = (group, depth) => {
   const vertices = []; // Vertex[][]
   for (let redIdx = 0; redIdx < depth; redIdx++) {
     vertices[redIdx] = [];
-    const redShift = redIdx * UNIT_WIDTH;
+    const redShift = redIdx * UNIT_WIDTH_60;
     const vertexCount = depth - redIdx - 1;
     for (let blueIdx = 0; blueIdx <= vertexCount; blueIdx++) {
       const y = blueIdx * UNIT_HEIGHT;
@@ -242,7 +265,7 @@ export const drawSquare = (group, depth) => {
     for (let blueIdx = 0; blueIdx < depth; blueIdx++) {
       vertices[redIdx][blueIdx] = {
         indices: [redIdx, blueIdx],
-        coordinates: [redIdx * UNIT_WIDTH, blueIdx * UNIT_WIDTH],
+        coordinates: [redIdx * UNIT_HEIGHT, blueIdx * UNIT_HEIGHT],
         paths: [],
         type: null,
       };
@@ -283,6 +306,114 @@ export const drawSquare = (group, depth) => {
         depth,
         coordinateSystem.isVertexEdge(vertex, depth)
       );
+    }
+  }
+
+  return vertices;
+};
+
+export const drawPentagon = (group, depth) => {
+  const coordinateSystem = CoordinateSystems.pentagon;
+
+  // depth represents the length (R) of each leg of the isosceles
+  // triangle that makes up the pentagon (72-54-54)
+  // r/R = sin(54)
+  // a/2R = cos(54)
+  // total pentagon x span = 2 * R * sin(72)
+  // total pentagon y span = 2 * r
+
+  const rotationCenter = [
+    (depth - 1) * UNIT_WIDTH_54 * SIN72,
+    (depth - 1) * UNIT_HEIGHT,
+  ];
+
+  const pentagonTriangleBase = (depth - 1) * UNIT_WIDTH_54; // a
+
+  const bottomPentagonX = pentagonTriangleBase * Math.cos(72 * DEG_TO_RAD);
+
+  // construct vertices
+  const vertices = []; // Vertex[][][]
+  for (let segmentIdx = 0; segmentIdx < 5; segmentIdx++) {
+    const rotationAngle = segmentIdx * -72 * DEG_TO_RAD;
+    const rotateCoordinates = (coordinates) => {
+      const relativeCoordinates = [
+        rotationCenter[0] - (bottomPentagonX + coordinates[0]),
+        rotationCenter[1] - coordinates[1],
+      ];
+      return [
+        relativeCoordinates[0] * Math.cos(rotationAngle) -
+          relativeCoordinates[1] * Math.sin(rotationAngle),
+        relativeCoordinates[0] * Math.sin(rotationAngle) +
+          relativeCoordinates[1] * Math.cos(rotationAngle),
+      ];
+    };
+    vertices[segmentIdx] = [];
+    for (let redIdx = 0; redIdx < depth; redIdx++) {
+      vertices[segmentIdx][redIdx] = [];
+      const redShift = redIdx * UNIT_WIDTH_60;
+      const vertexCount = depth - redIdx - 1;
+      for (let blueIdx = 0; blueIdx <= vertexCount; blueIdx++) {
+        const y = blueIdx * UNIT_HEIGHT;
+        const x = TAN30 * y + redShift;
+
+        vertices[segmentIdx][redIdx][blueIdx] = {
+          indices: [segmentIdx, redIdx, blueIdx],
+          coordinates: rotateCoordinates([x, y]),
+          paths: [],
+          type: null,
+        };
+      }
+    }
+  }
+  for (let segmentIdx = 0; segmentIdx < 5; segmentIdx++) {
+    const segmentVertices = vertices[segmentIdx];
+    for (let redIdx = 0; redIdx < segmentVertices.length; redIdx++) {
+      const redVertices = segmentVertices[redIdx];
+      for (let blueIdx = 0; blueIdx < redVertices.length; blueIdx++) {
+        const vertex = redVertices[blueIdx];
+
+        const redVertex = redVertices[blueIdx + 1];
+        if (redVertex) {
+          createPath(
+            group,
+            vertex,
+            redVertex,
+            RED,
+            coordinateSystem.isPathEdge(vertex, redVertex, depth)
+          );
+        }
+
+        const greenVertices = segmentVertices[redIdx + 1];
+        const greenVertex = greenVertices && greenVertices[blueIdx - 1];
+        if (greenVertex) {
+          createPath(
+            group,
+            vertex,
+            greenVertex,
+            GREEN,
+            coordinateSystem.isPathEdge(vertex, greenVertex, depth)
+          );
+        }
+
+        const blueVertices = segmentVertices[redIdx + 1];
+        const blueVertex = blueVertices && blueVertices[blueIdx];
+        if (blueVertex) {
+          createPath(
+            group,
+            vertex,
+            blueVertex,
+            BLUE,
+            coordinateSystem.isPathEdge(vertex, blueVertex, depth)
+          );
+        }
+
+        renderVertex(
+          group,
+          vertex,
+          depth,
+          coordinateSystem.isVertexEdge(vertex, depth)
+        );
+      }
     }
   }
 
