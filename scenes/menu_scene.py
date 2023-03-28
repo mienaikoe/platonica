@@ -4,6 +4,7 @@ from constants.dimensions import SCREEN_DIMENSIONS
 from scenes.scene import Scene
 from constants.mode import Mode
 from models.cube import Cube
+from models.tetra import Tetrahedron
 from engine.camera import Camera
 
 button_dimensions = (160, 40)
@@ -24,7 +25,7 @@ class MenuScene(Scene):
 
     def init(self):
         self.camera = Camera(self.ctx)
-        self.subject = Cube(self.ctx, self.camera)
+        self.subject = Tetrahedron(self.ctx, self.camera)
 
     def handle_events(self, delta_time: int):
         self.subject.handle_events(delta_time)
