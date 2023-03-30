@@ -19,7 +19,7 @@ face_indices = [
 
 geom_vertices = triangle_vertices_from_indices(corners, face_indices)
 
-texture_corners = [(1, 0), (1, 0), (1, 1)]
+texture_corners = [(1, 0), (1, 0), (1, 1)] #red, red, yellow
 texture_indices = [
     (0, 1, 2),
     (2, 0, 1),

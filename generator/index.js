@@ -1,11 +1,11 @@
-import { UNIT_HEIGHT, UNIT_WIDTH_60, SVG_PADDING } from "./constants.js";
-import drawShape, { shapeScales } from "./drawShape.js";
+import { UNIT_HEIGHT, SVG_PADDING } from "./constants.js";
+import drawShape, { shapeScales, shapeWidths } from "./drawShape.js";
 
 const shapeEl = document.getElementById("shapeInput");
 const depthEl = document.getElementById("depthInput");
 const exportEl = document.getElementById("exportButton");
 
-let segmentVertices = {};
+let faceVertices = {};
 
 let shape = shapeEl.value;
 shapeEl.addEventListener("change", () => {
@@ -21,25 +21,48 @@ depthEl.addEventListener("change", () => {
 
 exportEl.addEventListener("click", () => {
   const dataPayload = {
+    shape,
     depth,
-    segments: {},
+    faces: {},
   };
-  for (let key in segmentVertices) {
-    const redVertices = segmentVertices[key];
-    const simplifiedVertices = redVertices.map((greenVertices) => {
-      return greenVertices.map((vertex) => {
-        return {
-          ...vertex,
+
+  const faceWidth = shapeWidths[shape] * (depth - 1);
+
+  for (let key in faceVertices) {
+    const redVertices = faceVertices[key];
+
+    const simplifiedVertices = [];
+    const simplifiedPaths = new Map();
+
+    redVertices.forEach((greenVertices) => {
+      const usefulVertices = greenVertices.filter((vertex) =>
+        vertex.paths.find((path) => path.active)
+      );
+
+      usefulVertices.forEach((vertex) => {
+        simplifiedVertices.push({
+          indices: vertex.indices,
           coordinates: [
-            vertex.coordinates[0] / UNIT_HEIGHT,
-            vertex.coordinates[1] / UNIT_HEIGHT,
+            vertex.coordinates[0] / faceWidth,
+            vertex.coordinates[1] / faceWidth,
           ],
-          paths: vertex.paths.filter((path) => path.active),
-        };
+          type: vertex.type,
+        });
+        vertex.paths
+          .filter((path) => path.active)
+          .forEach((path) => {
+            const pathKey = JSON.stringify(path.indices);
+            if (!simplifiedPaths.has(pathKey)) {
+              simplifiedPaths.set(pathKey, path.indices);
+            }
+          });
       });
     });
 
-    dataPayload.segments[key] = simplifiedVertices;
+    dataPayload.faces.push({
+      vertices: simplifiedVertices,
+      paths: Array.from(simplifiedPaths.values()),
+    });
   }
   var dataStr =
     "data:text/json;charset=utf-8," +
@@ -67,7 +90,7 @@ const resetCanvas = () => {
 
 const render = () => {
   resetCanvas();
-  segmentVertices = drawShape[shape](svg, depth);
+  faceVertices = drawShape[shape](svg, depth);
 };
 
 render();

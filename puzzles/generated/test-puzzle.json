@@ -1,0 +1,170 @@
+{
+  "shape": "tetrahedron",
+  "depth": 5,
+  "faces": [
+    {
+      "vertices": [
+        {
+          "indices": [0, 3],
+          "coordinates": [0.37499999999999994, 0.6495190528383289],
+          "type": null
+        },
+        {
+          "indices": [1, 2],
+          "coordinates": [0.5, 0.4330127018922193],
+          "type": null
+        },
+        {
+          "indices": [2, 1],
+          "coordinates": [0.625, 0.21650635094610965],
+          "type": null
+        },
+        { "indices": [3, 0], "coordinates": [0.75, 0], "type": null }
+      ],
+      "paths": [
+        [
+          [1, 2],
+          [0, 3]
+        ],
+        [
+          [2, 1],
+          [1, 2]
+        ],
+        [
+          [3, 0],
+          [2, 1]
+        ]
+      ]
+    },
+    {
+      "vertices": [
+        { "indices": [1, 0], "coordinates": [0.25, 0], "type": null },
+        {
+          "indices": [1, 1],
+          "coordinates": [0.375, 0.21650635094610965],
+          "type": null
+        },
+        {
+          "indices": [1, 2],
+          "coordinates": [0.5, 0.4330127018922193],
+          "type": null
+        },
+        {
+          "indices": [1, 3],
+          "coordinates": [0.6249999999999999, 0.6495190528383289],
+          "type": null
+        }
+      ],
+      "paths": [
+        [
+          [1, 1],
+          [1, 0]
+        ],
+        [
+          [1, 2],
+          [1, 1]
+        ],
+        [
+          [1, 3],
+          [1, 2]
+        ]
+      ]
+    },
+    {
+      "vertices": [
+        { "indices": [1, 0], "coordinates": [0.25, 0], "type": null },
+        {
+          "indices": [1, 1],
+          "coordinates": [0.375, 0.21650635094610965],
+          "type": null
+        },
+        {
+          "indices": [1, 2],
+          "coordinates": [0.5, 0.4330127018922193],
+          "type": "start"
+        },
+        {
+          "indices": [2, 1],
+          "coordinates": [0.625, 0.21650635094610965],
+          "type": null
+        },
+        { "indices": [3, 0], "coordinates": [0.75, 0], "type": null }
+      ],
+      "paths": [
+        [
+          [1, 1],
+          [1, 0]
+        ],
+        [
+          [1, 2],
+          [1, 1]
+        ],
+        [
+          [2, 1],
+          [1, 2]
+        ],
+        [
+          [3, 0],
+          [2, 1]
+        ]
+      ]
+    },
+    {
+      "vertices": [
+        {
+          "indices": [0, 1],
+          "coordinates": [0.12499999999999999, 0.21650635094610965],
+          "type": null
+        },
+        { "indices": [1, 0], "coordinates": [0.25, 0], "type": null },
+        {
+          "indices": [1, 1],
+          "coordinates": [0.375, 0.21650635094610965],
+          "type": null
+        },
+        {
+          "indices": [1, 2],
+          "coordinates": [0.5, 0.4330127018922193],
+          "type": "hole"
+        },
+        {
+          "indices": [2, 1],
+          "coordinates": [0.625, 0.21650635094610965],
+          "type": null
+        },
+        { "indices": [3, 0], "coordinates": [0.75, 0], "type": null },
+        {
+          "indices": [3, 1],
+          "coordinates": [0.8749999999999999, 0.21650635094610965],
+          "type": null
+        }
+      ],
+      "paths": [
+        [
+          [1, 0],
+          [0, 1]
+        ],
+        [
+          [1, 1],
+          [1, 0]
+        ],
+        [
+          [1, 2],
+          [1, 1]
+        ],
+        [
+          [2, 1],
+          [1, 2]
+        ],
+        [
+          [3, 0],
+          [2, 1]
+        ],
+        [
+          [3, 1],
+          [3, 0]
+        ]
+      ]
+    }
+  ]
+}

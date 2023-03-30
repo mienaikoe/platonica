@@ -145,6 +145,7 @@ const CoordinateSystems = {
       );
     },
     isVertexEdge: (vertex, depth) => {
+      console.log(vertex.indices);
       return (
         vertex.indices[0] === 0 || // red
         vertex.indices[1] === 0 || // blue
@@ -173,10 +174,10 @@ const CoordinateSystems = {
   },
   pentagon: {
     isPathEdge: (vertexA, vertexB, depth) => {
-      return vertexA.indices[2] === 0 && vertexB.indices[2] === 0;
+      return vertexA.indices[1] === 0 && vertexB.indices[1] === 0;
     },
     isVertexEdge: (vertex, depth) => {
-      return vertex.indices[2] === 0;
+      return vertex.indices[1] === 0;
     },
   },
 };
@@ -243,12 +244,7 @@ export const drawTriangle = (group, depth) => {
         );
       }
 
-      renderVertex(
-        group,
-        vertex,
-        depth,
-        coordinateSystem.isVertexEdge(vertex, depth)
-      );
+      renderVertex(group, vertex, coordinateSystem.isVertexEdge(vertex, depth));
     }
   }
 
@@ -300,12 +296,7 @@ export const drawSquare = (group, depth) => {
         );
       }
 
-      renderVertex(
-        group,
-        vertex,
-        depth,
-        coordinateSystem.isVertexEdge(vertex, depth)
-      );
+      renderVertex(group, vertex, coordinateSystem.isVertexEdge(vertex, depth));
     }
   }
 
@@ -410,7 +401,6 @@ export const drawPentagon = (group, depth) => {
         renderVertex(
           group,
           vertex,
-          depth,
           coordinateSystem.isVertexEdge(vertex, depth)
         );
       }

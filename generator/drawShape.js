@@ -235,4 +235,12 @@ export const shapeScales = {
   icosahedron: [5.5 * UNIT_WIDTH_60, 3 * UNIT_HEIGHT],
 };
 
+export const shapeWidths = {
+  tetrahedron: UNIT_WIDTH_60,
+  cube: UNIT_HEIGHT,
+  octahedron: UNIT_WIDTH_60,
+  dodecahedron: UNIT_WIDTH_54,
+  icosahedron: UNIT_WIDTH_60,
+};
+
 export default drawShape;

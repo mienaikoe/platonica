@@ -3,14 +3,14 @@ import numpy as np
 from models.helpers import triangle_vertices_from_indices
 
 cube_corners = [
-    (-1, -1, 1),
-    (1, -1, 1),
-    (1, 1, 1),
-    (-1, 1, 1),
-    (-1, 1, -1),
-    (-1, -1, -1),
-    (1, -1, -1),
-    (1, 1, -1),
+    (-1, -1, 1),    # 0
+    (1, -1, 1),     # 1
+    (1, 1, 1),      # 2
+    (-1, 1, 1),     # 3
+    (-1, 1, -1),    # 4
+    (-1, -1, -1),   # 5
+    (1, -1, -1),    # 6
+    (1, 1, -1),     # 7
 ]
 cube_indices = [
     (0, 2, 3),
@@ -27,7 +27,7 @@ cube_indices = [
     (0, 5, 6),
 ]
 cube_vertices = triangle_vertices_from_indices(cube_corners, cube_indices)
-texture_corners = [(0, 0), (1, 0), (1, 1), (0, 1)]
+texture_corners = [(0, 0), (1, 0), (1, 1), (0, 1)] # black, red, yellow, green
 texture_indices = [
     (0, 2, 3),
     (0, 1, 2),
