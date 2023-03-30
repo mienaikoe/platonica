@@ -1,33 +1,32 @@
 from __future__ import annotations
 from enum import Enum
-import glm
 
 class PuzzleNodeType(Enum):
   start = 'start'
   hole = 'hole'
 
 class PuzzleNode:
+
   @staticmethod
-  def merge(puzzle_node_a: PuzzleNode, puzzle_node_b: PuzzleNode):
+  def from_node_json(face, node_json: dict):
     return PuzzleNode(
-      indices=None,
-      coordinates=puzzle_node_a.coordinates,
-      type=None,
-      paths=puzzle_node_a.paths + puzzle_node_b.paths
+      face,
+      node_json['indices'],
+      node_json['coordinates'],
+      node_json['type'],
+      []
     )
 
-  @staticmethod
-  def from_node_json(transformation_matrix: glm.mat4, node_json: dict):
-    # TODO: Get transformation matrix from face_key
-    flat_coordinates = node_json['coordinates']
-    glm_coordinates = glm.vec3()
-    return PuzzleNode(node_json['indices'], glm_coordinates, node_json['type'], [])
-
-  def __init__(self, indices: tuple[int,int,int], coordinates: glm.vec3, type: PuzzleNodeType, paths: list[PuzzleNode]):
+  def __init__(self,
+    face,
+    indices: tuple[int,int,int],
+    coordinates: tuple[int,int,int],
+    type: PuzzleNodeType,
+    paths: list[PuzzleNode]
+  ):
+    self.face = face
     self.indices = indices
     self.coordinates = coordinates
     self.type = type
-    self.paths = paths
-
-  def add_path(self, node):
-    self.paths.append(node)
+    self.paths = set(paths)
+    self.is_active = False

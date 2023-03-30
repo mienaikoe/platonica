@@ -1,4 +1,4 @@
-class Scene:
+class Renderable:
     def handle_events(self, delta_time: int):
         """
         handle any incoming events before the render

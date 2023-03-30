@@ -1,11 +1,11 @@
 import pygame
 import moderngl as mgl
-from scenes.scene import Scene
+from engine.renderable import Renderable
 from constants.mode import Mode
 from constants.dimensions import SCREEN_DIMENSIONS
 
 
-class GameplayScene(Scene):
+class GameplayScene(Renderable):
     def __init__(self, ctx: mgl.Context, switch_mode: callable):
         self.ctx = ctx
         self.switch_mode = switch_mode

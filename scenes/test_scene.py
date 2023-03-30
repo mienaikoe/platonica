@@ -2,9 +2,8 @@ import moderngl as mgl
 from constants.colors import Colors
 from constants.dimensions import SCREEN_DIMENSIONS
 from engine.texture import get_texture
+from puzzles.puzzle_graph import PuzzleGraph
 from engine.renderable import Renderable
-from constants.mode import Mode
-from models.cube import Cube
 from models.tetra import Tetrahedron
 from engine.camera import Camera
 
@@ -12,7 +11,7 @@ button_dimensions = (160, 40)
 button_margin = 20
 
 
-class MenuScene(Renderable):
+class TestScene(Renderable):
     def __init__(self, ctx: mgl.Context, switch_mode: callable):
         self.ctx = ctx
         self.switch_mode = switch_mode
@@ -21,13 +20,11 @@ class MenuScene(Renderable):
             SCREEN_DIMENSIONS[1] / 2,
         )
 
-    def _startNewGame(self):
-        self.switch_mode(Mode.GAME)
-
     def init(self):
         self.camera = Camera(self.ctx)
-        texture = get_texture(self.ctx, 'assets/textures/texture_test.png')
+        texture = get_texture(self.ctx, 'assets/textures/david-jorre-unsplash.png')
         self.subject = Tetrahedron(self.ctx, self.camera, texture)
+        self.puzzle = PuzzleGraph.from_file_name("test-puzzle")
 
     def handle_events(self, delta_time: int):
         self.subject.handle_events(delta_time)

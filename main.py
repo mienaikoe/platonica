@@ -5,6 +5,7 @@ from constants.dimensions import SCREEN_DIMENSIONS
 from scenes.gameplay_scene import GameplayScene
 from scenes.menu_scene import MenuScene
 from constants.mode import Mode
+from scenes.test_scene import TestScene
 
 MAX_FPS = 60
 
@@ -29,10 +30,11 @@ class Main:
         self.ctx = mgl.create_context()  # OpenGL
         self.ctx.enable(flags=mgl.DEPTH_TEST | mgl.CULL_FACE)
         self.scenes = {
+            Mode.TEST: TestScene(self.ctx, self.switch_mode),
             Mode.MENU: MenuScene(self.ctx, self.switch_mode),
             Mode.GAME: GameplayScene(self.ctx, self.switch_mode),
         }
-        self.active_mode = Mode.MENU
+        self.active_mode = Mode.TEST
         self.active_scene = self.scenes[self.active_mode]
         self.active_scene.init()
         self.delta_time = 0  # Time since last frame

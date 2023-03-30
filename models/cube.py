@@ -46,5 +46,5 @@ texture_vertices = triangle_vertices_from_indices(texture_corners, texture_indic
 
 
 class Cube(Model):
-    def get_vertex_data(self):
+    def _get_vertex_data(self):
         return np.hstack([texture_vertices, cube_vertices])
