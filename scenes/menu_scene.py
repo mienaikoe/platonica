@@ -1,7 +1,6 @@
 import moderngl as mgl
 from constants.colors import Colors
 from constants.dimensions import SCREEN_DIMENSIONS
-from engine.texture import get_texture
 from engine.renderable import Renderable
 from constants.mode import Mode
 from models.cube import Cube
@@ -26,8 +25,7 @@ class MenuScene(Renderable):
 
     def init(self):
         self.camera = Camera(self.ctx)
-        texture = get_texture(self.ctx, 'assets/textures/texture_test.png')
-        self.subject = Tetrahedron(self.ctx, self.camera, texture)
+        self.subject = Tetrahedron(self.ctx, self.camera, 'tetra_tex_test.png')
 
     def handle_events(self, delta_time: int):
         self.subject.handle_events(delta_time)

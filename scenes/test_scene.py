@@ -1,14 +1,11 @@
+import os
 import moderngl as mgl
 from constants.colors import Colors
 from constants.dimensions import SCREEN_DIMENSIONS
-from engine.texture import get_texture
 from puzzles.puzzle_graph import PuzzleGraph
 from engine.renderable import Renderable
 from models.tetra import Tetrahedron
 from engine.camera import Camera
-
-button_dimensions = (160, 40)
-button_margin = 20
 
 
 class TestScene(Renderable):
@@ -22,9 +19,9 @@ class TestScene(Renderable):
 
     def init(self):
         self.camera = Camera(self.ctx)
-        texture = get_texture(self.ctx, 'assets/textures/david-jorre-unsplash.png')
-        self.subject = Tetrahedron(self.ctx, self.camera, texture)
         self.puzzle = PuzzleGraph.from_file_name("test-puzzle")
+        texture_file_name = 'tetra_tex_test.png'
+        self.subject = Tetrahedron(self.ctx, self.camera, texture_file_name)
 
     def handle_events(self, delta_time: int):
         self.subject.handle_events(delta_time)
