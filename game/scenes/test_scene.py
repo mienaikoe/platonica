@@ -21,7 +21,7 @@ class TestScene(Renderable):
         self.camera = Camera(self.ctx)
         self.puzzle = PuzzleGraph.from_file_name("test-puzzle")
         texture_file_name = 'tetra_tex_test.png'
-        self.subject = Tetrahedron(self.ctx, self.camera, texture_file_name)
+        self.subject = Tetrahedron(self.puzzle, self.ctx, self.camera, texture_file_name)
 
     def handle_events(self, delta_time: int):
         self.subject.handle_events(delta_time)

@@ -5,8 +5,8 @@ import pygame
 from constants.vectors import UnitVector
 
 from engine.camera import Camera
-from engine.shader import get_shader
 from engine.texture import get_texture, texture_maps
+from engine.shader import get_shader_program
 from models.helpers import triangle_vertices_from_indices
 from puzzles.puzzle_graph import PuzzleGraph
 from engine.renderable import Renderable
@@ -34,12 +34,12 @@ class Model(Renderable):
         self.texture_vertices = triangle_vertices_from_indices(
             texture_map['uv'], texture_map['faces']
         )
-        self.shader_program = self._get_shader_program("image")
-        self.shader_program['u_texture_0'] = 0
+        self.shape_shader = get_shader_program(ctx, "image")
+        self.shape_shader['u_texture_0'] = 0
         self.texture.use()
         self.m_model = glm.mat4()
-        self.vertex_buffer_object = self._get_vertex_buffer_object()
-        self.vertex_array_object = self._get_vertex_array_object()
+        self.shape_vbo = self._get_shape_vbo()
+        self.shape_vao = self._get_shape_vao()
 
 
     def handle_events(self, delta_time: int):
@@ -56,23 +56,23 @@ class Model(Renderable):
 
 
     def render(self, delta_time: int):
-        self.shader_program["m_mvp"].write(
+        self.shape_shader["m_mvp"].write(
             self.camera.projection_matrix *
             self.camera.view_matrix *
             self.m_model
         )
-        self.vertex_array_object.render()
+        self.shape_vao.render()
 
     def destroy(self):
-        self.vertex_buffer_object.release()
-        self.shader_program.release()
-        self.vertex_array_object.release()
+        self.shape_vbo.release()
+        self.shape_shader.release()
+        self.shape_vao.release()
 
-    def _get_vertex_array_object(self):
+    def _get_shape_vao(self):
         vertex_array_object = self.ctx.vertex_array(
-            self.shader_program,
+            self.shape_shader,
             [
-                (self.vertex_buffer_object, "2f 3f", "in_textcoord_0", "in_position"),
+                (self.shape_vbo, "2f 3f", "in_textcoord_0", "in_position"),
             ],
         )
         return vertex_array_object
@@ -84,15 +84,8 @@ class Model(Renderable):
         """
         pass
 
-    def _get_vertex_buffer_object(self):
+    def _get_shape_vbo(self):
         vertex_data = self._get_vertex_data()
         vertex_buffer = self.ctx.buffer(vertex_data)
         return vertex_buffer
 
-    def _get_shader_program(self, shader_name):
-        vertex_shader = get_shader(f"{shader_name}.vert")
-        fragment_shader = get_shader(f"{shader_name}.frag")
-        program = self.ctx.program(
-            vertex_shader=vertex_shader, fragment_shader=fragment_shader
-        )
-        return program

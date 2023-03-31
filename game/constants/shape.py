@@ -8,3 +8,8 @@ class Shape(Enum):
   octahedron = "octahedron"
   dodecahedron = "dodecahedron"
   icosahedron = "icosahedron"
+
+class FaceShape(Enum):
+  triangle = 'triangle'
+  square = 'square'
+  pentagon = 'pentagon'
