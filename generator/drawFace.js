@@ -227,13 +227,11 @@ export const drawTriangle = (group, depth) => {
             createPath(group, vertex, previousInnerVertex, BLUE, false);
           }
         }
-        if (
-          ringIdx > 1 &&
-          segmentCountIdx > -1 &&
-          segmentCountIdx < verticesPerSegment - 2
-        ) {
+        if (segmentCountIdx > -1 && segmentCountIdx < verticesPerSegment - 2) {
           const nextCountIdx =
-            countIdx === 0
+            ringIdx === 1
+              ? 0
+              : countIdx === 0
               ? numSegments * verticesPerSegmentPerRing * previousRingIdx - 1
               : countIdx - ((segmentIdx + 1) * verticesPerCorner - 2);
           const nextInnerVertex = vertices[previousRingIdx][nextCountIdx];
