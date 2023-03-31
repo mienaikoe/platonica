@@ -27,5 +27,11 @@ export const drawDot = (svgParent, vertex, attributes) => {
   }
   svgParent.appendChild(dot);
 
+  // const label = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  // label.setAttribute("x", position[0]);
+  // label.setAttribute("y", position[1] - 6);
+  // label.innerHTML = vertex.indices.join(",");
+  // svgParent.appendChild(label);
+
   return dot;
 };

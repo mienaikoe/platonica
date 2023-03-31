@@ -84,8 +84,8 @@ const svg = document.getElementById("svg");
 const resetCanvas = () => {
   svg.innerHTML = "";
   const shapeScale = shapeScales[shape];
-  svg.setAttribute("height", shapeScale[1] * (depth - 1) + 2 * SVG_PADDING);
-  svg.setAttribute("width", shapeScale[0] * (depth - 1) + 2 * SVG_PADDING);
+  svg.setAttribute("height", shapeScale[1] * depth + 2 * SVG_PADDING);
+  svg.setAttribute("width", shapeScale[0] * depth + 2 * SVG_PADDING);
 };
 
 const render = () => {

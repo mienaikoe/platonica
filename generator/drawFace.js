@@ -1,11 +1,11 @@
 import {
   UNIT_HEIGHT,
-  UNIT_WIDTH_60,
+  PATH_DISTANCE_60,
   TAN30,
   DEG_TO_RAD,
-  UNIT_WIDTH_72,
   SIN72,
-  UNIT_WIDTH_54,
+  PATH_DISTANCE_54,
+  CoordinateSystems,
 } from "./constants.js";
 import { drawLine, drawDot } from "./drawSvg.js";
 
@@ -21,14 +21,7 @@ const BLUE = "blue";
 
 /**
  * type Vertex {
-    indices: [number, number], // red, blue
-    coordinates: [number, number], // x, y
-    paths: Path[],
-    type: "hole" | "start" | null
-  }
-
-  type PentagonVertex {
-    indices: [number, number], // red, blue, segment [0,1,2,3,4] clockwise from the bottom
+    indices: [number, number], // ring, index along ring starting at bottom left
     coordinates: [number, number], // x, y
     paths: Path[],
     type: "hole" | "start" | null
@@ -134,171 +127,176 @@ const renderVertex = (group, vertex, isEdge) => {
   }
 };
 
-const CoordinateSystems = {
-  triangle: {
-    isPathEdge: (vertexA, vertexB, depth) => {
-      return (
-        (vertexA.indices[0] === 0 && vertexB.indices[0] === 0) ||
-        (vertexA.indices[1] === 0 && vertexB.indices[1] === 0) ||
-        (vertexA.indices[0] + vertexA.indices[1] === depth - 1 &&
-          vertexB.indices[0] + vertexB.indices[1] === depth - 1)
-      );
-    },
-    isVertexEdge: (vertex, depth) => {
-      console.log(vertex.indices);
-      return (
-        vertex.indices[0] === 0 || // red
-        vertex.indices[1] === 0 || // blue
-        vertex.indices[0] + vertex.indices[1] === depth - 1
-      ); // green
-    },
-  },
-  square: {
-    isPathEdge: (vertexA, vertexB, depth) => {
-      return (
-        (vertexA.indices[0] === 0 && vertexB.indices[0] === 0) ||
-        (vertexA.indices[1] === 0 && vertexB.indices[1] === 0) ||
-        (vertexA.indices[0] === depth - 1 &&
-          vertexB.indices[0] === depth - 1) ||
-        (vertexA.indices[1] === depth - 1 && vertexB.indices[1] === depth - 1)
-      );
-    },
-    isVertexEdge: (vertex, depth) => {
-      return (
-        vertex.indices[0] === 0 ||
-        vertex.indices[1] === 0 ||
-        vertex.indices[0] === depth - 1 ||
-        vertex.indices[1] === depth - 1
-      );
-    },
-  },
-  pentagon: {
-    isPathEdge: (vertexA, vertexB, depth) => {
-      return vertexA.indices[1] === 0 && vertexB.indices[1] === 0;
-    },
-    isVertexEdge: (vertex, depth) => {
-      return vertex.indices[1] === 0;
-    },
-  },
-};
+const constructVertices = (coordinateSystem, depth) => {
+  const {
+    numSegments,
+    verticesPerSegmentPerRing,
+    ringShiftUnit,
+    segmentUnitVectors,
+  } = coordinateSystem;
 
-export const drawTriangle = (group, depth) => {
-  const coordinateSystem = CoordinateSystems.triangle;
+  // equilateral triangle
+  const center = [-ringShiftUnit[0] * depth, -ringShiftUnit[1] * depth];
 
   // construct vertices
-  const vertices = []; // Vertex[][]
-  for (let redIdx = 0; redIdx < depth; redIdx++) {
-    vertices[redIdx] = [];
-    const redShift = redIdx * UNIT_WIDTH_60;
-    const vertexCount = depth - redIdx - 1;
-    for (let blueIdx = 0; blueIdx <= vertexCount; blueIdx++) {
-      const y = blueIdx * UNIT_HEIGHT;
-      const x = TAN30 * y + redShift;
-
-      vertices[redIdx][blueIdx] = {
-        indices: [redIdx, blueIdx],
-        coordinates: [x, y],
+  const vertices = [
+    [
+      {
+        indices: [0, 0],
+        coordinates: center,
         paths: [],
         type: null,
-      };
-    }
-  }
-
-  for (let redIdx = 0; redIdx < vertices.length; redIdx++) {
-    const redVertices = vertices[redIdx];
-    for (let blueIdx = 0; blueIdx < redVertices.length; blueIdx++) {
-      const vertex = redVertices[blueIdx];
-
-      const redVertex = redVertices[blueIdx + 1];
-      if (redVertex) {
-        createPath(
-          group,
-          vertex,
-          redVertex,
-          RED,
-          coordinateSystem.isPathEdge(vertex, redVertex, depth)
-        );
+      },
+    ], // center has one vertex
+  ]; // Vertex[][]
+  for (let ringIdx = 1; ringIdx <= depth; ringIdx++) {
+    const ringShift = [ringShiftUnit[0] * ringIdx, ringShiftUnit[1] * ringIdx];
+    const verticesPerSegment = verticesPerSegmentPerRing * ringIdx;
+    vertices[ringIdx] = [];
+    let coordinates = [center[0] + ringShift[0], center[1] + ringShift[1]];
+    for (let segmentIdx = 0; segmentIdx < numSegments; segmentIdx++) {
+      const unitVector = segmentUnitVectors[segmentIdx];
+      for (
+        let segmentCountIdx = 0;
+        segmentCountIdx < verticesPerSegment;
+        segmentCountIdx++
+      ) {
+        const countIdx = segmentIdx * verticesPerSegment + segmentCountIdx;
+        coordinates = [
+          coordinates[0] + unitVector[0],
+          coordinates[1] + unitVector[1],
+        ];
+        vertices[ringIdx][countIdx] = {
+          indices: [ringIdx, countIdx],
+          coordinates,
+          paths: [],
+          type: null,
+        };
       }
-
-      const greenVertices = vertices[redIdx + 1];
-      const greenVertex = greenVertices && greenVertices[blueIdx - 1];
-      if (greenVertex) {
-        createPath(
-          group,
-          vertex,
-          greenVertex,
-          GREEN,
-          coordinateSystem.isPathEdge(vertex, greenVertex, depth)
-        );
-      }
-
-      const blueVertices = vertices[redIdx + 1];
-      const blueVertex = blueVertices && blueVertices[blueIdx];
-      if (blueVertex) {
-        createPath(
-          group,
-          vertex,
-          blueVertex,
-          BLUE,
-          coordinateSystem.isPathEdge(vertex, blueVertex, depth)
-        );
-      }
-
-      renderVertex(group, vertex, coordinateSystem.isVertexEdge(vertex, depth));
     }
   }
 
   return vertices;
 };
 
+export const drawTriangle = (group, depth) => {
+  const coordinateSystem = CoordinateSystems.triangle;
+  const vertices = constructVertices(coordinateSystem, depth);
+
+  const { numSegments, verticesPerSegmentPerRing, verticesPerCorner } =
+    coordinateSystem;
+
+  for (let ringIdx = 1; ringIdx <= depth; ringIdx++) {
+    const ringVertices = vertices[ringIdx];
+    const verticesPerSegment = verticesPerSegmentPerRing * ringIdx;
+    const isEdge = ringIdx === depth;
+    for (let segmentIdx = 0; segmentIdx < numSegments; segmentIdx++) {
+      for (
+        let segmentCountIdx = 0;
+        segmentCountIdx < verticesPerSegment;
+        segmentCountIdx++
+      ) {
+        const countIdx = segmentIdx * verticesPerSegment + segmentCountIdx;
+        const vertex = ringVertices[countIdx];
+
+        const previousVertexCountIdx =
+          countIdx === 0 ? ringVertices.length - 1 : countIdx - 1;
+        const previousVertex = vertices[ringIdx][previousVertexCountIdx];
+        createPath(group, vertex, previousVertex, RED, isEdge);
+
+        if (segmentCountIdx === 0) {
+          const previousCornerVertexCountIdx =
+            countIdx === 0 ? ringVertices.length - 2 : countIdx - 2;
+          const previousCornerVertex =
+            vertices[ringIdx][previousCornerVertexCountIdx];
+          createPath(group, vertex, previousCornerVertex, GREEN, false);
+        }
+
+        const previousRingIdx = ringIdx - 1;
+        if (segmentCountIdx > 0 && segmentCountIdx < verticesPerSegment - 1) {
+          const previousCountIdx =
+            ringIdx === 1
+              ? 0
+              : countIdx === 1
+              ? numSegments * verticesPerSegmentPerRing * previousRingIdx - 1
+              : countIdx - ((segmentIdx + 1) * verticesPerCorner - 1);
+          const previousInnerVertex =
+            vertices[previousRingIdx][previousCountIdx];
+
+          if (previousInnerVertex) {
+            createPath(group, vertex, previousInnerVertex, BLUE, false);
+          }
+        }
+        if (
+          ringIdx > 1 &&
+          segmentCountIdx > -1 &&
+          segmentCountIdx < verticesPerSegment - 2
+        ) {
+          const nextCountIdx =
+            countIdx === 0
+              ? numSegments * verticesPerSegmentPerRing * previousRingIdx - 1
+              : countIdx - ((segmentIdx + 1) * verticesPerCorner - 2);
+          const nextInnerVertex = vertices[previousRingIdx][nextCountIdx];
+          if (nextInnerVertex) {
+            createPath(group, vertex, nextInnerVertex, BLUE, false);
+          }
+        }
+
+        renderVertex(group, vertex, isEdge);
+      }
+    }
+  }
+  renderVertex(group, vertices[0][0], false);
+
+  return vertices;
+};
+
 export const drawSquare = (group, depth) => {
   const coordinateSystem = CoordinateSystems.square;
+  const vertices = constructVertices(coordinateSystem, depth);
 
-  // construct vertices
-  const vertices = []; // Vertex[][]
-  for (let redIdx = 0; redIdx < depth; redIdx++) {
-    vertices[redIdx] = [];
-    for (let blueIdx = 0; blueIdx < depth; blueIdx++) {
-      vertices[redIdx][blueIdx] = {
-        indices: [redIdx, blueIdx],
-        coordinates: [redIdx * UNIT_HEIGHT, blueIdx * UNIT_HEIGHT],
-        paths: [],
-        type: null,
-      };
+  const { numSegments, verticesPerSegmentPerRing, verticesPerCorner } =
+    coordinateSystem;
+
+  for (let ringIdx = 1; ringIdx <= depth; ringIdx++) {
+    const ringVertices = vertices[ringIdx];
+    const verticesPerSegment = verticesPerSegmentPerRing * ringIdx;
+    const isEdge = ringIdx === depth;
+    for (let segmentIdx = 0; segmentIdx < numSegments; segmentIdx++) {
+      for (
+        let segmentCountIdx = 0;
+        segmentCountIdx < verticesPerSegment;
+        segmentCountIdx++
+      ) {
+        const countIdx = segmentIdx * verticesPerSegment + segmentCountIdx;
+        const vertex = ringVertices[countIdx];
+
+        const previousVertexCountIdx =
+          countIdx === 0 ? ringVertices.length - 1 : countIdx - 1;
+        const previousVertex = vertices[ringIdx][previousVertexCountIdx];
+        createPath(group, vertex, previousVertex, RED, isEdge);
+
+        const previousRingIdx = ringIdx - 1;
+        if (segmentCountIdx < verticesPerSegment - 1) {
+          const previousCountIdx =
+            ringIdx === 1
+              ? 0
+              : countIdx === 0
+              ? numSegments * verticesPerSegmentPerRing * previousRingIdx - 1
+              : countIdx - (1 + segmentIdx * (verticesPerCorner * 2));
+          const previousInnerVertex =
+            vertices[previousRingIdx][previousCountIdx];
+          if (previousInnerVertex) {
+            createPath(group, vertex, previousInnerVertex, BLUE, false);
+          }
+        }
+
+        renderVertex(group, vertex, isEdge);
+      }
     }
   }
 
-  for (let redIdx = 0; redIdx < vertices.length; redIdx++) {
-    const redVertices = vertices[redIdx];
-    for (let blueIdx = 0; blueIdx < redVertices.length; blueIdx++) {
-      const vertex = redVertices[blueIdx];
-
-      const redVertex = redVertices[blueIdx + 1];
-      if (redVertex) {
-        createPath(
-          group,
-          vertex,
-          redVertex,
-          RED,
-          coordinateSystem.isPathEdge(vertex, redVertex, depth)
-        );
-      }
-
-      const blueVertices = vertices[redIdx + 1];
-      const blueVertex = blueVertices && blueVertices[blueIdx];
-      if (blueVertex) {
-        createPath(
-          group,
-          vertex,
-          blueVertex,
-          BLUE,
-          coordinateSystem.isPathEdge(vertex, blueVertex, depth)
-        );
-      }
-
-      renderVertex(group, vertex, coordinateSystem.isVertexEdge(vertex, depth));
-    }
-  }
+  renderVertex(group, vertices[0][0], false);
 
   return vertices;
 };
@@ -306,106 +304,56 @@ export const drawSquare = (group, depth) => {
 export const drawPentagon = (group, depth) => {
   const coordinateSystem = CoordinateSystems.pentagon;
 
-  // depth represents the length (R) of each leg of the isosceles
-  // triangle that makes up the pentagon (72-54-54)
-  // r/R = sin(54)
-  // a/2R = cos(54)
-  // total pentagon x span = 2 * R * sin(72)
-  // total pentagon y span = 2 * r
+  const vertices = constructVertices(coordinateSystem, depth);
 
-  const rotationCenter = [
-    (depth - 1) * UNIT_WIDTH_54 * SIN72,
-    (depth - 1) * UNIT_HEIGHT,
-  ];
+  const { numSegments, verticesPerSegmentPerRing, verticesPerCorner } =
+    coordinateSystem;
 
-  const pentagonTriangleBase = (depth - 1) * UNIT_WIDTH_54; // a
+  for (let ringIdx = 1; ringIdx <= depth; ringIdx++) {
+    const ringVertices = vertices[ringIdx];
+    const verticesPerSegment = verticesPerSegmentPerRing * ringIdx;
+    const isEdge = ringIdx === depth;
+    for (let segmentIdx = 0; segmentIdx < numSegments; segmentIdx++) {
+      for (
+        let segmentCountIdx = 0;
+        segmentCountIdx < verticesPerSegment;
+        segmentCountIdx++
+      ) {
+        const countIdx = segmentIdx * verticesPerSegment + segmentCountIdx;
+        const vertex = ringVertices[countIdx];
 
-  const bottomPentagonX = pentagonTriangleBase * Math.cos(72 * DEG_TO_RAD);
+        const previousVertexCountIdx =
+          countIdx === 0 ? ringVertices.length - 1 : countIdx - 1;
+        const previousVertex = vertices[ringIdx][previousVertexCountIdx];
+        createPath(group, vertex, previousVertex, RED, isEdge);
 
-  // construct vertices
-  const vertices = []; // Vertex[][][]
-  for (let segmentIdx = 0; segmentIdx < 5; segmentIdx++) {
-    const rotationAngle = segmentIdx * -72 * DEG_TO_RAD;
-    const rotateCoordinates = (coordinates) => {
-      const relativeCoordinates = [
-        rotationCenter[0] - (bottomPentagonX + coordinates[0]),
-        rotationCenter[1] - coordinates[1],
-      ];
-      return [
-        relativeCoordinates[0] * Math.cos(rotationAngle) -
-          relativeCoordinates[1] * Math.sin(rotationAngle),
-        relativeCoordinates[0] * Math.sin(rotationAngle) +
-          relativeCoordinates[1] * Math.cos(rotationAngle),
-      ];
-    };
-    vertices[segmentIdx] = [];
-    for (let redIdx = 0; redIdx < depth; redIdx++) {
-      vertices[segmentIdx][redIdx] = [];
-      const redShift = redIdx * UNIT_WIDTH_60;
-      const vertexCount = depth - redIdx - 1;
-      for (let blueIdx = 0; blueIdx <= vertexCount; blueIdx++) {
-        const y = blueIdx * UNIT_HEIGHT;
-        const x = TAN30 * y + redShift;
+        const previousRingIdx = ringIdx - 1;
 
-        vertices[segmentIdx][redIdx][blueIdx] = {
-          indices: [segmentIdx, redIdx, blueIdx],
-          coordinates: rotateCoordinates([x, y]),
-          paths: [],
-          type: null,
-        };
+        const previousCountIdx =
+          ringIdx === 1
+            ? 0
+            : countIdx === 0
+            ? numSegments * verticesPerSegmentPerRing * previousRingIdx - 1
+            : countIdx - (segmentIdx + 1) * verticesPerCorner;
+        const previousInnerVertex = vertices[previousRingIdx][previousCountIdx];
+
+        if (previousInnerVertex) {
+          createPath(group, vertex, previousInnerVertex, BLUE, false);
+        }
+
+        if (ringIdx > 1 && segmentCountIdx < verticesPerSegment - 1) {
+          const nextCountIdx = countIdx - segmentIdx * verticesPerCorner;
+          const nextInnerVertex = vertices[previousRingIdx][nextCountIdx];
+          if (nextInnerVertex) {
+            createPath(group, vertex, nextInnerVertex, BLUE, false);
+          }
+        }
+
+        renderVertex(group, vertex, isEdge);
       }
     }
   }
-  for (let segmentIdx = 0; segmentIdx < 5; segmentIdx++) {
-    const segmentVertices = vertices[segmentIdx];
-    for (let redIdx = 0; redIdx < segmentVertices.length; redIdx++) {
-      const redVertices = segmentVertices[redIdx];
-      for (let blueIdx = 0; blueIdx < redVertices.length; blueIdx++) {
-        const vertex = redVertices[blueIdx];
-
-        const redVertex = redVertices[blueIdx + 1];
-        if (redVertex) {
-          createPath(
-            group,
-            vertex,
-            redVertex,
-            RED,
-            coordinateSystem.isPathEdge(vertex, redVertex, depth)
-          );
-        }
-
-        const greenVertices = segmentVertices[redIdx + 1];
-        const greenVertex = greenVertices && greenVertices[blueIdx - 1];
-        if (greenVertex) {
-          createPath(
-            group,
-            vertex,
-            greenVertex,
-            GREEN,
-            coordinateSystem.isPathEdge(vertex, greenVertex, depth)
-          );
-        }
-
-        const blueVertices = segmentVertices[redIdx + 1];
-        const blueVertex = blueVertices && blueVertices[blueIdx];
-        if (blueVertex) {
-          createPath(
-            group,
-            vertex,
-            blueVertex,
-            BLUE,
-            coordinateSystem.isPathEdge(vertex, blueVertex, depth)
-          );
-        }
-
-        renderVertex(
-          group,
-          vertex,
-          coordinateSystem.isVertexEdge(vertex, depth)
-        );
-      }
-    }
-  }
+  renderVertex(group, vertices[0][0], false);
 
   return vertices;
 };
