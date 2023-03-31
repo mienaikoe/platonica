@@ -18,10 +18,12 @@ MOVEMENT_DEG_PER_DELTA = 0.001
 class Model(Renderable):
     def __init__(
         self,
+        puzzle: PuzzleGraph,
         ctx: moderngl.Context,
         camera: Camera,
         texture_file_name: str
     ):
+        self.puzzle = puzzle
         self.ctx = ctx
         self.camera = camera
         self.texture = get_texture(

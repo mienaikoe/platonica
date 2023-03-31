@@ -69,6 +69,7 @@ const drawCube = (svg, depth) => {
     C: [1, 1],
     D: [1, 2],
     E: [2, 1],
+    F: [3, 1],
   };
   const segmentVertices = {};
 
@@ -292,7 +293,7 @@ export const shapeScales = {
     2 * CoordinateSystems.triangle.verticesPerSegmentPerRing * UNIT_HEIGHT,
   ],
   cube: [
-    3 * CoordinateSystems.square.verticesPerSegmentPerRing * UNIT_HEIGHT,
+    4 * CoordinateSystems.square.verticesPerSegmentPerRing * UNIT_HEIGHT,
     3 * CoordinateSystems.square.verticesPerSegmentPerRing * UNIT_HEIGHT,
   ],
   octahedron: [
