@@ -1,11 +1,11 @@
 import { UNIT_HEIGHT, SVG_PADDING } from "./constants.js";
-import drawShape, { shapeScales, shapeWidths } from "./drawShape.js";
+import drawShape, { shapeScales, faceWidths } from "./drawShape.js";
 
 const shapeEl = document.getElementById("shapeInput");
 const depthEl = document.getElementById("depthInput");
 const exportEl = document.getElementById("exportButton");
 
-let faceVertices = {};
+let faces = {};
 
 let shape = shapeEl.value;
 shapeEl.addEventListener("change", () => {
@@ -23,19 +23,19 @@ exportEl.addEventListener("click", () => {
   const dataPayload = {
     shape,
     depth,
-    faces: {},
+    faces: [],
   };
 
-  const faceWidth = shapeWidths[shape] * (depth - 1);
+  const faceWidth = faceWidths[shape] * depth;
 
-  for (let key in faceVertices) {
-    const redVertices = faceVertices[key];
+  for (let faceKey in faces) {
+    const faceRings = faces[faceKey];
 
     const simplifiedVertices = [];
     const simplifiedPaths = new Map();
 
-    redVertices.forEach((greenVertices) => {
-      const usefulVertices = greenVertices.filter((vertex) =>
+    faceRings.forEach((ringVertices) => {
+      const usefulVertices = ringVertices.filter((vertex) =>
         vertex.paths.find((path) => path.active)
       );
 
@@ -90,7 +90,7 @@ const resetCanvas = () => {
 
 const render = () => {
   resetCanvas();
-  faceVertices = drawShape[shape](svg, depth);
+  faces = drawShape[shape](svg, depth);
 };
 
 render();

@@ -317,12 +317,18 @@ export const shapeScales = {
   ],
 };
 
-export const shapeWidths = {
-  tetrahedron: PATH_DISTANCE_60,
-  cube: UNIT_HEIGHT,
-  octahedron: PATH_DISTANCE_60,
-  dodecahedron: PATH_DISTANCE_54,
-  icosahedron: PATH_DISTANCE_60,
+export const faceWidths = {
+  tetrahedron:
+    CoordinateSystems.triangle.verticesPerSegmentPerRing * PATH_DISTANCE_60,
+  cube: CoordinateSystems.square.verticesPerSegmentPerRing * UNIT_HEIGHT,
+  octahedron:
+    CoordinateSystems.triangle.verticesPerSegmentPerRing * PATH_DISTANCE_60,
+  dodecahedron:
+    CoordinateSystems.pentagon.verticesPerSegmentPerRing *
+    PATH_DISTANCE_54 *
+    (1 + 2 * COS72),
+  icosahedron:
+    CoordinateSystems.triangle.verticesPerSegmentPerRing * PATH_DISTANCE_60,
 };
 
 export default drawShape;

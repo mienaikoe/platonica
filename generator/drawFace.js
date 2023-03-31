@@ -239,12 +239,16 @@ export const drawTriangle = (group, depth) => {
             createPath(group, vertex, nextInnerVertex, BLUE, false);
           }
         }
-
-        renderVertex(group, vertex, isEdge);
       }
     }
   }
-  renderVertex(group, vertices[0][0], false);
+
+  vertices.forEach((ring) => {
+    ring.forEach((vertex) => {
+      const isEdge = vertex.indices[0] === depth;
+      renderVertex(group, vertex, isEdge);
+    });
+  });
 
   return vertices;
 };
