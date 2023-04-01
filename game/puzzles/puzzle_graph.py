@@ -29,8 +29,8 @@ class PuzzleGraph():
     faces = puzzle_json['faces']
     self.faces = []
 
-    for (face_ix, face_definition) in enumerate(faces):
-      face = PuzzleFace(self.shape, self.depth, face_ix, face_definition)
+    for (face_idx, face_definition) in enumerate(faces):
+      face = PuzzleFace(self.shape, self.depth, face_idx, face_definition)
       self.faces.append(face)
       if face.start_node:
         self.start_face = face
@@ -51,12 +51,13 @@ class PuzzleGraph():
 
       for ix in range(vertex_count):
         node_a = nodes_a[ix]
-        node_b = nodes_b[ix] if same_direction else nodes_b[vertex_count-ix-1]
+        node_b = nodes_b[ix] if same_direction else nodes_b[(vertex_count-1)-ix]
 
         if not node_a or not node_b:
-          # nodes are only available if they have paths
+          # nodes are only available if they have paths into them
           continue
         if connect:
+          print("Associating ",node_a.face.face_idx, node_a.indices, node_b.face.face_idx, node_b.indices)
           node_a.paths.add(node_b)
           node_b.paths.add(node_a)
         else:
@@ -65,8 +66,23 @@ class PuzzleGraph():
           if node_a in node_b.paths:
             node_b.paths.remove(node_a)
 
+  def collect_paths(self):
+    paths = {}
+    for face in self.faces:
+      for ring in face.nodes:
+        for from_node in ring:
+          if not from_node or len(from_node.paths) == 0:
+            continue
+          for to_node in from_node.paths:
+            pathKeyA = f"{from_node.node_key}|{to_node.node_key}"
+            pathKeyB = f"{to_node.node_key}|{from_node.node_key}"
+            if pathKeyA in paths or pathKeyB in paths:
+              continue
+            paths[pathKeyA] = (from_node, to_node)
+    return paths.values()
 
-
+  def can_reach_end(self):
+    return self.start_node.can_reach_end(set())
 
 
 

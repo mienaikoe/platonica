@@ -4,9 +4,9 @@ from puzzles.puzzle_node import PuzzleNode
 
 
 class PuzzleFace:
-  def __init__(self, shape: Shape, depth: int, face_ix: int, face_json: dict):
+  def __init__(self, shape: Shape, depth: int, face_idx: int, face_json: dict):
     self.depth = depth
-    self.face_ix = face_ix
+    self.face_idx = face_idx
     self.coordinate_system = FaceCoordinateSystem.from_shape(shape)
     self.nodes = [[None] * (self.coordinate_system.vertex_count_for_ring(ringIx)) for ringIx in range(depth+1)]
     self.start_node = None

@@ -19,7 +19,7 @@ class FaceCoordinateSystem:
     vertices_per_segment = self.vertices_per_segment_per_ring * ring_idx
     return range(
       vertices_per_segment * segment_idx,
-      vertices_per_segment * (segment_idx+1),
+      vertices_per_segment * (segment_idx+1) - 1,
     )
 
 face_systems = {
