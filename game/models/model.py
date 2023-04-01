@@ -34,6 +34,7 @@ class Model(Renderable):
         self.texture_vertices = triangle_vertices_from_indices(
             texture_map['uv'], texture_map['faces']
         )
+
         self.shape_shader = get_shader_program(ctx, "image")
         self.shape_shader['u_texture_0'] = 0
         self.puzzle_shader = get_shader_program(ctx, "line")
@@ -117,4 +118,8 @@ class Model(Renderable):
         vertex_data = self._get_puzzle_vertex_data()
         vertex_buffer = self.ctx.buffer(vertex_data)
         return vertex_buffer
+    
+    def face_vertices(self):
+        coords = self._get_shape_vertex_data()
+        return [vs[2:] for vs in coords]
 
