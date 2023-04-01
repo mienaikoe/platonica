@@ -57,7 +57,6 @@ class PuzzleGraph():
           # nodes are only available if they have paths into them
           continue
         if connect:
-          print("Associating ",node_a.face.face_idx, node_a.indices, node_b.face.face_idx, node_b.indices)
           node_a.paths.add(node_b)
           node_b.paths.add(node_a)
         else:

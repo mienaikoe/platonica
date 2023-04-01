@@ -1,5 +1,6 @@
 import numpy as np
 import json
+from models.face_coordinate_system import FaceCoordinateSystem
 from puzzles.puzzle_node import PuzzleNode
 
 def triangle_vertices_from_indices(
@@ -13,33 +14,18 @@ def triangle_vertices_from_indices(
     triangle_vertices = [vertices[ind] for triangle in indices for ind in triangle]
     return np.array(triangle_vertices, dtype="f4")
 
-def uv_to_face_coordinates(
-    face_coordinates: tuple[tuple[float,float,float],tuple[float,float,float]],
-    vec_origin: tuple[float, float, float],
-    uv_coordinates: tuple[float, float]
+
+def face_coordinates_from_indices(
+    vertices: list[tuple[float,float,float]],
+    indices: list[tuple[int,int,int]]
 ):
-    ret = np.add(
-        np.add(vec_origin, np.multiply(uv_coordinates[0], face_coordinates[0])),
-        np.add(vec_origin, np.multiply(uv_coordinates[1], face_coordinates[1])),
-    ).tolist()
-
-    print(face_coordinates, uv_coordinates, json.dumps(ret))
-
-    return ret
-
-
-def path_to_line(
-    path: tuple[PuzzleNode, PuzzleNode],
-    face_coordinates: tuple[float,float],
-    vec_origin: tuple[float,float,float]
-):
-    face_a = path[0].face
-    face_b = path[1].face
-    if( face_a != face_b ):
-        return np.array((0,0,0,0,0,0), dtype="f4")
-    coordinates_a = path[0].coordinates
-    coordinates_b = path[1].coordinates
-    return (
-        uv_to_face_coordinates(face_coordinates, vec_origin, coordinates_a),
-        uv_to_face_coordinates(face_coordinates, vec_origin, coordinates_b),
-    )
+    face_coordinates: list[FaceCoordinateSystem] = []
+    for vert_index in indices:
+        face_coordinates.append(
+            FaceCoordinateSystem(
+                vertices[vert_index[0]],
+                vertices[vert_index[1]],
+                vertices[vert_index[2]]
+            )
+        )
+    return face_coordinates

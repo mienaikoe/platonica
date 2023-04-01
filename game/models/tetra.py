@@ -1,8 +1,6 @@
 import numpy as np
-import json
 from models.model import Model
-from models.helpers import triangle_vertices_from_indices, path_to_line
-
+from models.helpers import triangle_vertices_from_indices, face_coordinates_from_indices
 
 
 vertex_palette = [
@@ -19,15 +17,8 @@ face_vertices = [
 ]
 tetrahedron_vertices = triangle_vertices_from_indices(vertex_palette, face_vertices)
 
-face_coordinates = []
-for face in face_vertices:
-    vertex_origin = vertex_palette[face[0]]
-    vertex_x = vertex_palette[face[1]]
-    right_vector = np.subtract(vertex_origin, vertex_x)
-    right_unit_vector = 2 * right_vector / np.linalg.norm(right_vector)
-    up_vector = np.cross(vertex_origin, right_vector)
-    up_unit_vector = 2 * up_vector / np.linalg.norm(up_vector)
-    face_coordinates.append((right_unit_vector, up_unit_vector))
+face_coordinates = face_coordinates_from_indices(vertex_palette, face_vertices)
+
 
 class Tetrahedron(Model):
 
@@ -44,12 +35,38 @@ class Tetrahedron(Model):
                 continue # we don't need to render ridge nodes
             face_idx = path[0].face.face_idx
             this_face_coordinates = face_coordinates[face_idx]
-            vec_origin = vertex_palette[face_vertices[face_idx][0]]
-            line = path_to_line(path, this_face_coordinates, vec_origin)
-            line_coordinates.append(line[0])
-            line_coordinates.append(line[1])
+            line = this_face_coordinates.uv_path_to_line(path)
+            line_coordinates.append([0.5, 0.5, *(line[0])])
+            line_coordinates.append([0.5, 0.5, *(line[1])])
 
-        # print(json.dumps(line_coordinates))
+        # print(json.dumps(line_coordinates, cls=NpEncoder))
+
+        # for face in face_vertices:
+        #     line_coordinates.append([0.0, 1.0, *vertex_palette[face[0]]])
+        #     line_coordinates.append([0.0, 1.0, *vertex_palette[face[1]]])
+        #     line_coordinates.append([0.0, 1.0, *vertex_palette[face[1]]])
+        #     line_coordinates.append([0.0, 1.0, *vertex_palette[face[2]]])
+        #     line_coordinates.append([0.0, 1.0, *vertex_palette[face[0]]])
+        #     line_coordinates.append([0.0, 1.0, *vertex_palette[face[2]]])
+                # UV
+                # vertex_0 = vertex_palette[face[0]]
+                # line_coordinates.append([1.0, ix / 3, 0,0,0])
+                # line_coordinates.append([1.0, ix / 3, *right_line])
+                # line_coordinates.append([1.0, (ix + 1) / 3, 0,0,0])
+                # line_coordinates.append([1.0, (ix + 1) / 3, *up_line])
+
+
+
+        # ix = 0
+        # face_coordinate = face_coordinates[ix]
+        # face = face_vertices[ix]
+        # vertex_0 = vertex_palette[face[0]]
+        # vertex_1 = vertex_palette[face[1]]
+        # vertex_2 = vertex_palette[face[2]]
+        # print(ix, vertex_0, vertex_1, vertex_2)
+        # line_coordinates.append(face_coordinate[0])
+        # line_coordinates.append(face_coordinate[1])
+
 
         return np.array(line_coordinates, dtype='f4')
 
