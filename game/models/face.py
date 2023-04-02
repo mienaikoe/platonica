@@ -72,21 +72,6 @@ class FaceCoordinateSystem:
         self.uv_coordinates_to_face_coordinates(coordinates_b),
     )
 
-def face_coordinates_from_indices(
-    vertices: list[tuple[float,float,float]],
-    indices: list[tuple[int,int,int]]
-):
-    face_coordinates: list[FaceCoordinateSystem] = []
-    for vert_index in indices:
-        face_coordinates.append(
-            FaceCoordinateSystem(
-                vertices[vert_index[0]],
-                vertices[vert_index[1]],
-                vertices[vert_index[2]]
-            )
-        )
-    return face_coordinates
-
 class Face(Renderable):
 
   def __init__(self,
@@ -97,14 +82,14 @@ class Face(Renderable):
     self.face_vertices = face_vertices
     self.active = False
 
-    self.coordinate = FaceCoordinateSystem(*face_vertices)
+    self.coordinate_system = FaceCoordinateSystem(*face_vertices)
     self.puzzle_face = puzzle_face
     paths = puzzle_face.collect_paths()
     path_vertices = []
     for path in paths:
       if path[0].face != path[1].face:
           continue # we don't need to render ridge nodes
-      line = self.coordinate.uv_path_to_line(path)
+      line = self.coordinate_system.uv_path_to_line(path)
       path_vertices.append(line[0])
       path_vertices.append(line[1])
     self.path_vertices = path_vertices
@@ -123,7 +108,7 @@ class Face(Renderable):
 
   def __make_vao(self, ctx, shader, buffer):
     return ctx.vertex_array(shader, [(buffer, "3f 3f", "in_color", "in_position")])
-  
+
   def __make_vbo(self, ctx, vertices, color):
     zipped = [[*color, *v] for v in vertices]
     return ctx.buffer(np.array(zipped, dtype='f4'))
