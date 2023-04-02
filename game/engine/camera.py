@@ -12,11 +12,11 @@ FAR = 1000
 class Camera:
     def __init__(self, ctx: moderngl.Context):
         self.ctx = ctx
-        self.position = glm.vec3(0, 0, -10)
+        self.position = glm.vec3(0, 0, -6)
         self.view_matrix = glm.lookAt(self.position, glm.vec3(0, 0, 0), UnitVector.UP)
         self.projection_matrix = glm.perspective(
             glm.radians(FOV), ASPECT_RATIO, NEAR, FAR
         )
-    
+
     def view_projection_matrix(self):
         return self.projection_matrix * self.view_matrix

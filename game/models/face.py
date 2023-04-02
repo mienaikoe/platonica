@@ -11,6 +11,7 @@ from puzzles.puzzle_node import PuzzleNode
 from puzzles.puzzle_face import PuzzleFace
 from models.types import Vertex
 
+INACTIVE_LINE_COLOR = Colors.GRAY
 LINE_COLOR = Colors.WHITE
 DEFAULT_FACE_COLOR = Colors.GRAY
 ACTIVE_FACE_COLOR = Colors.GREEN
@@ -27,7 +28,9 @@ def normalize_vector(vector: tuple[float, float, float], target_magnitude: float
     magnitude_ratio = (vector_magnitude / target_magnitude)
     return vector / magnitude_ratio
 
-DISTANCE_MULTIPLER = 1.1
+DISTANCE_MULTIPLER = 1.03
+PUZZLE_PATH_WIDTH = 0.05
+SIN60 = np.sin(np.radians(60))
 # This helps us render the lines above the face instead of inside it
 
 class FaceCoordinateSystem:
@@ -79,6 +82,22 @@ class FaceCoordinateSystem:
         self.uv_coordinates_to_face_coordinates(coordinates_b),
     )
 
+  def uv_path_to_hexagon(self, path: tuple[PuzzleNode, PuzzleNode]):
+    line = self.uv_path_to_line(path)
+    line_vector = np.subtract(line[1], line[0])
+    left_vector = normalize_vector(np.cross(line_vector, self.normal_vector), PUZZLE_PATH_WIDTH)
+    right_vector = normalize_vector(np.cross(self.normal_vector, line_vector), PUZZLE_PATH_WIDTH)
+
+    left_0 = np.add(line[0], left_vector)
+    right_0 = np.add(line[0], right_vector)
+    left_1 = np.add(line[1], left_vector)
+    right_1 = np.add(line[1], right_vector)
+
+    return [
+      left_0, left_1, right_0, # rect bottom-left
+      right_0, left_1, right_1, # rect top-right
+    ]
+
 class Face(Renderable):
 
   def __init__(self,
@@ -90,15 +109,8 @@ class Face(Renderable):
 
     self.coordinate_system = FaceCoordinateSystem(*face_vertices)
     self.puzzle_face = puzzle_face
-    paths = puzzle_face.collect_paths()
-    path_vertices = []
-    for path in paths:
-      if path[0].face != path[1].face:
-          continue # we don't need to render ridge nodes
-      line = self.coordinate_system.uv_path_to_line(path)
-      path_vertices.append(line[0])
-      path_vertices.append(line[1])
-    self.path_vertices = path_vertices
+
+    self.path_vertices = self.__make_path_vertices()
 
     self.matrix = glm.mat4()
 
@@ -107,8 +119,19 @@ class Face(Renderable):
     self.face_vertex_array = self.__make_vao(ctx, self.face_shader, self.face_buffer)
 
     self.path_shader = get_shader_program(ctx, "line")
-    self.path_buffer = self.__make_vbo(ctx, self.path_vertices, LINE_COLOR)
+    self.path_buffer = self.__make_vbo(ctx, self.path_vertices, INACTIVE_LINE_COLOR)
     self.path_vertex_array = self.__make_vao(ctx, self.path_shader, self.path_buffer)
+
+  def __make_path_vertices(self):
+    paths = self.puzzle_face.collect_paths()
+    path_vertices = []
+    for path in paths:
+      if path[0].face != path[1].face:
+          continue # we don't need to render ridge paths
+      path_hex_vertices = self.coordinate_system.uv_path_to_hexagon(path)
+      path_vertices = path_vertices + path_hex_vertices
+    # print(path_vertices)
+    return path_vertices
 
   def __make_vao(self, ctx, shader, buffer):
     return ctx.vertex_array(shader, [(buffer, "3f 3f", "in_color", "in_position")])
@@ -122,10 +145,10 @@ class Face(Renderable):
       self.face_shader["m_mvp"].write(m_mvp)
       self.face_vertex_array.render()
       self.path_shader["m_mvp"].write(m_mvp)
-      self.path_vertex_array.render(moderngl.LINES)
-  
+      self.path_vertex_array.render()
+
   def rotate(self):
-    nv = glm.vec3(self.coordinate.normal_vector)
+    nv = glm.vec3(self.coordinate_system.normal_vector)
     self.matrix = glm.rotate(self.matrix, glm.radians(120), nv)
     self.puzzle_face.rotate()
 
