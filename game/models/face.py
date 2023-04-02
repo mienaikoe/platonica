@@ -15,6 +15,13 @@ LINE_COLOR = Colors.WHITE
 DEFAULT_FACE_COLOR = Colors.GRAY
 ACTIVE_FACE_COLOR = Colors.GREEN
 
+test_colors = [
+   (0.0, 0.0, 0.5),
+   (0.5, 0.0, 0.0),
+   (0.0, 0.5, 0.0),
+   (0.5, 0.4, 0.0),
+]
+
 def normalize_vector(vector: tuple[float, float, float], target_magnitude: float):
     vector_magnitude = np.linalg.norm(vector)
     magnitude_ratio = (vector_magnitude / target_magnitude)
@@ -96,7 +103,7 @@ class Face(Renderable):
     self.matrix = glm.mat4()
 
     self.face_shader = get_shader_program(ctx, "default")
-    self.face_buffer = self.__make_vbo(ctx, self.face_vertices, DEFAULT_FACE_COLOR)
+    self.face_buffer = self.__make_vbo(ctx, self.face_vertices, test_colors[puzzle_face.face_idx])
     self.face_vertex_array = self.__make_vao(ctx, self.face_shader, self.face_buffer)
 
     self.path_shader = get_shader_program(ctx, "line")
@@ -120,6 +127,7 @@ class Face(Renderable):
   def rotate(self):
     nv = glm.vec3(self.coordinate.normal_vector)
     self.matrix = glm.rotate(self.matrix, glm.radians(120), nv)
+    self.puzzle_face.rotate()
 
   def destroy(self):
       self.face_buffer.release()

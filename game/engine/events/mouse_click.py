@@ -28,8 +28,8 @@ def find_face_clicked(mouse_pos: tuple[int, int], camera, faces):
         a = face[0]
         b = face[1]
         c = face[2]
-
         nv = glm.cross(b - a, c - a)
+        print("face ", f, nv)
         mouse_distance = glm.dot(a - camera.position, nv) / glm.dot(ray_world , nv)
         p = mouse_distance * ray_world + camera.position
         if pointInOrOnTriangle(p, a, b, c) and nv.z < 0:

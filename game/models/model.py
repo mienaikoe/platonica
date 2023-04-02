@@ -64,9 +64,9 @@ class Model(Renderable):
     
     def __face_vertices(self):
         res = []
-        m_mp = self.camera.projection_matrix * self.m_model
+        m_mp = self.m_model
         for f in self.faces:
-            vertex_group = [glm.vec3(glm.vec4(v, 1.0) * m_mp) for v in f.face_vertices]
+            vertex_group = [glm.vec3(glm.vec4(v, 1.0) * m_mp * f.matrix) for v in f.face_vertices]
             res.append(vertex_group)
         return res
     
@@ -92,6 +92,7 @@ class Model(Renderable):
                 self.is_dragging = False
             elif event.type == FACE_ACTIVATED:
                 face_index = event.__dict__['face_index']
+                print('roate face', face_index)
                 self.faces[face_index].rotate()
             self.arcball.handle_event(event)
 
