@@ -20,8 +20,7 @@ class TestScene(Renderable):
             SCREEN_DIMENSIONS[0] / 2,
             SCREEN_DIMENSIONS[1] / 2,
         )
-        self.arcball = ArcBall()
-        self.is_dragging = False
+        self.arcball = ArcBall(self._update_model_matrix)
 
     def init(self):
         self.camera = Camera(self.ctx)
@@ -29,72 +28,32 @@ class TestScene(Renderable):
         texture_file_name = 'david-jorre-unsplash.png'
         self.subject = Tetrahedron(self.puzzle, self.ctx, self.camera, texture_file_name)
 
-    def handle_face_click(self, mouse_pos):
-        x = (2.0 * mouse_pos[0]) / SCREEN_DIMENSIONS[0] - 1.0;
-        y = 1.0 - (2.0 * mouse_pos[1]) / SCREEN_DIMENSIONS[1];
-        ray_clip = glm.vec4(x, y, -1.0, 1.0) # homogen clip coord
-        inv_proj = glm.inverse(self.camera.projection_matrix)
-        inv_vm = glm.inverse(self.camera.view_matrix)
-        ray_eye = inv_proj * ray_clip
-        ray_eye4 = glm.vec4(ray_eye.xy, -1.0, 0.0)
-        ray_world = (inv_vm * ray_eye4).xyz #mouse ray
-        triangles = self.subject.face_vertices()
-        i = 0
-        f = 0
-        found = -1
-        while i < len(triangles):
-            a = glm.vec3(triangles[i])
-            b = glm.vec3(triangles[i+1])
-            c = glm.vec3(triangles[i+2])
-
-            nv = glm.cross(b - a, c - a)
-            mouse_distance = glm.dot(a - self.camera.position, nv) / glm.dot(ray_world , nv)
-
-            p = mouse_distance * ray_world + self.camera.position
-            if pointInOrOnTriangle(p, a, b, c):
-                found = f
-                break
-            f += 1
-            i += 3
-        if found >= 0:
-            print('clicked on face', found)
-        return found >= 0
-
     def handle_nonface_click(self, mouse_position:  tuple[int, int]):
-        self.arcball.click(mouse_position)
+        self.arcball.on_down(mouse_position)
         self.is_dragging = True
 
     def handle_click(self, mouse_position: tuple[int, int]):
-        on_face_click = test_face_clicked(
+        return test_face_clicked(
             mouse_position,
             self.camera,
             self.subject.face_vertices()
         )
-        if on_face_click:
-            return
-        self.handle_nonface_click(mouse_position)
 
-    def handle_up(self, mouse_position: tuple[int, int]):
-        self.is_dragging = False
-
-    def handle_move(self, mouse_position: tuple[int, int]):
-        if not self.is_dragging:
-            return
-        new_transform = self.arcball.drag(mouse_position)
+    def _update_model_matrix(self, new_transform):
         self.subject.update_model_matrix(new_transform)
 
     def handle_events(self, delta_time: int):
         self.subject.handle_events(delta_time)
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
-                self.handle_click(pygame.mouse.get_pos())
+                click_handled = self.handle_click(pygame.mouse.get_pos())
+                if click_handled:
+                    continue
             elif event.type == FACE_ACTIVATED:
                 print('Face picked', event.__dict__)
+                continue
                 # TODO handle when face is clicked
-            elif event.type == pygame.MOUSEBUTTONUP:
-                self.handle_up(pygame.mouse.get_pos())
-            elif event.type == pygame.MOUSEMOTION:
-                self.handle_move(pygame.mouse.get_pos())
+            self.arcball.handle_event(event)
 
     def render(self, delta_time: int):
         self.ctx.clear(color=Colors.CHARCOAL)
