@@ -1,4 +1,5 @@
 import numpy as np
+from constants.colors import Colors
 from models.model import Model
 from models.helpers import triangle_vertices_from_indices, face_coordinates_from_indices
 
@@ -36,37 +37,8 @@ class Tetrahedron(Model):
             face_idx = path[0].face.face_idx
             this_face_coordinates = face_coordinates[face_idx]
             line = this_face_coordinates.uv_path_to_line(path)
-            line_coordinates.append([0.5, 0.5, *(line[0])])
-            line_coordinates.append([0.5, 0.5, *(line[1])])
-
-        # print(json.dumps(line_coordinates, cls=NpEncoder))
-
-        # for face in face_vertices:
-        #     line_coordinates.append([0.0, 1.0, *vertex_palette[face[0]]])
-        #     line_coordinates.append([0.0, 1.0, *vertex_palette[face[1]]])
-        #     line_coordinates.append([0.0, 1.0, *vertex_palette[face[1]]])
-        #     line_coordinates.append([0.0, 1.0, *vertex_palette[face[2]]])
-        #     line_coordinates.append([0.0, 1.0, *vertex_palette[face[0]]])
-        #     line_coordinates.append([0.0, 1.0, *vertex_palette[face[2]]])
-                # UV
-                # vertex_0 = vertex_palette[face[0]]
-                # line_coordinates.append([1.0, ix / 3, 0,0,0])
-                # line_coordinates.append([1.0, ix / 3, *right_line])
-                # line_coordinates.append([1.0, (ix + 1) / 3, 0,0,0])
-                # line_coordinates.append([1.0, (ix + 1) / 3, *up_line])
-
-
-
-        # ix = 0
-        # face_coordinate = face_coordinates[ix]
-        # face = face_vertices[ix]
-        # vertex_0 = vertex_palette[face[0]]
-        # vertex_1 = vertex_palette[face[1]]
-        # vertex_2 = vertex_palette[face[2]]
-        # print(ix, vertex_0, vertex_1, vertex_2)
-        # line_coordinates.append(face_coordinate[0])
-        # line_coordinates.append(face_coordinate[1])
-
+            line_coordinates.append([*Colors.WHITE, *(line[0])])
+            line_coordinates.append([*Colors.WHITE, *(line[1])])
 
         return np.array(line_coordinates, dtype='f4')
 

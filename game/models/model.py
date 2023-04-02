@@ -89,7 +89,7 @@ class Model(Renderable):
         vertex_array_object = self.ctx.vertex_array(
             self.puzzle_shader,
             [
-                (self.puzzle_vbo, "2f 3f", "in_textcoord_0", "in_position")
+                (self.puzzle_vbo, "3f 3f", "in_color", "in_position")
             ],
         )
         return vertex_array_object
