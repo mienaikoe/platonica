@@ -1,7 +1,7 @@
 from constants.shape import FaceShape, Shape
 
 
-class FaceCoordinateSystem:
+class FaceGeneratorDefinition:
   @staticmethod
   def from_shape(shape: Shape):
     return shape_face_systems[shape]
@@ -23,9 +23,9 @@ class FaceCoordinateSystem:
     )
 
 face_systems = {
-  FaceShape.triangle: FaceCoordinateSystem(3,3),
-  FaceShape.square: FaceCoordinateSystem(4,2),
-  FaceShape.pentagon: FaceCoordinateSystem(5,1),
+  FaceShape.triangle: FaceGeneratorDefinition(3,3),
+  FaceShape.square: FaceGeneratorDefinition(4,2),
+  FaceShape.pentagon: FaceGeneratorDefinition(5,1),
 }
 
 shape_face_systems = {

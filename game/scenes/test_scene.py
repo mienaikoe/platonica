@@ -26,7 +26,7 @@ class TestScene(Renderable):
         self.camera = Camera(self.ctx)
         self.puzzle = PuzzleGraph.from_file_name("test-puzzle")
         texture_file_name = 'david-jorre-unsplash.png'
-        self.subject = Tetrahedron(self.puzzle, self.ctx, self.camera, texture_file_name)
+        self.subject = Tetrahedron(self.ctx, self.camera, self.puzzle)
 
     def handle_nonface_click(self, mouse_position:  tuple[int, int]):
         self.arcball.on_down(mouse_position)

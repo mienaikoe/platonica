@@ -13,7 +13,8 @@ def pointInOrOnTriangle(p, a, b, c):
     test3 = pointInOrOn(p, c, a, b)
     return test1 and test2 and test3
 
-def test_face_clicked(mouse_pos, camera, triangles):
+# TODO make it work for non-triangle faces
+def test_face_clicked(mouse_pos, camera, faces):
     x = (2.0 * mouse_pos[0]) / SCREEN_DIMENSIONS[0] - 1.0;
     y = 1.0 - (2.0 * mouse_pos[1]) / SCREEN_DIMENSIONS[1];
     ray_clip = glm.vec4(x, y, -1.0, 1.0) # homogen clip coord
@@ -22,13 +23,12 @@ def test_face_clicked(mouse_pos, camera, triangles):
     ray_eye = inv_proj * ray_clip
     ray_eye4 = glm.vec4(ray_eye.xy, -1.0, 0.0)
     ray_world = (inv_vm * ray_eye4).xyz #mouse ray
-    i = 0
     f = 0
     found = -1
-    while i < len(triangles):
-        a = triangles[i]
-        b = triangles[i+1]
-        c = triangles[i+2]
+    for face in faces:
+        a = face[0]
+        b = face[1]
+        c = face[2]
 
         nv = glm.cross(b - a, c - a)
         mouse_distance = glm.dot(a - camera.position, nv) / glm.dot(ray_world , nv)
@@ -37,7 +37,6 @@ def test_face_clicked(mouse_pos, camera, triangles):
             found = f
             break
         f += 1
-        i += 3
 
     if found >= 0:
         emit_face_activated(found)

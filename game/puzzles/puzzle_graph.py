@@ -1,6 +1,6 @@
 import json
 import os
-from puzzles.face_coordinate_system import FaceCoordinateSystem
+from puzzles.face_generator_definition import FaceGeneratorDefinition
 
 from puzzles.puzzle_face import PuzzleFace
 
@@ -23,7 +23,7 @@ class PuzzleGraph():
 
   def __init__(self, puzzle_json: dict):
     self.shape = Shape[puzzle_json['shape']]
-    self.coordinate_system = FaceCoordinateSystem.from_shape(self.shape)
+    self.coordinate_system = FaceGeneratorDefinition.from_shape(self.shape)
     self.depth = puzzle_json['depth']
 
     faces = puzzle_json['faces']

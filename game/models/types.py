@@ -1,0 +1,1 @@
+Vertex = tuple[float, float, float]

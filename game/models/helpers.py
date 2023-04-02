@@ -1,7 +1,5 @@
 import numpy as np
 import json
-from models.face_coordinate_system import FaceCoordinateSystem
-from puzzles.puzzle_node import PuzzleNode
 
 def triangle_vertices_from_indices(
     vertices: list[tuple[float,float,float]],
@@ -14,18 +12,15 @@ def triangle_vertices_from_indices(
     triangle_vertices = [vertices[ind] for triangle in indices for ind in triangle]
     return np.array(triangle_vertices, dtype="f4")
 
-
-def face_coordinates_from_indices(
+def face_vertices_from_indices(
     vertices: list[tuple[float,float,float]],
     indices: list[tuple[int,int,int]]
 ):
-    face_coordinates: list[FaceCoordinateSystem] = []
-    for vert_index in indices:
-        face_coordinates.append(
-            FaceCoordinateSystem(
-                vertices[vert_index[0]],
-                vertices[vert_index[1]],
-                vertices[vert_index[2]]
-            )
-        )
-    return face_coordinates
+    face_vertices = []
+    for i in indices:
+        v0 = vertices[i[0]]
+        v1 = vertices[i[1]]
+        v2 = vertices[i[2]]
+        face_vertices.append((v0, v1, v2))
+    return face_vertices
+        

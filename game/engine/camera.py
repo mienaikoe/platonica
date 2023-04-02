@@ -17,3 +17,6 @@ class Camera:
         self.projection_matrix = glm.perspective(
             glm.radians(FOV), ASPECT_RATIO, NEAR, FAR
         )
+    
+    def view_projection_matrix(self):
+        return self.projection_matrix * self.view_matrix
