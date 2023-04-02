@@ -62,13 +62,9 @@ class Model(Renderable):
             for y in range(4):
                 self.m_model[x][y] = new_transform[x][y]
     
-    def __face_vertices(self):
-        res = []
-        m_mp = self.m_model
-        for f in self.faces:
-            vertex_group = [glm.vec3(glm.vec4(v, 1.0) * m_mp * f.matrix) for v in f.face_vertices]
-            res.append(vertex_group)
-        return res
+    def projected_face_vertices(self):
+        m_mvp = self.camera.view_projection_matrix() * self.m_model
+        return [f.projected_vertices(m_mvp) for f in self.faces]
     
     def handle_nonface_click(self, mouse_position:  tuple[int, int]):
         self.arcball.on_down(mouse_position)
@@ -76,7 +72,8 @@ class Model(Renderable):
 
     
     def handle_click(self, mouse_pos):
-        clicked_face_idx = find_face_clicked(mouse_pos, self.camera, self.__face_vertices())
+        print("\t click tests", mouse_pos)
+        clicked_face_idx = find_face_clicked(mouse_pos, self.camera, self.projected_face_vertices())
         if clicked_face_idx >= 0:
             emit_face_activated(clicked_face_idx)
             return True

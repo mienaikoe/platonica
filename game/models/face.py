@@ -141,7 +141,7 @@ class Face(Renderable):
     return ctx.buffer(np.array(zipped, dtype='f4'))
 
   def renderFace(self, camera: Camera, model_matrix):
-      m_mvp = camera.projection_matrix * camera.view_matrix * model_matrix * self.matrix
+      m_mvp = camera.view_projection_matrix() * model_matrix * self.matrix
       self.face_shader["m_mvp"].write(m_mvp)
       self.face_vertex_array.render()
       self.path_shader["m_mvp"].write(m_mvp)
@@ -159,3 +159,6 @@ class Face(Renderable):
       self.path_shader.release()
       self.face_vertex_array.release()
       self.path_vertex_array.release()
+
+  def projected_vertices(self, matrix):
+     return [glm.vec3(matrix * self.matrix * glm.vec4(v, 1.0)) for v in self.face_vertices]
