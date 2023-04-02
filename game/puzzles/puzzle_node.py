@@ -19,17 +19,19 @@ class PuzzleNode:
 
   def __init__(self,
     face: int,
-    indices: tuple[int,int,int],
-    coordinates: tuple[int,int,int],
+    indices: tuple[int,int],
+    uv_coordinates: tuple[int,int],
     type: PuzzleNodeType,
     paths: list[PuzzleNode]
   ):
     self.face = face
     self.indices = indices
-    self.coordinates = coordinates
+    self.uv_coordinates = uv_coordinates
     self.type = type
     self.paths = set(paths)
     self.is_active = False
+    self.is_edge = indices[0] == face.depth
+    self.segment_idx = face.generator_definition.segment_for_vertex(indices[0], indices[1])
     self.node_key = f"{chr(self.face.face_idx)},{','.join([chr(idx) for idx in self.indices])}"
 
   def can_reach_end(self, visited_nodes: set):

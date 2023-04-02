@@ -7,8 +7,8 @@ class PuzzleFace:
   def __init__(self, shape: Shape, depth: int, face_idx: int, face_json: dict):
     self.depth = depth
     self.face_idx = face_idx
-    self.coordinate_system = FaceGeneratorDefinition.from_shape(shape)
-    self.nodes = [[None] * (self.coordinate_system.vertex_count_for_ring(ringIx)) for ringIx in range(depth+1)]
+    self.generator_definition = FaceGeneratorDefinition.from_shape(shape)
+    self.nodes = [[None] * (self.generator_definition.vertex_count_for_ring(ringIx)) for ringIx in range(depth+1)]
     self.start_node = None
 
     # Create all nodes
@@ -30,7 +30,7 @@ class PuzzleFace:
       to_node.paths.add(from_node)
 
   def edge_nodes_for_segment(self, segment_idx: int):
-    self.coordinate_system.vertex_range_for_segment(segment_idx, self.depth)
+    self.generator_definition.vertex_range_for_segment(segment_idx, self.depth)
 
   def collect_paths(self):
     paths = {}

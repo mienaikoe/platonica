@@ -1,5 +1,5 @@
 from constants.shape import FaceShape, Shape
-
+import math
 
 class FaceGeneratorDefinition:
   @staticmethod
@@ -9,6 +9,12 @@ class FaceGeneratorDefinition:
   def __init__(self, num_segments: int, vertices_per_segment_per_ring: int):
     self.num_segments = num_segments
     self.vertices_per_segment_per_ring = vertices_per_segment_per_ring
+
+  def segment_for_vertex(self, ring_idx: int, count_idx: int):
+    vertices_per_segment = self.vertices_per_segment_per_ring * ring_idx
+    if vertices_per_segment == 0:
+      return None
+    return math.floor(count_idx / vertices_per_segment)
 
   def vertex_count_for_ring(self, ring_idx: int):
     if ring_idx == 0:
