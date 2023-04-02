@@ -13,7 +13,7 @@ from puzzles.puzzle_graph import PuzzleGraph
 from engine.renderable import Renderable
 
 
-MOVEMENT_DEG_PER_DELTA = 0.001
+MOVEMENT_DEG_PER_DELTA = 0.005
 
 
 class Model(Renderable):
@@ -46,15 +46,21 @@ class Model(Renderable):
         self.puzzle_vbo = self._get_puzzle_vbo()
         self.puzzle_vao = self._get_puzzle_vao()
 
-
     def handle_events(self, delta_time: int):
-        pass
+        displacement = MOVEMENT_DEG_PER_DELTA * delta_time
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_w]:
+            self.m_model = glm.rotate(self.m_model, displacement, UnitVector.RIGHT)
+        if keys[pygame.K_s]:
+            self.m_model = glm.rotate(self.m_model, -displacement, UnitVector.RIGHT)
+        if keys[pygame.K_d]:
+            self.m_model = glm.rotate(self.m_model, displacement, UnitVector.UP)
+        if keys[pygame.K_a]:
+            self.m_model = glm.rotate(self.m_model, -displacement, UnitVector.UP)
 
     def render(self, delta_time: int):
         m_mvp = self.camera.projection_matrix * self.camera.view_matrix * self.m_model
-        self.shape_shader["m_mvp"].write(
-            m_mvp
-        )
+        self.shape_shader["m_mvp"].write(m_mvp)
         self.puzzle_shader["m_mvp"].write(m_mvp)
         self.shape_vao.render()
         self.puzzle_vao.render(moderngl.LINES)
@@ -116,5 +122,9 @@ class Model(Renderable):
 
     def face_vertices(self):
         coords = self._get_shape_vertex_data()
-        return [vs[2:] for vs in coords]
-
+        res = []
+        m_mp = self.camera.projection_matrix * self.m_model
+        for vs in coords:
+            v = vs[2:]
+            res.append(glm.vec3(glm.vec4(v, 1.0) * m_mp))
+        return res

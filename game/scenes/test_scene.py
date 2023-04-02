@@ -9,18 +9,8 @@ from engine.renderable import Renderable
 from models.tetra import Tetrahedron
 from engine.camera import Camera
 from engine.arcball import ArcBall
-
-
-def pointInOrOn(p1, p2, a, b):
-    c1 = glm.cross(b - a, p1 - a)
-    c2 = glm.cross(b - a, p2 - a)
-    return glm.dot(c1, c2) >= 0
-
-def pointInOrOnTriangle(p, a, b, c):
-    test1 = pointInOrOn(p, a, b, c)
-    test2 = pointInOrOn(p, b, c, a)
-    test3 = pointInOrOn(p, c, a, b)
-    return test1 and test2 and test3
+from engine.events import FACE_ACTIVATED
+from engine.events.mouse_click import test_face_clicked
 
 class TestScene(Renderable):
     def __init__(self, ctx: mgl.Context, switch_mode: callable):
@@ -75,7 +65,11 @@ class TestScene(Renderable):
         self.is_dragging = True
 
     def handle_click(self, mouse_position: tuple[int, int]):
-        on_face_click = self.handle_face_click(mouse_position)
+        on_face_click = test_face_clicked(
+            mouse_position,
+            self.camera,
+            self.subject.face_vertices()
+        )
         if on_face_click:
             return
         self.handle_nonface_click(mouse_position)
@@ -91,12 +85,16 @@ class TestScene(Renderable):
 
     def handle_events(self, delta_time: int):
         self.subject.handle_events(delta_time)
-        if pygame.event.get(pygame.MOUSEBUTTONDOWN) and pygame.mouse.get_pressed()[0]:
-            self.handle_click(pygame.mouse.get_pos())
-        elif pygame.event.get(pygame.MOUSEBUTTONUP):
-            self.handle_up(pygame.mouse.get_pos())
-        elif pygame.event.get(pygame.MOUSEMOTION):
-            self.handle_move(pygame.mouse.get_pos())
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                self.handle_click(pygame.mouse.get_pos())
+            elif event.type == FACE_ACTIVATED:
+                print('Face picked', event.__dict__)
+                # TODO handle when face is clicked
+            elif event.type == pygame.MOUSEBUTTONUP:
+                self.handle_up(pygame.mouse.get_pos())
+            elif event.type == pygame.MOUSEMOTION:
+                self.handle_move(pygame.mouse.get_pos())
 
     def render(self, delta_time: int):
         self.ctx.clear(color=Colors.CHARCOAL)
