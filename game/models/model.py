@@ -61,9 +61,7 @@ class Model(Renderable):
 
     def render(self, delta_time: int):
         m_mvp = self.camera.projection_matrix * self.camera.view_matrix * self.m_model
-        self.shape_shader["m_mvp"].write(
-            m_mvp
-        )
+        self.shape_shader["m_mvp"].write(m_mvp)
         self.puzzle_shader["m_mvp"].write(m_mvp)
         self.shape_vao.render()
         self.puzzle_vao.render(moderngl.LINES)
@@ -121,5 +119,9 @@ class Model(Renderable):
     
     def face_vertices(self):
         coords = self._get_shape_vertex_data()
-        return [vs[2:] for vs in coords]
-
+        res = []
+        m_mp = self.camera.projection_matrix * self.m_model
+        for vs in coords:
+            v = vs[2:]
+            res.append(glm.vec3(glm.vec4(v, 1.0) * m_mp))
+        return res
