@@ -2,6 +2,7 @@ import os
 import moderngl
 import glm
 import pygame
+import numpy as np
 from constants.vectors import UnitVector
 
 from engine.camera import Camera
@@ -47,17 +48,7 @@ class Model(Renderable):
 
 
     def handle_events(self, delta_time: int):
-        displacement = MOVEMENT_DEG_PER_DELTA * delta_time
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_w]:
-            self.m_model = glm.rotate(self.m_model, displacement, UnitVector.RIGHT)
-        if keys[pygame.K_s]:
-            self.m_model = glm.rotate(self.m_model, -displacement, UnitVector.RIGHT)
-        if keys[pygame.K_d]:
-            self.m_model = glm.rotate(self.m_model, displacement, UnitVector.UP)
-        if keys[pygame.K_a]:
-            self.m_model = glm.rotate(self.m_model, -displacement, UnitVector.UP)
-
+        pass
 
     def render(self, delta_time: int):
         m_mvp = self.camera.projection_matrix * self.camera.view_matrix * self.m_model
@@ -76,6 +67,10 @@ class Model(Renderable):
         self.shape_vao.release()
         self.puzzle_vao.release()
 
+    def update_model_matrix(self, new_model_matrix: np.ndarray):
+        for x in range(4):
+            for y in range(4):
+                self.m_model[x][y] = new_model_matrix[x][y]
 
     def _get_shape_vao(self):
         vertex_array_object = self.ctx.vertex_array(
@@ -118,7 +113,7 @@ class Model(Renderable):
         vertex_data = self._get_puzzle_vertex_data()
         vertex_buffer = self.ctx.buffer(vertex_data)
         return vertex_buffer
-    
+
     def face_vertices(self):
         coords = self._get_shape_vertex_data()
         return [vs[2:] for vs in coords]

@@ -8,6 +8,7 @@ from puzzles.puzzle_graph import PuzzleGraph
 from engine.renderable import Renderable
 from models.tetra import Tetrahedron
 from engine.camera import Camera
+from engine.arcball import ArcBall
 
 
 def pointInOrOn(p1, p2, a, b):
@@ -29,6 +30,8 @@ class TestScene(Renderable):
             SCREEN_DIMENSIONS[0] / 2,
             SCREEN_DIMENSIONS[1] / 2,
         )
+        self.arcball = ArcBall()
+        self.is_dragging = False
 
     def init(self):
         self.camera = Camera(self.ctx)
@@ -36,7 +39,7 @@ class TestScene(Renderable):
         texture_file_name = 'david-jorre-unsplash.png'
         self.subject = Tetrahedron(self.puzzle, self.ctx, self.camera, texture_file_name)
 
-    def handle_click(self, mouse_pos):
+    def handle_face_click(self, mouse_pos):
         x = (2.0 * mouse_pos[0]) / SCREEN_DIMENSIONS[0] - 1.0;
         y = 1.0 - (2.0 * mouse_pos[1]) / SCREEN_DIMENSIONS[1];
         ray_clip = glm.vec4(x, y, -1.0, 1.0) # homogen clip coord
@@ -65,12 +68,35 @@ class TestScene(Renderable):
             i += 3
         if found >= 0:
             print('clicked on face', found)
+        return found >= 0
 
+    def handle_nonface_click(self, mouse_position:  tuple[int, int]):
+        self.arcball.click(mouse_position)
+        self.is_dragging = True
+
+    def handle_click(self, mouse_position: tuple[int, int]):
+        on_face_click = self.handle_face_click(mouse_position)
+        if on_face_click:
+            return
+        self.handle_nonface_click(mouse_position)
+
+    def handle_up(self, mouse_position: tuple[int, int]):
+        self.is_dragging = False
+
+    def handle_move(self, mouse_position: tuple[int, int]):
+        if not self.is_dragging:
+            return
+        new_transform = self.arcball.drag(mouse_position)
+        self.subject.update_model_matrix(new_transform)
 
     def handle_events(self, delta_time: int):
         self.subject.handle_events(delta_time)
         if pygame.event.get(pygame.MOUSEBUTTONDOWN) and pygame.mouse.get_pressed()[0]:
             self.handle_click(pygame.mouse.get_pos())
+        elif pygame.event.get(pygame.MOUSEBUTTONUP):
+            self.handle_up(pygame.mouse.get_pos())
+        elif pygame.event.get(pygame.MOUSEMOTION):
+            self.handle_move(pygame.mouse.get_pos())
 
     def render(self, delta_time: int):
         self.ctx.clear(color=Colors.CHARCOAL)
