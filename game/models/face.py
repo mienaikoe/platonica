@@ -80,7 +80,6 @@ class Face(Renderable):
     ctx: moderngl.Context,
     ):
     self.face_vertices = face_vertices
-    self.active = False
 
     self.coordinate_system = FaceCoordinateSystem(*face_vertices)
     self.puzzle_face = puzzle_face
@@ -97,9 +96,7 @@ class Face(Renderable):
     self.matrix = glm.mat4()
 
     self.face_shader = get_shader_program(ctx, "default")
-    self.face_buffer = self.__make_vbo(ctx,
-      self.face_vertices,
-      ACTIVE_FACE_COLOR if self.active else DEFAULT_FACE_COLOR)
+    self.face_buffer = self.__make_vbo(ctx, self.face_vertices, DEFAULT_FACE_COLOR)
     self.face_vertex_array = self.__make_vao(ctx, self.face_shader, self.face_buffer)
 
     self.path_shader = get_shader_program(ctx, "line")
@@ -119,6 +116,10 @@ class Face(Renderable):
       self.face_vertex_array.render()
       self.path_shader["m_mvp"].write(m_mvp)
       self.path_vertex_array.render(moderngl.LINES)
+  
+  def rotate(self):
+    nv = glm.vec3(self.coordinate.normal_vector)
+    self.matrix = glm.rotate(self.matrix, glm.radians(120), nv)
 
   def destroy(self):
       self.face_buffer.release()

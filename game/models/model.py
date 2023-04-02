@@ -13,6 +13,9 @@ from puzzles.puzzle_graph import PuzzleGraph
 from engine.renderable import Renderable
 from models.types import Vertex
 from models.face import Face
+from engine.arcball import ArcBall
+from engine.events import FACE_ACTIVATED, emit_face_activated
+from engine.events.mouse_click import find_face_clicked
 
 
 MOVEMENT_DEG_PER_DELTA = 0.005
@@ -51,37 +54,52 @@ class Model(Renderable):
 
         # self.puzzle_shader = get_shader_program(ctx, "line")
         self.m_model = glm.mat4()
-
-    def handle_events(self, delta_time: int):
-        displacement = MOVEMENT_DEG_PER_DELTA * delta_time
-        keys = pygame.key.get_pressed()
-        if keys[pygame.K_w]:
-            self.m_model = glm.rotate(self.m_model, displacement, UnitVector.RIGHT)
-        if keys[pygame.K_s]:
-            self.m_model = glm.rotate(self.m_model, -displacement, UnitVector.RIGHT)
-        if keys[pygame.K_d]:
-            self.m_model = glm.rotate(self.m_model, displacement, UnitVector.UP)
-        if keys[pygame.K_a]:
-            self.m_model = glm.rotate(self.m_model, -displacement, UnitVector.UP)
-
-    def render(self, delta_time: int):
-        for face in self.faces:
-            face.renderFace(self.camera, self.m_model)
-
-
-    def destroy(self):
-        for face in self.faces:
-            face.destory()
-
-    def update_model_matrix(self, new_model_matrix: np.ndarray):
+        self.arcball = ArcBall(self.__update_model_matrix)
+        self.is_dragging = False
+    
+    def __update_model_matrix(self, new_transform):
         for x in range(4):
             for y in range(4):
-                self.m_model[x][y] = new_model_matrix[x][y]
-
-    def face_vertices(self):
+                self.m_model[x][y] = new_transform[x][y]
+    
+    def __face_vertices(self):
         res = []
         m_mp = self.camera.projection_matrix * self.m_model
         for f in self.faces:
             vertex_group = [glm.vec3(glm.vec4(v, 1.0) * m_mp) for v in f.face_vertices]
             res.append(vertex_group)
         return res
+    
+    def handle_nonface_click(self, mouse_position:  tuple[int, int]):
+        self.arcball.on_down(mouse_position)
+        self.is_dragging = True
+
+    
+    def handle_click(self, mouse_pos):
+        clicked_face_idx = find_face_clicked(mouse_pos, self.camera, self.__face_vertices())
+        if clicked_face_idx >= 0:
+            emit_face_activated(clicked_face_idx)
+            return True
+        return False
+
+    def handle_events(self, delta_time: int):
+        for event in pygame.event.get():
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                click_handled = self.handle_click(pygame.mouse.get_pos())
+                if click_handled:
+                    continue
+            elif event.type == pygame.MOUSEBUTTONUP and self.is_dragging:
+                self.is_dragging = False
+            elif event.type == FACE_ACTIVATED:
+                face_index = event.__dict__['face_index']
+                self.faces[face_index].rotate()
+            self.arcball.handle_event(event)
+
+    def render(self, delta_time: int):
+        for face in self.faces:
+            face.renderFace(self.camera, self.m_model)
+
+    def destroy(self):
+        for face in self.faces:
+            face.destory()
+
