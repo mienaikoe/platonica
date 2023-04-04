@@ -1,13 +1,13 @@
-import json
 import numpy as np
 import glm
 import moderngl
-import pygame
 
 from constants.colors import Colors
+from engine.vectors import normalize_vector
 from engine.renderable import Renderable
 from engine.camera import Camera
 from engine.shader import get_shader_program
+from puzzles.face_generator_definition import FaceGeneratorDefinition
 from puzzles.puzzle_node import PuzzleNode
 from puzzles.puzzle_face import PuzzleFace
 from models.types import Vertex, UV
@@ -15,11 +15,6 @@ from models.helpers import merge_collection_items
 
 INACTIVE_LINE_COLOR = Colors.GRAY
 LINE_COLOR = Colors.WHITE
-
-def normalize_vector(vector: tuple[float, float, float], target_magnitude: float):
-    vector_magnitude = np.linalg.norm(vector)
-    magnitude_ratio = (vector_magnitude / target_magnitude)
-    return vector / magnitude_ratio
 
 DISTANCE_MULTIPLER = 1.01
 PUZZLE_PATH_WIDTH = 0.1
@@ -33,7 +28,14 @@ ROTATION_DURATION = 250
 
 class FaceCoordinateSystem:
 
-  def __init__(self, vertex_0, vertex_1, vertex_2):
+  def __init__(
+    self,
+    face_generator_definition: FaceGeneratorDefinition,
+    vertex_0,
+    vertex_1,
+    vertex_2
+  ):
+    self.face_generator_definition = face_generator_definition
     vertex_m0 = np.multiply(vertex_0, DISTANCE_MULTIPLER)
     vertex_m1 = np.multiply(vertex_1, DISTANCE_MULTIPLER)
     vertex_m2 = np.multiply(vertex_2, DISTANCE_MULTIPLER)
@@ -101,48 +103,48 @@ class FaceCoordinateSystem:
       right_0, left_1, right_1, # rect top-right
     ]
 
-  def node_to_hexagon(self, node: PuzzleNode):
-    hexagon_point_vertices = []
-    point_coordinates = self.uv_coordinates_to_face_coordinates(node.uv_coordinates)
-    hex_base = PUZZLE_PATH_WIDTH / 6
-    skip_triangles = []
-    half_triangles = []
-    if node.is_edge:
-      skip_triangles = [
-        (6 + 2 * node.segment_idx) % 6,
-        (1 + 2 * node.segment_idx) % 6,
-      ]
-      half_triangles = [
-        (2 + 2 * node.segment_idx) % 6,
-        (5 + 2 * node.segment_idx) % 6,
-      ]
-    last_leg = None
-    for ix in range(-1,6):
-      this_leg_uv = np.add(node.uv_coordinates, [
-        hex_base * np.sin(ix * RAD60),
-        -hex_base * np.cos(ix * RAD60)
-      ])
-      this_leg = self.uv_coordinates_to_face_coordinates(this_leg_uv)
-      if last_leg is not None and ix not in skip_triangles:
-        if len(half_triangles) > 0:
-          if ix == half_triangles[0]:
-            last_leg_uv = np.add(node.uv_coordinates, [
-              hex_base * SIN60 * np.sin((ix-0.5) * RAD60),
-              -hex_base * SIN60 * np.cos((ix-0.5) * RAD60)
-            ])
-            last_leg = self.uv_coordinates_to_face_coordinates(last_leg_uv)
-          elif ix == half_triangles[1]:
-            this_leg_uv = np.add(node.uv_coordinates, [
-              hex_base * SIN60 * np.sin((ix-0.5) * RAD60),
-              -hex_base * SIN60 * np.cos((ix-0.5) * RAD60)
-            ])
-            this_leg = self.uv_coordinates_to_face_coordinates(this_leg_uv)
+  # def node_to_hexagon(self, node: PuzzleNode):
+  #   hexagon_point_vertices = []
+  #   point_coordinates = self.uv_coordinates_to_face_coordinates(node.uv_coordinates)
+  #   hex_base = PUZZLE_PATH_WIDTH / 6
+  #   skip_triangles = []
+  #   half_triangles = []
+  #   if node.is_edge:
+  #     skip_triangles = [
+  #       (6 + 2 * node.segment_idx) % 6,
+  #       (1 + 2 * node.segment_idx) % 6,
+  #     ]
+  #     half_triangles = [
+  #       (2 + 2 * node.segment_idx) % 6,
+  #       (5 + 2 * node.segment_idx) % 6,
+  #     ]
+  #   last_leg = None
+  #   for ix in range(-1,6):
+  #     this_leg_uv = np.add(node.uv_coordinates, [
+  #       hex_base * np.sin(ix * RAD60),
+  #       -hex_base * np.cos(ix * RAD60)
+  #     ])
+  #     this_leg = self.uv_coordinates_to_face_coordinates(this_leg_uv)
+  #     if last_leg is not None and ix not in skip_triangles:
+  #       if len(half_triangles) > 0:
+  #         if ix == half_triangles[0]:
+  #           last_leg_uv = np.add(node.uv_coordinates, [
+  #             hex_base * SIN60 * np.sin((ix-0.5) * RAD60),
+  #             -hex_base * SIN60 * np.cos((ix-0.5) * RAD60)
+  #           ])
+  #           last_leg = self.uv_coordinates_to_face_coordinates(last_leg_uv)
+  #         elif ix == half_triangles[1]:
+  #           this_leg_uv = np.add(node.uv_coordinates, [
+  #             hex_base * SIN60 * np.sin((ix-0.5) * RAD60),
+  #             -hex_base * SIN60 * np.cos((ix-0.5) * RAD60)
+  #           ])
+  #           this_leg = self.uv_coordinates_to_face_coordinates(this_leg_uv)
 
-        hexagon_point_vertices = hexagon_point_vertices + [
-          point_coordinates, last_leg, this_leg
-        ]
-      last_leg = this_leg
-    return hexagon_point_vertices
+  #       hexagon_point_vertices = hexagon_point_vertices + [
+  #         point_coordinates, last_leg, this_leg
+  #       ]
+  #     last_leg = this_leg
+  #   return hexagon_point_vertices
 
 
 class Face(Renderable):
@@ -156,7 +158,9 @@ class Face(Renderable):
     ):
     self.face_vertices = face_vertices
 
-    self.coordinate_system = FaceCoordinateSystem(*face_vertices)
+    self.coordinate_system = FaceCoordinateSystem(
+      puzzle_face.generator_definition, *face_vertices
+    )
     self.puzzle_face = puzzle_face
 
     self.path_vertices = self.__make_path_vertices()
@@ -192,9 +196,10 @@ class Face(Renderable):
       if path[0].face != path[1].face:
           continue # we don't need to render ridge paths
       path_line_vertices = self.coordinate_system.uv_path_to_rectangle(path)
-      from_node_vertices = self.coordinate_system.node_to_hexagon(path[0])
-      to_node_vertices = self.coordinate_system.node_to_hexagon(path[1])
-      path_vertices = path_vertices + path_line_vertices + from_node_vertices + to_node_vertices
+      path_vertices = path_vertices + path_line_vertices
+      # from_node_vertices = self.coordinate_system.node_to_hexagon(path[0])
+      # to_node_vertices = self.coordinate_system.node_to_hexagon(path[1])
+      # path_vertices = path_vertices + from_node_vertices + to_node_vertices
     return path_vertices
 
   def __make_vao(self, ctx, shader, context):
@@ -207,7 +212,7 @@ class Face(Renderable):
   def __make_vbo_with_uv(self, ctx, vertices, uvs):
     zipped = merge_collection_items(uvs, vertices)
     return ctx.buffer(np.array(zipped, dtype='f4'))
-  
+
 
   def __rotate_by_degrees(self, degrees):
     self.matrix = glm.rotate(glm.mat4(), glm.radians(degrees), self.nv)

@@ -35,3 +35,17 @@ export const drawDot = (svgParent, vertex, attributes) => {
 
   return dot;
 };
+
+export const drawPolygon = (svgParent, vertices, attributes) => {
+  const polygon = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    "polygon"
+  );
+  const points = vertices.map((vertex) => vertex.join(", ")).join("   ");
+  polygon.setAttribute("points", points);
+  for (let attribute in attributes) {
+    polygon.setAttribute(attribute, attributes[attribute]);
+  }
+  svgParent.appendChild(polygon);
+  return polygon;
+};

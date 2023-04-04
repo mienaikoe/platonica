@@ -14,19 +14,35 @@
       border: 1px solid #eee;
     }
 
-    line.edge {
-      stroke: #555;
-      stroke-dasharray: 4 4;
+    line {
+      stroke: #333;
+      z-index: 1;
     }
 
-    line:not(.edge):hover {
-      opacity: 1;
+    circle {
+      fill: white;
+      stroke-width: 1;
+      stroke: #333;
+    }
+
+    polygon {
+      fill: pink;
+      stroke-width: 5;
+      stroke: white;
       cursor: pointer;
     }
 
-    circle:not(.edge):hover{
-      fill: #888;
-      cursor: pointer;
+    polygon.active {
+      fill: skyblue;
+    }
+
+    line.edge, circle.edge {
+      stroke-dasharray: 2 2;
+      stroke: #AAA;
+    }
+
+    circle.edge {
+      fill: white;
     }
   </style>
 </head>
