@@ -37,7 +37,7 @@ class PuzzleGraph():
 
   def _associate_polygons(self, polygon_a, polygon_b, connect: bool):
     if connect:
-      polygon_a.neighbors.add(polygon_b)
+      polygon_a.associate(polygon_b)
       polygon_b.neighbors.add(polygon_a)
     else:
       if polygon_b in polygon_a.neighbors:

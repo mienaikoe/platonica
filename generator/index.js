@@ -35,11 +35,7 @@ exportEl.addEventListener("click", () => {
     const simplifiedPolygons = new Map();
 
     faceRings.forEach((ringVertices) => {
-      const usefulVertices = ringVertices.filter((vertex) =>
-        vertex.polygons.find((polygon) => polygon.is_active)
-      );
-
-      usefulVertices.forEach((vertex) => {
+      ringVertices.forEach((vertex) => {
         simplifiedVertices.push({
           indices: vertex.indices,
           coordinates: [
@@ -49,16 +45,16 @@ exportEl.addEventListener("click", () => {
         });
 
         vertex.polygons
-          .filter((polygon) => polygon.is_active)
+          // .filter((polygon) => polygon.is_active)
           .forEach((polygon) => {
             const polygonKey = JSON.stringify(
               polygon.vertices.map((v) => v.indices)
             );
             if (!simplifiedPolygons.has(polygonKey)) {
-              simplifiedPolygons.set(
-                polygonKey,
-                polygon.vertices.map((v) => v.indices)
-              );
+              simplifiedPolygons.set(polygonKey, {
+                indices: polygon.vertices.map((v) => v.indices),
+                is_active: polygon.is_active,
+              });
             }
           });
       });

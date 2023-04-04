@@ -16,7 +16,7 @@ def get_texture(ctx: moderngl.Context, texture_file_name: str):
     return texture
 
 texture_maps = {
-    'tetra_tex_test.png': {
+    'tetra_debug.png': {
         'uv': [
             (0.504, 0.953), #0
             (0.262, 0.496), #1

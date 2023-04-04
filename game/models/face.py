@@ -64,88 +64,12 @@ class FaceCoordinateSystem:
       np.subtract(vertex_m0, vertex_m2),
     ]
 
-
   def uv_coordinates_to_face_coordinates(self, uv_coordinates: UV, distance_multipler=1):
     local_vector = np.add(
       np.multiply(uv_coordinates[0], self.u_vector),
       np.multiply(uv_coordinates[1], self.v_vector)
     )
     return np.multiply(np.add(self.origin_vector, local_vector), distance_multipler)
-
-  # def uv_path_to_line(self, path: tuple[PuzzleNode, PuzzleNode]) -> tuple[list,list]:
-  #   face_a = path[0].face
-  #   face_b = path[1].face
-  #   if( face_a != face_b ):
-  #       return (
-  #           [0,0,0],
-  #           [0,0,0]
-  #       )
-  #   coordinates_a = path[0].uv_coordinates
-  #   coordinates_b = path[1].uv_coordinates
-  #   return (
-  #       self.uv_coordinates_to_face_coordinates(coordinates_a),
-  #       self.uv_coordinates_to_face_coordinates(coordinates_b),
-  #   )
-
-  # def uv_path_to_rectangle(self, path: tuple[PuzzleNode, PuzzleNode]):
-  #   line = self.uv_path_to_line(path)
-  #   line_vector = np.subtract(line[1], line[0])
-  #   left_vector = normalize_vector(np.cross(line_vector, self.normal_vector), PUZZLE_PATH_WIDTH / 2)
-  #   right_vector = normalize_vector(np.cross(self.normal_vector, line_vector), PUZZLE_PATH_WIDTH / 2)
-
-  #   left_0 = np.add(line[0], left_vector)
-  #   right_0 = np.add(line[0], right_vector)
-  #   left_1 = np.add(line[1], left_vector)
-  #   right_1 = np.add(line[1], right_vector)
-
-  #   return [
-  #     left_0, left_1, right_0, # rect bottom-left
-  #     right_0, left_1, right_1, # rect top-right
-  #   ]
-
-  # def node_to_hexagon(self, node: PuzzleNode):
-  #   hexagon_point_vertices = []
-  #   point_coordinates = self.uv_coordinates_to_face_coordinates(node.uv_coordinates)
-  #   hex_base = PUZZLE_PATH_WIDTH / 6
-  #   skip_triangles = []
-  #   half_triangles = []
-  #   if node.is_edge:
-  #     skip_triangles = [
-  #       (6 + 2 * node.segment_idx) % 6,
-  #       (1 + 2 * node.segment_idx) % 6,
-  #     ]
-  #     half_triangles = [
-  #       (2 + 2 * node.segment_idx) % 6,
-  #       (5 + 2 * node.segment_idx) % 6,
-  #     ]
-  #   last_leg = None
-  #   for ix in range(-1,6):
-  #     this_leg_uv = np.add(node.uv_coordinates, [
-  #       hex_base * np.sin(ix * RAD60),
-  #       -hex_base * np.cos(ix * RAD60)
-  #     ])
-  #     this_leg = self.uv_coordinates_to_face_coordinates(this_leg_uv)
-  #     if last_leg is not None and ix not in skip_triangles:
-  #       if len(half_triangles) > 0:
-  #         if ix == half_triangles[0]:
-  #           last_leg_uv = np.add(node.uv_coordinates, [
-  #             hex_base * SIN60 * np.sin((ix-0.5) * RAD60),
-  #             -hex_base * SIN60 * np.cos((ix-0.5) * RAD60)
-  #           ])
-  #           last_leg = self.uv_coordinates_to_face_coordinates(last_leg_uv)
-  #         elif ix == half_triangles[1]:
-  #           this_leg_uv = np.add(node.uv_coordinates, [
-  #             hex_base * SIN60 * np.sin((ix-0.5) * RAD60),
-  #             -hex_base * SIN60 * np.cos((ix-0.5) * RAD60)
-  #           ])
-  #           this_leg = self.uv_coordinates_to_face_coordinates(this_leg_uv)
-
-  #       hexagon_point_vertices = hexagon_point_vertices + [
-  #         point_coordinates, last_leg, this_leg
-  #       ]
-  #     last_leg = this_leg
-  #   return hexagon_point_vertices
-
 
 class Face(Renderable):
 
@@ -190,7 +114,7 @@ class Face(Renderable):
     self.time_elapsed = 0
 
   def __make_path_vertices(self):
-    polygons = self.puzzle_face.polygons
+    polygons = self.puzzle_face.active_polygons
     path_vertices = []
     for polygon in polygons:
       path_line_vertices = [
