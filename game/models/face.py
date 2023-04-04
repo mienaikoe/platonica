@@ -2,6 +2,7 @@ import json
 import numpy as np
 import glm
 import moderngl
+import pygame
 
 from constants.colors import Colors
 from engine.renderable import Renderable
@@ -24,6 +25,9 @@ DISTANCE_MULTIPLER = 1.01
 PUZZLE_PATH_WIDTH = 0.1
 RAD60 = np.radians(60)
 SIN60 = np.sin(RAD60)
+
+ROTATION_TARGET_ANGLE = 120
+ROTATION_DURATION = 250
 
 # This helps us render the lines above the face instead of inside it
 
@@ -176,6 +180,10 @@ class Face(Renderable):
       [(self.path_buffer, "3f 3f", "in_color", "in_position")]
     )
 
+    self.nv = glm.vec3(self.coordinate_system.normal_vector)
+    self.is_rotating = False
+    self.current_angle = 0
+    self.time_elapsed = 0
 
   def __make_path_vertices(self):
     paths = self.puzzle_face.collect_paths()
@@ -199,18 +207,42 @@ class Face(Renderable):
   def __make_vbo_with_uv(self, ctx, vertices, uvs):
     zipped = merge_collection_items(uvs, vertices)
     return ctx.buffer(np.array(zipped, dtype='f4'))
+  
 
-  def renderFace(self, camera: Camera, model_matrix):
+  def __rotate_by_degrees(self, degrees):
+    self.matrix = glm.rotate(glm.mat4(), glm.radians(degrees), self.nv)
+
+  # TODO replace linear function with ease-in
+  def __animate_rotate(self):
+    if self.time_elapsed > ROTATION_DURATION and self.current_angle < ROTATION_TARGET_ANGLE:
+      self.__rotate_by_degrees(ROTATION_TARGET_ANGLE)
+      self.is_rotating = False
+    else:
+      self.current_angle = ROTATION_TARGET_ANGLE * self.time_elapsed / ROTATION_DURATION
+      if self.current_angle > ROTATION_TARGET_ANGLE:
+        self.current_angle = ROTATION_TARGET_ANGLE
+      self.__rotate_by_degrees(self.current_angle)
+      if self.current_angle == ROTATION_TARGET_ANGLE:
+        self.is_rotating = False
+
+  def renderFace(self, camera: Camera, model_matrix, delta_time):
       m_mvp = camera.view_projection_matrix() * model_matrix * self.matrix
       self.face_shader["m_mvp"].write(m_mvp)
       self.face_vertex_array.render()
       self.path_shader["m_mvp"].write(m_mvp)
       self.path_vertex_array.render()
 
+      if self.is_rotating:
+        self.time_elapsed += delta_time
+        self.__animate_rotate()
+
+
   def rotate(self):
-    nv = glm.vec3(self.coordinate_system.normal_vector)
-    self.matrix = glm.rotate(self.matrix, glm.radians(120), nv)
+    self.is_rotating = True
+    self.current_angle = 0
+    self.time_elapsed = 0
     self.puzzle_face.rotate()
+
 
   def destroy(self):
       self.face_buffer.release()

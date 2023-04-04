@@ -21,7 +21,6 @@ class TestScene(Renderable):
     def init(self):
         self.camera = Camera(self.ctx)
         self.puzzle = PuzzleGraph.from_file_name("test-puzzle")
-        texture_file_name = 'david-jorre-unsplash.png'
         self.subject = Tetrahedron(self.ctx, self.camera, self.puzzle)
 
     def handle_events(self, delta_time: int):

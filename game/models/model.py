@@ -86,11 +86,12 @@ class Model(Renderable):
             elif event.type == FACE_ACTIVATED:
                 face_index = event.__dict__['face_index']
                 self.faces[face_index].rotate()
+                # TODO block face click until rotation is complete
             self.arcball.handle_event(event)
 
     def render(self, delta_time: int):
         for face in self.faces:
-            face.renderFace(self.camera, self.m_model)
+            face.renderFace(self.camera, self.m_model, delta_time)
 
     def destroy(self):
         for face in self.faces:
