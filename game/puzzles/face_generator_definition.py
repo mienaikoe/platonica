@@ -51,10 +51,7 @@ class FaceGeneratorDefinition:
     (ring_idx, count_idx) = indices
     vertices_per_segment = self.vertices_per_segment_per_ring * ring_idx;
     center = self.get_center_uv_coordinates(depth)
-    ring_origin = center + [
-      self.ring_vector[0] * ring_idx,
-      self.ring_vector[1] * ring_idx
-    ]
+    ring_origin = center + (self.ring_vector * ring_idx)
     point_segment = math.floor(
       count_idx / self.vertices_per_segment_per_ring * ring_idx
     )
@@ -75,19 +72,19 @@ class FaceGeneratorDefinition:
 face_systems = {
   FaceShape.triangle: FaceGeneratorDefinition(
     num_segments=3,
-    vertices_per_segment=3,
+    vertices_per_segment_per_ring=3,
     ring_vector=[RING_UNIT_X_EQUILATERAL, RING_UNIT_Y],
     segment_rotation=120
   ),
   FaceShape.square: FaceGeneratorDefinition(
     num_segments=4,
-    vertices_per_segment=2,
+    vertices_per_segment_per_ring=2,
     ring_vector=[RING_UNIT_X_SQUARE, RING_UNIT_Y],
     segment_rotation=90
   ),
   FaceShape.pentagon: FaceGeneratorDefinition(
     num_segments=5,
-    vertices_per_segment=1,
+    vertices_per_segment_per_ring=1,
     ring_vector=[RING_UNIT_X_PENTAGONAL, RING_UNIT_Y],
     segment_rotation=72
   ),

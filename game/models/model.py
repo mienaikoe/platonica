@@ -1,14 +1,9 @@
-import os
 import moderngl
 import glm
 import pygame
-import numpy as np
-from constants.vectors import UnitVector
 
 from engine.camera import Camera
 from engine.texture import get_texture, texture_maps
-from engine.shader import get_shader_program
-from models.helpers import triangle_vertices_from_indices
 from puzzles.puzzle_graph import PuzzleGraph
 from engine.renderable import Renderable
 from models.types import Vertex
@@ -53,21 +48,21 @@ class Model(Renderable):
         self.m_model = glm.mat4()
         self.arcball = ArcBall(self.__update_model_matrix)
         self.is_dragging = False
-    
+
     def __update_model_matrix(self, new_transform):
         for x in range(4):
             for y in range(4):
                 self.m_model[x][y] = new_transform[x][y]
-    
+
     def projected_face_vertices(self):
         m_mvp = self.camera.view_projection_matrix() * self.m_model
         return [f.projected_vertices(m_mvp) for f in self.faces]
-    
+
     def handle_nonface_click(self, mouse_position:  tuple[int, int]):
         self.arcball.on_down(mouse_position)
         self.is_dragging = True
 
-    
+
     def handle_click(self, mouse_pos):
         clicked_face_idx = find_face_clicked(mouse_pos, self.camera, self.projected_face_vertices())
         if clicked_face_idx >= 0:

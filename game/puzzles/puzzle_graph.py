@@ -32,14 +32,20 @@ class PuzzleGraph():
     for (face_idx, face_definition) in enumerate(faces):
       face = PuzzleFace(self.shape, self.depth, face_idx, face_definition)
       self.faces.append(face)
-      if face.start_node:
-        self.start_face = face
-        self.start_node = face.start_node
 
-    self._associate_ridge_nodes(True)
+    self._associate_ridge_polygons(True)
 
+  def _associate_polygons(self, polygon_a, polygon_b, connect: bool):
+    if connect:
+      polygon_a.neighbors.add(polygon_b)
+      polygon_b.neighbors.add(polygon_a)
+    else:
+      if polygon_b in polygon_a.neighbors:
+        polygon_a.neighbors.remove(polygon_b)
+      if polygon_a in polygon_b.paths:
+        polygon_b.paths.remove(polygon_a)
 
-  def _associate_ridge_nodes(self, connect: bool):
+  def _associate_ridge_polygons(self, connect: bool):
     for (edge_a, edge_b, same_direction) in ShapeFaceRidges[self.shape]:
       ring_a = self.faces[edge_a[0]].nodes[self.depth]
       ring_b = self.faces[edge_b[0]].nodes[self.depth]
@@ -49,39 +55,28 @@ class PuzzleGraph():
       nodes_b = [ring_b[ix] for ix in vertex_range_b]
       vertex_count = len(nodes_a)
 
+      node_a_prev = None
+      node_b_prev = None
+
       for ix in range(vertex_count):
         node_a = nodes_a[ix]
         node_b = nodes_b[ix] if same_direction else nodes_b[(vertex_count-1)-ix]
 
         if not node_a or not node_b:
-          # nodes are only available if they have paths into them
+          # nodes are only available if they have polygons into them
           continue
-        if connect:
-          node_a.paths.add(node_b)
-          node_b.paths.add(node_a)
-        else:
-          if node_b in node_a.paths:
-            node_a.paths.remove(node_b)
-          if node_a in node_b.paths:
-            node_b.paths.remove(node_a)
 
-  def collect_paths(self):
-    paths = {}
-    for face in self.faces:
-      for ring in face.nodes:
-        for from_node in ring:
-          if not from_node or len(from_node.paths) == 0:
-            continue
-          for to_node in from_node.paths:
-            pathKeyA = f"{from_node.node_key}|{to_node.node_key}"
-            pathKeyB = f"{to_node.node_key}|{from_node.node_key}"
-            if pathKeyA in paths or pathKeyB in paths:
-              continue
-            paths[pathKeyA] = (from_node, to_node)
-    return paths.values()
+        if node_a_prev and node_b_prev:
+          polygons_a = node_a.polygons.intersection(node_a_prev.polygons)
+          polygons_b = node_b.polygons.intersection(node_b_prev.polygons)
+          if len(polygons_a) > 0 and len(polygons_b) > 0:
+            self._associate_polygons(polygons_a[0], polygons_b[0])
 
-  def can_reach_end(self):
-    return self.start_node.can_reach_end(set())
+  def collect_polygons(self):
+    return [polygon for face in self.faces for polygon in face.polygons]
+
+
+
 
 
 

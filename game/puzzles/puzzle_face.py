@@ -1,4 +1,5 @@
 from constants.shape import Shape
+from puzzles.puzzle_polygon import PuzzlePolygon
 from puzzles.face_generator_definition import FaceGeneratorDefinition
 from puzzles.puzzle_node import PuzzleNode
 
@@ -9,42 +10,25 @@ class PuzzleFace:
     self.face_idx = face_idx
     self.generator_definition = FaceGeneratorDefinition.from_shape(shape)
     self.nodes = [[None] * (self.generator_definition.vertex_count_for_ring(ringIx)) for ringIx in range(depth+1)]
-    self.start_node = None
+    self.polygons = set()
 
     # Create all nodes
     for vertex in face_json['vertices']:
       indices = (vertex['indices'])
-      # TODO: Get transformation matrix for face
       node = PuzzleNode.from_node_json(self, vertex)
       self.nodes[indices[0]][indices[1]] = node
-      if node.type == 'start':
-        self.start_node = node
 
-    # Create paths between nodes
-    for path in face_json['paths']:
-      from_indices = path[0]
-      from_node = self.nodes[from_indices[0]][from_indices[1]]
-      to_indices = path[1]
-      to_node = self.nodes[to_indices[0]][to_indices[1]]
-      from_node.paths.add(to_node)
-      to_node.paths.add(from_node)
+    # Create polygons between nodes
+    for polygon in face_json['polygons']:
+      polygon_indices = polygon['indices']
+      polygon_nodes = [self.nodes[indices[0]][indices[1]] for indices in polygon_indices]
+      polygon = PuzzlePolygon(self, polygon_nodes)
+      self.polygons.add(polygon)
+      for node in polygon_nodes:
+        node.polygons.add(polygon)
 
   def edge_nodes_for_segment(self, segment_idx: int):
     self.generator_definition.vertex_range_for_segment(segment_idx, self.depth)
-
-  def collect_paths(self):
-    paths = {}
-    for ring in self.nodes:
-      for from_node in ring:
-        if not from_node or len(from_node.paths) == 0:
-          continue
-        for to_node in from_node.paths:
-          pathKeyA = f"{from_node.node_key}|{to_node.node_key}"
-          pathKeyB = f"{to_node.node_key}|{from_node.node_key}"
-          if pathKeyA in paths or pathKeyB in paths:
-            continue
-          paths[pathKeyA] = (from_node, to_node)
-    return paths.values()
 
   def rotate(self):
     # TODO

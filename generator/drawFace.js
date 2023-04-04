@@ -21,76 +21,16 @@ const GRAY = "#555";
  * type Vertex {
     indices: [number, number], // ring, index along ring starting at bottom left
     coordinates: [number, number], // x, y
-    paths: Path[],
-    type: "hole" | "start" | null
+    polygons: Polygon[],
   }
 
-  type Path {
-    from: [number, number], // red, blue
-    to: [number, number], // red, blue
-    active: boolean,
+  type Polygon {
+    vertices: [Vertex, Vertex, Vertex], // red, blue
+    paths: Polygon[],
+    is_active: boolean,
   }
  *
  */
-
-// const toggleEdge = (edge, line) => {
-//   if (edge.active) {
-//     edge.active = false;
-//     line.setAttribute("stroke-width", strokeWidthInactive);
-//     line.setAttribute("stroke", line.getAttribute("data-color-default"));
-//   } else {
-//     edge.active = true;
-//     line.setAttribute("stroke-width", strokeWidthActive);
-//     line.setAttribute("opacity", opacityActive);
-//     line.setAttribute("stroke", colorActive);
-//   }
-// };
-
-// const toggleVertex = (vertex, dot) => {
-//   switch (vertex.type) {
-//     case "hole":
-//       vertex.type = "start";
-//       dot.setAttribute("stroke", "goldenrod");
-//       dot.setAttribute("fill", "goldenrod");
-//       break;
-//     case "start":
-//       vertex.type = null;
-//       dot.setAttribute("stroke", "black");
-//       dot.setAttribute("fill", "black");
-//       break;
-//     default:
-//       vertex.type = "hole";
-//       dot.setAttribute("stroke", "black");
-//       dot.setAttribute("fill", "white");
-//       break;
-//   }
-// };
-
-const createPath = (from, to) => {
-  const newPath = {
-    indices: [from.indices, to.indices],
-    active: false,
-  };
-
-  const pathKeyA = newPath.indices.toString();
-  const pathKeyB = newPath.indices.reverse().toString();
-
-  const existingFrom = from.paths.find((path) => {
-    const pathKey = path.indices.toString();
-    return pathKey === pathKeyA || pathKey === pathKeyB;
-  });
-  if (!existingFrom) {
-    from.paths.push(newPath);
-  }
-
-  const existingTo = to.paths.find((path) => {
-    const pathKey = path.indices.toString();
-    return pathKey === pathKeyA || pathKey === pathKeyB;
-  });
-  if (!existingTo) {
-    to.paths.push(newPath);
-  }
-};
 
 const renderLine = (group, from, to, isEdge) => {
   if (!from || !to) {
@@ -150,6 +90,8 @@ const renderPolygon = (group, vertices) => {
       polygon.is_active = true;
     }
   });
+
+  return polygon;
 };
 
 const constructVertices = (coordinateSystem, depth) => {
@@ -230,7 +172,6 @@ export const drawTriangle = (group, depth) => {
         const previousVertexCountIdx =
           countIdx === 0 ? ringVertices.length - 1 : countIdx - 1;
         const previousVertex = vertices[ringIdx][previousVertexCountIdx];
-        createPath(vertex, previousVertex);
 
         let previousCornerVertex,
           adjacentCornerVertex,
@@ -243,7 +184,6 @@ export const drawTriangle = (group, depth) => {
           previousCornerVertex = ringVertices[previousCornerVertexCountIdx];
           const adjacentCornerVertexIdx = countIdx === 1 ? 0 : countIdx - 1;
           adjacentCornerVertex = ringVertices[adjacentCornerVertexIdx];
-          createPath(vertex, previousCornerVertex);
         }
 
         const previousRingIdx = ringIdx - 1;
@@ -255,10 +195,6 @@ export const drawTriangle = (group, depth) => {
               ? 0
               : countIdx - ((segmentIdx + 1) * verticesPerCorner - 1);
           previousInnerVertex = vertices[previousRingIdx][previousCountIdx];
-
-          if (previousInnerVertex) {
-            createPath(vertex, previousInnerVertex);
-          }
         }
         if (segmentCountIdx > 0 && segmentCountIdx < verticesPerSegment - 1) {
           const nextCountIdx =
@@ -268,9 +204,6 @@ export const drawTriangle = (group, depth) => {
               ? 0
               : countIdx - ((segmentIdx + 1) * verticesPerCorner - 2);
           nextInnerVertex = vertices[previousRingIdx][nextCountIdx];
-          if (nextInnerVertex) {
-            createPath(vertex, nextInnerVertex);
-          }
         }
 
         renderPolygon(polygonGroup, [
@@ -337,7 +270,6 @@ export const drawSquare = (group, depth) => {
 
         const nextIdx = countIdx === ringVertices.length - 1 ? 0 : countIdx + 1;
         const nextVertex = vertices[ringIdx][nextIdx];
-        createPath(vertex, nextVertex);
         renderLine(lineGroup, vertex, nextVertex, isEdge);
 
         const previousIdx = countIdx === 0 ? ringVertices - 1 : countIdx - 1;
@@ -356,9 +288,6 @@ export const drawSquare = (group, depth) => {
               : countIdx - (1 + segmentIdx * (verticesPerCorner * 2));
           directInnerVertex = vertices[previousRingIdx][directInnerIdx];
           renderLine(lineGroup, vertex, directInnerVertex, false);
-        }
-        if (directInnerVertex) {
-          createPath(vertex, directInnerVertex);
         }
 
         if (segmentCountIdx < verticesPerSegment - 1) {
@@ -413,7 +342,6 @@ export const drawPentagon = (group, depth) => {
         const previousVertexIdx =
           countIdx === 0 ? ringVertices.length - 1 : countIdx - 1;
         const previousVertex = ringVertices[previousVertexIdx];
-        createPath(vertex, previousVertex);
 
         const nextVertexIdx =
           countIdx === ringVertices.length - 1 ? 0 : countIdx + 1;
@@ -429,18 +357,11 @@ export const drawPentagon = (group, depth) => {
             : countIdx - segmentIdx * verticesPerCorner;
         const nextInnerVertex = vertices[previousRingIdx][nextInnerIdx];
 
-        if (nextInnerVertex) {
-          createPath(vertex, nextInnerVertex);
-        }
-
         let previousInnerVertex;
         if (ringIdx > 1 && segmentCountIdx > 0) {
           const previousCountIdx =
             countIdx - (segmentIdx + 1) * verticesPerCorner;
           previousInnerVertex = vertices[previousRingIdx][previousCountIdx];
-          if (previousInnerVertex) {
-            createPath(vertex, nextInnerVertex);
-          }
         }
 
         renderPolygon(polygonGroup, [nextInnerVertex, nextVertex, vertex]);

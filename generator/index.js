@@ -32,11 +32,11 @@ exportEl.addEventListener("click", () => {
     const faceRings = faces[faceKey];
 
     const simplifiedVertices = [];
-    const simplifiedPaths = new Map();
+    const simplifiedPolygons = new Map();
 
     faceRings.forEach((ringVertices) => {
       const usefulVertices = ringVertices.filter((vertex) =>
-        vertex.paths.find((path) => path.active)
+        vertex.polygons.find((polygon) => polygon.is_active)
       );
 
       usefulVertices.forEach((vertex) => {
@@ -46,14 +46,19 @@ exportEl.addEventListener("click", () => {
             vertex.coordinates[0] / faceWidth,
             vertex.coordinates[1] / faceWidth,
           ],
-          type: vertex.type,
         });
-        vertex.paths
-          .filter((path) => path.active)
-          .forEach((path) => {
-            const pathKey = JSON.stringify(path.indices);
-            if (!simplifiedPaths.has(pathKey)) {
-              simplifiedPaths.set(pathKey, path.indices);
+
+        vertex.polygons
+          .filter((polygon) => polygon.is_active)
+          .forEach((polygon) => {
+            const polygonKey = JSON.stringify(
+              polygon.vertices.map((v) => v.indices)
+            );
+            if (!simplifiedPolygons.has(polygonKey)) {
+              simplifiedPolygons.set(
+                polygonKey,
+                polygon.vertices.map((v) => v.indices)
+              );
             }
           });
       });
@@ -61,7 +66,7 @@ exportEl.addEventListener("click", () => {
 
     dataPayload.faces.push({
       vertices: simplifiedVertices,
-      paths: Array.from(simplifiedPaths.values()),
+      polygons: Array.from(simplifiedPolygons.values()),
     });
   }
   var dataStr =

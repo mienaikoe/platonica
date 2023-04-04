@@ -65,43 +65,43 @@ class FaceCoordinateSystem:
     ]
 
 
-  def uv_coordinates_to_face_coordinates(self, uv_coordinates: tuple[float, float], distance_multipler=1):
+  def uv_coordinates_to_face_coordinates(self, uv_coordinates: UV, distance_multipler=1):
     local_vector = np.add(
       np.multiply(uv_coordinates[0], self.u_vector),
       np.multiply(uv_coordinates[1], self.v_vector)
     )
     return np.multiply(np.add(self.origin_vector, local_vector), distance_multipler)
 
-  def uv_path_to_line(self, path: tuple[PuzzleNode, PuzzleNode]) -> tuple[list,list]:
-    face_a = path[0].face
-    face_b = path[1].face
-    if( face_a != face_b ):
-        return (
-            [0,0,0],
-            [0,0,0]
-        )
-    coordinates_a = path[0].uv_coordinates
-    coordinates_b = path[1].uv_coordinates
-    return (
-        self.uv_coordinates_to_face_coordinates(coordinates_a),
-        self.uv_coordinates_to_face_coordinates(coordinates_b),
-    )
+  # def uv_path_to_line(self, path: tuple[PuzzleNode, PuzzleNode]) -> tuple[list,list]:
+  #   face_a = path[0].face
+  #   face_b = path[1].face
+  #   if( face_a != face_b ):
+  #       return (
+  #           [0,0,0],
+  #           [0,0,0]
+  #       )
+  #   coordinates_a = path[0].uv_coordinates
+  #   coordinates_b = path[1].uv_coordinates
+  #   return (
+  #       self.uv_coordinates_to_face_coordinates(coordinates_a),
+  #       self.uv_coordinates_to_face_coordinates(coordinates_b),
+  #   )
 
-  def uv_path_to_rectangle(self, path: tuple[PuzzleNode, PuzzleNode]):
-    line = self.uv_path_to_line(path)
-    line_vector = np.subtract(line[1], line[0])
-    left_vector = normalize_vector(np.cross(line_vector, self.normal_vector), PUZZLE_PATH_WIDTH / 2)
-    right_vector = normalize_vector(np.cross(self.normal_vector, line_vector), PUZZLE_PATH_WIDTH / 2)
+  # def uv_path_to_rectangle(self, path: tuple[PuzzleNode, PuzzleNode]):
+  #   line = self.uv_path_to_line(path)
+  #   line_vector = np.subtract(line[1], line[0])
+  #   left_vector = normalize_vector(np.cross(line_vector, self.normal_vector), PUZZLE_PATH_WIDTH / 2)
+  #   right_vector = normalize_vector(np.cross(self.normal_vector, line_vector), PUZZLE_PATH_WIDTH / 2)
 
-    left_0 = np.add(line[0], left_vector)
-    right_0 = np.add(line[0], right_vector)
-    left_1 = np.add(line[1], left_vector)
-    right_1 = np.add(line[1], right_vector)
+  #   left_0 = np.add(line[0], left_vector)
+  #   right_0 = np.add(line[0], right_vector)
+  #   left_1 = np.add(line[1], left_vector)
+  #   right_1 = np.add(line[1], right_vector)
 
-    return [
-      left_0, left_1, right_0, # rect bottom-left
-      right_0, left_1, right_1, # rect top-right
-    ]
+  #   return [
+  #     left_0, left_1, right_0, # rect bottom-left
+  #     right_0, left_1, right_1, # rect top-right
+  #   ]
 
   # def node_to_hexagon(self, node: PuzzleNode):
   #   hexagon_point_vertices = []
@@ -190,16 +190,13 @@ class Face(Renderable):
     self.time_elapsed = 0
 
   def __make_path_vertices(self):
-    paths = self.puzzle_face.collect_paths()
+    polygons = self.puzzle_face.polygons
     path_vertices = []
-    for path in paths:
-      if path[0].face != path[1].face:
-          continue # we don't need to render ridge paths
-      path_line_vertices = self.coordinate_system.uv_path_to_rectangle(path)
+    for polygon in polygons:
+      path_line_vertices = [
+        self.coordinate_system.uv_coordinates_to_face_coordinates(node.uv_coordinates) for node in polygon.nodes
+      ]
       path_vertices = path_vertices + path_line_vertices
-      # from_node_vertices = self.coordinate_system.node_to_hexagon(path[0])
-      # to_node_vertices = self.coordinate_system.node_to_hexagon(path[1])
-      # path_vertices = path_vertices + from_node_vertices + to_node_vertices
     return path_vertices
 
   def __make_vao(self, ctx, shader, context):
