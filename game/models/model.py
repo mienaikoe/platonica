@@ -15,7 +15,9 @@ from models.types import Vertex
 from models.face import Face
 from engine.arcball import ArcBall
 from engine.events import FACE_ACTIVATED, emit_face_activated
-from engine.events.mouse_click import find_face_clicked
+from engine.events.mouse_click import pointInOrOnTriangle
+from models.ghost import Ghost
+from constants.dimensions import SCREEN_DIMENSIONS
 
 
 MOVEMENT_DEG_PER_DELTA = 0.005
@@ -32,6 +34,7 @@ class Model(Renderable):
         self.puzzle = puzzle
         self.ctx = ctx
         self.camera = camera
+        self.ghost = Ghost(ctx)
 
         self.faces = []
         puzzle_faces = puzzle.faces
@@ -72,10 +75,38 @@ class Model(Renderable):
 
     
     def handle_click(self, mouse_pos):
-        print("\t click tests", mouse_pos)
-        clicked_face_idx = find_face_clicked(mouse_pos, self.camera, self.projected_face_vertices())
-        if clicked_face_idx >= 0:
-            emit_face_activated(clicked_face_idx)
+        x = (2.0 * mouse_pos[0]) / SCREEN_DIMENSIONS[0] - 1.0;
+        y = 1.0 - (2.0 * mouse_pos[1]) / SCREEN_DIMENSIONS[1];
+        ray_clip = glm.vec4(x, y, -1.0, 1.0) # homogen clip coord
+        inv_proj = glm.inverse(self.camera.projection_matrix)
+        inv_vm = glm.inverse(self.camera.view_matrix)
+        ray_eye = inv_proj * ray_clip
+        ray_eye4 = glm.vec4(ray_eye.xy, -1.0, 0.0)
+        ray_world = (inv_vm * ray_eye4).xyz # mouse ray
+        print("\t mouse", ray_world)
+        f = 0
+        found = -1
+        faces = self.projected_face_vertices()
+        points = []
+        for face in faces:
+            a = face[0]
+            b = face[1]
+            c = face[2]
+            nv = glm.cross(b - a, c - a)
+            center = (a + b + c) / 3
+            mouse_distance = glm.dot(center - self.camera.position, nv) / glm.dot(ray_world , nv)
+            p = mouse_distance * ray_world + self.camera.position
+            points.append(center)
+            print("face ", f)
+            facing = nv.z > 0
+            in_triangle = pointInOrOnTriangle(p, a, b, c)
+            print('\t in tri', in_triangle, p)
+            if facing and in_triangle:
+                found = f
+            f += 1
+        self.ghost.set_points([(0, 0, 0), *points])
+        if found >= 0:
+            emit_face_activated(found)
             return True
         return False
 
@@ -96,8 +127,10 @@ class Model(Renderable):
     def render(self, delta_time: int):
         for face in self.faces:
             face.renderFace(self.camera, self.m_model)
+        self.ghost.draw(self.camera.view_projection_matrix(), moderngl.LINES)
 
     def destroy(self):
         for face in self.faces:
             face.destory()
+        self.ghost.destroy()
 

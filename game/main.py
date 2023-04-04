@@ -28,7 +28,7 @@ class Main:
             SCREEN_DIMENSIONS, flags=pygame.OPENGL | pygame.DOUBLEBUF
         )
         self.ctx = mgl.create_context()  # OpenGL
-        self.ctx.enable(flags=mgl.DEPTH_TEST | mgl.CULL_FACE)
+        self.ctx.enable(flags=mgl.DEPTH_TEST | mgl.BLEND)
         self.scenes = {
             Mode.TEST: TestScene(self.ctx, self.switch_mode),
             Mode.MENU: MenuScene(self.ctx, self.switch_mode),

@@ -1,9 +1,11 @@
 import glm
+import math
 from constants.dimensions import SCREEN_DIMENSIONS
 
 def pointInOrOn(p1, p2, a, b):
-    c1 = glm.cross(b - a, p1 - a)
-    c2 = glm.cross(b - a, p2 - a)
+    d = b - a
+    c1 = glm.cross(d, p1 - a)
+    c2 = glm.cross(d, p2 - a)
     return glm.dot(c1, c2) >= 0
 
 def pointInOrOnTriangle(p, a, b, c):
@@ -21,7 +23,8 @@ def find_face_clicked(mouse_pos: tuple[int, int], camera, faces):
     inv_vm = glm.inverse(camera.view_matrix)
     ray_eye = inv_proj * ray_clip
     ray_eye4 = glm.vec4(ray_eye.xy, -1.0, 0.0)
-    ray_world = (inv_vm * ray_eye4).xyz #mouse ray
+    ray_world = (inv_vm * ray_eye4).xyz # mouse ray
+    print("\t mouse", ray_world)
     f = 0
     found = -1
     for face in faces:
@@ -29,11 +32,14 @@ def find_face_clicked(mouse_pos: tuple[int, int], camera, faces):
         b = face[1]
         c = face[2]
         nv = glm.cross(b - a, c - a)
-        print("face ", f, nv)
-        mouse_distance = glm.dot(a - camera.position, nv) / glm.dot(ray_world , nv)
+        center = (a + b + c) / 3
+        mouse_distance = glm.dot(center - camera.position, nv) / glm.dot(ray_world , nv)
         p = mouse_distance * ray_world + camera.position
-        if pointInOrOnTriangle(p, a, b, c) and nv.z > 0:
+        print("face ", f)
+        facing = nv.z > 0
+        in_triangle = pointInOrOnTriangle(p, a, b, c)
+        print('\t in tri', in_triangle, p)
+        if facing and in_triangle:
             found = f
-            break
         f += 1
     return found

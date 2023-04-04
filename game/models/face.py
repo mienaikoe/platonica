@@ -17,10 +17,10 @@ DEFAULT_FACE_COLOR = Colors.GRAY
 ACTIVE_FACE_COLOR = Colors.GREEN
 
 test_colors = [
-   (0.0, 0.0, 0.5),
-   (0.5, 0.0, 0.0),
-   (0.0, 0.5, 0.0),
-   (0.5, 0.4, 0.0),
+   (0.8, 0.5, 0.5),
+   (0.5, 0.8, 0.5),
+   (0.5, 0.5, 0.8),
+   (0.8, 0.4, 0.8),
 ]
 
 def normalize_vector(vector: tuple[float, float, float], target_magnitude: float):
