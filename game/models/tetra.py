@@ -11,10 +11,10 @@ vertex_palette = [
     (-1,-1,1)
 ]
 face_vertices = [
-    (1, 2, 3),
-    (3, 0, 2),
-    (0, 1, 3),
-    (0, 2, 1)
+    (2, 3, 0),
+    (3, 2, 1),
+    (1, 0, 3),
+    (0, 1, 2)
 ]
 
 class Tetrahedron(Model):
