@@ -23,4 +23,14 @@ def face_vertices_from_indices(
         v2 = vertices[i[2]]
         face_vertices.append((v0, v1, v2))
     return face_vertices
-        
+
+def merge_collection_items(a: list, b: list):
+    alen = len(a)
+    if alen != len(b):
+        raise Exception('length of both collections must be equal')
+    i = 0
+    c = []
+    while i < alen:
+        c.append([*a[i], *b[i]])
+        i += 1
+    return c

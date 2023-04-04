@@ -27,32 +27,29 @@ class Model(Renderable):
         camera: Camera,
         vertices: list[tuple[Vertex, Vertex, Vertex]],
         puzzle: PuzzleGraph,
-        # texture_file_name: str,
+        texture_file_name: str,
     ):
         self.puzzle = puzzle
         self.ctx = ctx
         self.camera = camera
 
+        texture = get_texture(ctx, texture_file_name)
+        texture_location = 0
+        texture.use(location=texture_location)
+        texture_map = texture_maps[texture_file_name]
+
         self.faces = []
         puzzle_faces = puzzle.faces
         for pf in puzzle_faces:
             vs = vertices[pf.face_idx]
-            self.faces.append(Face(vs, pf, ctx))
+            uv_indices = texture_map['faces'][pf.face_idx]
+            uvs = (
+                texture_map['uv'][uv_indices[0]],
+                texture_map['uv'][uv_indices[1]],
+                texture_map['uv'][uv_indices[2]],
+            )
+            self.faces.append(Face(vs, pf, ctx, 0, uvs))
 
-        # self.texture = get_texture(
-        #     self.ctx,
-        #     texture_file_name
-        # )
-        # texture_map = texture_maps[texture_file_name]
-        # self.texture_vertices = triangle_vertices_from_indices(
-        #     texture_map['uv'], texture_map['faces']
-        # )
-
-        # self.shape_shader = get_shader_program(ctx, "image")
-        # self.shape_shader['u_texture_0'] = 0
-        # self.texture.use()
-
-        # self.puzzle_shader = get_shader_program(ctx, "line")
         self.m_model = glm.mat4()
         self.arcball = ArcBall(self.__update_model_matrix)
         self.is_dragging = False
@@ -72,7 +69,6 @@ class Model(Renderable):
 
     
     def handle_click(self, mouse_pos):
-        print("\t click tests", mouse_pos)
         clicked_face_idx = find_face_clicked(mouse_pos, self.camera, self.projected_face_vertices())
         if clicked_face_idx >= 0:
             emit_face_activated(clicked_face_idx)
@@ -89,7 +85,6 @@ class Model(Renderable):
                 self.is_dragging = False
             elif event.type == FACE_ACTIVATED:
                 face_index = event.__dict__['face_index']
-                print('roate face', face_index)
                 self.faces[face_index].rotate()
             self.arcball.handle_event(event)
 

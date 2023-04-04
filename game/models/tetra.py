@@ -21,4 +21,4 @@ class Tetrahedron(Model):
 
     def __init__(self, ctx, camera, puzzle):
         vertices = face_vertices_from_indices(vertex_palette, face_vertices)
-        super().__init__(ctx, camera, vertices, puzzle)
+        super().__init__(ctx, camera, vertices, puzzle, "david-jorre-unsplash.png")

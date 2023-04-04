@@ -9,19 +9,11 @@ from engine.camera import Camera
 from engine.shader import get_shader_program
 from puzzles.puzzle_node import PuzzleNode
 from puzzles.puzzle_face import PuzzleFace
-from models.types import Vertex
+from models.types import Vertex, UV
+from models.helpers import merge_collection_items
 
 INACTIVE_LINE_COLOR = Colors.GRAY
 LINE_COLOR = Colors.WHITE
-DEFAULT_FACE_COLOR = Colors.GRAY
-ACTIVE_FACE_COLOR = Colors.GREEN
-
-test_colors = [
-   (0.0, 0.0, 0.5),
-   (0.5, 0.0, 0.0),
-   (0.0, 0.5, 0.0),
-   (0.5, 0.4, 0.0),
-]
 
 def normalize_vector(vector: tuple[float, float, float], target_magnitude: float):
     vector_magnitude = np.linalg.norm(vector)
@@ -155,6 +147,8 @@ class Face(Renderable):
     face_vertices: tuple[Vertex, Vertex, Vertex],
     puzzle_face: PuzzleFace,
     ctx: moderngl.Context,
+    texture_location: int,
+    vertex_uvs: tuple[UV, UV, UV],
     ):
     self.face_vertices = face_vertices
 
@@ -165,13 +159,22 @@ class Face(Renderable):
 
     self.matrix = glm.mat4()
 
-    self.face_shader = get_shader_program(ctx, "default")
-    self.face_buffer = self.__make_vbo(ctx, self.face_vertices, test_colors[puzzle_face.face_idx])
-    self.face_vertex_array = self.__make_vao(ctx, self.face_shader, self.face_buffer)
+    self.face_shader = get_shader_program(ctx, "image")
+    self.face_shader['u_texture_0'] = texture_location
+    self.face_buffer = self.__make_vbo_with_uv(ctx, self.face_vertices, vertex_uvs)
+    self.face_vertex_array = self.__make_vao(
+      ctx,
+      self.face_shader,
+      [(self.face_buffer, "2f 3f", "in_textcoord_0", "in_position")]
+    )
 
     self.path_shader = get_shader_program(ctx, "line")
-    self.path_buffer = self.__make_vbo(ctx, self.path_vertices, INACTIVE_LINE_COLOR)
-    self.path_vertex_array = self.__make_vao(ctx, self.path_shader, self.path_buffer)
+    self.path_buffer = self.__make_vbo_with_color(ctx, self.path_vertices, INACTIVE_LINE_COLOR)
+    self.path_vertex_array = self.__make_vao(
+      ctx,
+      self.path_shader,
+      [(self.path_buffer, "3f 3f", "in_color", "in_position")]
+    )
 
 
   def __make_path_vertices(self):
@@ -186,11 +189,15 @@ class Face(Renderable):
       path_vertices = path_vertices + path_line_vertices + from_node_vertices + to_node_vertices
     return path_vertices
 
-  def __make_vao(self, ctx, shader, buffer):
-    return ctx.vertex_array(shader, [(buffer, "3f 3f", "in_color", "in_position")])
+  def __make_vao(self, ctx, shader, context):
+    return ctx.vertex_array(shader, context)
 
-  def __make_vbo(self, ctx, vertices, color):
+  def __make_vbo_with_color(self, ctx, vertices, color):
     zipped = [[*color, *v] for v in vertices]
+    return ctx.buffer(np.array(zipped, dtype='f4'))
+
+  def __make_vbo_with_uv(self, ctx, vertices, uvs):
+    zipped = merge_collection_items(uvs, vertices)
     return ctx.buffer(np.array(zipped, dtype='f4'))
 
   def renderFace(self, camera: Camera, model_matrix):
