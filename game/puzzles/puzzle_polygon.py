@@ -5,7 +5,9 @@ class PuzzlePolygon:
     self.face = face
     self.nodes = nodes
     self.nodes_set = set(nodes)
-    self._neighbors = set()
+    self.is_edge = len([node for node in self.nodes if node.is_edge]) == 2
+    self.neighbors = []
+    self._active_neighbors = set()
     self._strange_face_neighbors = set()
     self.is_active = is_active
 
@@ -19,14 +21,23 @@ class PuzzlePolygon:
       self._strange_face_neighbors.add(another_polygon)
       another_polygon._strange_face_neighbors.add(self)
     else:
-      self._neighbors.add(another_polygon)
-      another_polygon._neighbors.add(self)
+      self._active_neighbors.add(another_polygon)
+      another_polygon._active_neighbors.add(self)
 
   def mates_with(self, another_polygon: 'PuzzlePolygon'):
     return len(self.nodes_set.intersection(another_polygon.nodes_set)) == 2
 
-  def get_neighbors(self):
-    return self._neighbors + self._strange_face_neighbors
+  def get_inactive_neighbor_lines(self):
+    inactive_neighbor_lines = []
+    for ix, this_node in enumerate(self.nodes):
+      prev_node = self.nodes[
+        len(self.nodes) - 1 if ix == 0 else ix - 1
+      ]
+      common_polygons = this_node.polygons.intersection(prev_node.polygons)
+      for polygon in common_polygons:
+        if polygon != self and not polygon.is_active:
+          inactive_neighbor_lines.append((this_node, prev_node))
+    return inactive_neighbor_lines
 
   def on_rotate(self):
     self._strange_face_neighbors.clear()

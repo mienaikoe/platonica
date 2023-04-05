@@ -25,7 +25,7 @@ pygame.display.gl_set_attribute(
 class Main:
     def __init__(self):
         self.screen = pygame.display.set_mode(
-            SCREEN_DIMENSIONS, flags=pygame.OPENGL | pygame.DOUBLEBUF
+            SCREEN_DIMENSIONS, flags=pygame.OPENGL | pygame.DOUBLEBUF | pygame.GL_CONTEXT_DEBUG_FLAG
         )
         self.ctx = mgl.create_context()  # OpenGL
         self.ctx.enable(flags=mgl.DEPTH_TEST)

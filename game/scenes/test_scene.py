@@ -27,7 +27,7 @@ class TestScene(Renderable):
         self.subject.handle_events(delta_time)
 
     def render(self, delta_time: int):
-        self.ctx.clear(color=Colors.CHARCOAL)
+        self.ctx.clear(color=Colors.WHITE)
         self.subject.render(delta_time)
 
     def destroy(self):

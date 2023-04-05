@@ -14,12 +14,19 @@ from models.types import Vertex, UV
 from models.helpers import merge_collection_items
 
 INACTIVE_LINE_COLOR = Colors.GRAY
+WALL_COLOR = Colors.CHARCOAL
 LINE_COLOR = Colors.WHITE
 
-DISTANCE_MULTIPLER = 1.01
 PUZZLE_PATH_WIDTH = 0.1
 RAD60 = np.radians(60)
 SIN60 = np.sin(RAD60)
+RAD30 = np.radians(30)
+SIN30 = np.sin(RAD30)
+COS30 = np.cos(RAD30)
+TAN30 = np.tan(RAD30)
+ACOS133 = np.arccos(1 / (3 * np.sqrt(3)))
+
+CARVE_DEPTH = 0.0
 
 ROTATION_TARGET_ANGLE = 120
 ROTATION_DURATION = 250
@@ -31,45 +38,69 @@ class FaceCoordinateSystem:
   def __init__(
     self,
     face_generator_definition: FaceGeneratorDefinition,
-    vertex_0,
-    vertex_1,
-    vertex_2
+    vertices: list[Vertex],
   ):
     self.face_generator_definition = face_generator_definition
-    vertex_m0 = np.multiply(vertex_0, DISTANCE_MULTIPLER)
-    vertex_m1 = np.multiply(vertex_1, DISTANCE_MULTIPLER)
-    vertex_m2 = np.multiply(vertex_2, DISTANCE_MULTIPLER)
 
-    self.origin_vector = vertex_m0
+    self.vertex_vectors = [np.array(vertex) for vertex in vertices]
+    self.origin_vector = vertices[0]
+    self.u_vector = np.subtract(vertices[1], vertices[0])
+    segment_vector_mag = np.linalg.norm(self.u_vector)
 
-    self.u_vector = np.subtract(vertex_m1, vertex_m0)
-    u_vector_mag = np.linalg.norm(self.u_vector)
+    middle_vector = np.array([0,0,0])
+    self.segment_vectors = []
+    self.clip_plane_normals = []
+    for (ix, vertex) in enumerate(vertices):
+      next_vertex_ix = ix + 1 if ix < len(vertices) - 1 else 0
+      next_vertex = vertices[next_vertex_ix]
+      self.segment_vectors.append(
+        normalize_vector(np.subtract(next_vertex, vertex), segment_vector_mag),
+      )
+      self.clip_plane_normals.append(np.cross(vertex, next_vertex))
+      middle_vector = np.add(
+        middle_vector,
+        np.array(vertex) / len(vertices)
+      )
 
     self.normal_vector = normalize_vector(
       np.cross(
-        self.u_vector,
-        np.subtract(vertex_m2, vertex_m0)
+        self.segment_vectors[0],
+        self.segment_vectors[1]
       ),
-      u_vector_mag
+      segment_vector_mag
     )
 
     self.v_vector = normalize_vector(
       np.cross(self.normal_vector, self.u_vector),
-      u_vector_mag
+      segment_vector_mag
     )
 
-    self.segment_vectors = [
-      self.u_vector,
-      np.subtract(vertex_m2, vertex_m1),
-      np.subtract(vertex_m0, vertex_m2),
-    ]
+    self.how_many = 0
 
-  def uv_coordinates_to_face_coordinates(self, uv_coordinates: UV, distance_multipler=1):
+  def _vector_outside_clip_bounds(self, vector: np.ndarray):
+    for (plane_ix, plane_normal) in enumerate(self.clip_plane_normals):
+      # Equation of a plane: Ax + By + Cz + D = 0
+      res = np.sum([plane_normal[ix] * vector[ix] for ix in range(3)])
+      if res > 0:
+        return plane_ix
+    return None
+
+  def sink_vector(self, vector, sink_depth: float):
+    sink_vector = normalize_vector(self.normal_vector, sink_depth)
+    return np.add(vector, sink_vector)
+
+  def uv_coordinates_to_face_coordinates(self, uv_coordinates: UV, sink_depth=0):
     local_vector = np.add(
       np.multiply(uv_coordinates[0], self.u_vector),
       np.multiply(uv_coordinates[1], self.v_vector)
     )
-    return np.multiply(np.add(self.origin_vector, local_vector), distance_multipler)
+    local_vector = np.add(self.origin_vector, local_vector)
+
+    if sink_depth != 0:
+      local_vector = self.sink_vector(local_vector, sink_depth)
+
+    return local_vector
+
 
 class Face(Renderable):
 
@@ -81,31 +112,33 @@ class Face(Renderable):
     vertex_uvs: tuple[UV, UV, UV],
     ):
     self.face_vertices = face_vertices
+    self.vertex_uvs = vertex_uvs # Not Used, but don't want to hurt its feelings
 
     self.coordinate_system = FaceCoordinateSystem(
-      puzzle_face.generator_definition, *face_vertices
+      puzzle_face.generator_definition, face_vertices
     )
+    self.carve_vector = normalize_vector(self.coordinate_system.normal_vector, CARVE_DEPTH)
     self.puzzle_face = puzzle_face
-
-    self.path_vertices = self.__make_path_vertices()
 
     self.matrix = glm.mat4()
 
-    self.face_shader = get_shader_program(ctx, "image")
-    self.face_shader['u_texture_0'] = texture_location
-    self.face_buffer = self.__make_vbo_with_uv(ctx, self.face_vertices, vertex_uvs)
-    self.face_vertex_array = self.__make_vao(
+    (terrain_vertices, terrain_uvs) = self.__make_terrain_vertices()
+    self.terrain_shader = get_shader_program(ctx, "image")
+    self.terrain_shader['u_texture_0'] = texture_location
+    self.terrain_buffer = self.__make_vbo_with_uv(ctx, terrain_vertices, terrain_uvs)
+    self.terrain_vertex_array = self.__make_vao(
       ctx,
-      self.face_shader,
-      [(self.face_buffer, "2f 3f", "in_textcoord_0", "in_position")]
+      self.terrain_shader,
+      [(self.terrain_buffer, "2f 3f", "in_textcoord_0", "in_position")]
     )
 
-    self.path_shader = get_shader_program(ctx, "line")
-    self.path_buffer = self.__make_vbo_with_color(ctx, self.path_vertices, INACTIVE_LINE_COLOR)
-    self.path_vertex_array = self.__make_vao(
+    carve_vertices = self.__make_carve_vertices()
+    self.carve_shader = get_shader_program(ctx, "line")
+    self.carve_buffer = self.__make_vbo(ctx, carve_vertices)
+    self.carve_vertex_array = self.__make_vao(
       ctx,
-      self.path_shader,
-      [(self.path_buffer, "3f 3f", "in_color", "in_position")]
+      self.carve_shader,
+      [(self.carve_buffer, "3f 3f", "in_color", "in_position")]
     )
 
     self.nv = glm.vec3(self.coordinate_system.normal_vector)
@@ -113,27 +146,73 @@ class Face(Renderable):
     self.current_angle = 0
     self.time_elapsed = 0
 
-  def __make_path_vertices(self):
-    polygons = self.puzzle_face.active_polygons
-    path_vertices = []
+  def __make_terrain_vertices(self):
+    polygons = self.puzzle_face.polygons
+    polygon_vertices = []
+    polygon_uvs = []
     for polygon in polygons:
-      path_line_vertices = [
-        self.coordinate_system.uv_coordinates_to_face_coordinates(node.uv_coordinates) for node in polygon.nodes
-      ]
-      path_vertices = path_vertices + path_line_vertices
-    return path_vertices
+      if polygon.is_active:
+        continue
+      for node in polygon.nodes:
+        polygon_vertices.append(self.coordinate_system.uv_coordinates_to_face_coordinates(node.uv_coordinates))
+        polygon_uvs.append(node.uv_coordinates)
+    return (polygon_vertices, polygon_uvs)
+
+  def __make_carve_vertices(self):
+    polygons = self.puzzle_face.active_polygons
+    active_polygon_vertices = []
+    for polygon in polygons:
+      # basin
+      for node in polygon.nodes:
+        active_polygon_vertices.append([
+          *INACTIVE_LINE_COLOR,
+          *self.coordinate_system.uv_coordinates_to_face_coordinates(node.uv_coordinates, CARVE_DEPTH)
+        ])
+
+      # Clip bounds
+      # for (ix, vertex) in enumerate(self.face_vertices):
+      #   active_polygon_vertices.append([
+      #     *Colors.RED,
+      #     *vertex
+      #   ])
+      #   active_polygon_vertices.append([
+      #     *Colors.RED,
+      #     *self.face_vertices[ix+1 if ix != 2 else 0]
+      #   ])
+      #   active_polygon_vertices.append([
+      #     *Colors.RED,
+      #     0,0,0
+      #   ])
+
+      # walls
+      # inactive_neighbor_lines = polygon.get_inactive_neighbor_lines()
+      # for inactive_line_nodes in inactive_neighbor_lines:
+      #   terrain_coordinates = [
+      #     self.coordinate_system.uv_coordinates_to_face_coordinates(node.uv_coordinates)
+      #     for node in inactive_line_nodes
+      #   ]
+      #   carve_coordinates = [
+      #     self.coordinate_system.sink_vector(coordinates, CARVE_DEPTH)
+      #     for coordinates in terrain_coordinates
+      #   ]
+      #   quad_triangles = [
+      #     terrain_coordinates[0],terrain_coordinates[1],carve_coordinates[0],
+      #     carve_coordinates[1], carve_coordinates[0], terrain_coordinates[1]
+      #   ]
+      #   active_polygon_vertices.extend([
+      #     [*WALL_COLOR, *v] for v in quad_triangles
+      #   ])
+
+    return active_polygon_vertices
 
   def __make_vao(self, ctx, shader, context):
     return ctx.vertex_array(shader, context)
 
-  def __make_vbo_with_color(self, ctx, vertices, color):
-    zipped = [[*color, *v] for v in vertices]
-    return ctx.buffer(np.array(zipped, dtype='f4'))
+  def __make_vbo(self, ctx, vertices):
+    return ctx.buffer(np.array(vertices, dtype='f4'))
 
   def __make_vbo_with_uv(self, ctx, vertices, uvs):
-    zipped = merge_collection_items(uvs, vertices)
-    return ctx.buffer(np.array(zipped, dtype='f4'))
-
+    return self.__make_vbo(ctx, merge_collection_items(uvs, vertices))
 
   def __rotate_by_degrees(self, degrees):
     self.matrix = glm.rotate(glm.mat4(), glm.radians(degrees), self.nv)
@@ -153,10 +232,10 @@ class Face(Renderable):
 
   def renderFace(self, camera: Camera, model_matrix, delta_time):
       m_mvp = camera.view_projection_matrix() * model_matrix * self.matrix
-      self.face_shader["m_mvp"].write(m_mvp)
-      self.face_vertex_array.render()
-      self.path_shader["m_mvp"].write(m_mvp)
-      self.path_vertex_array.render()
+      self.terrain_shader["m_mvp"].write(m_mvp)
+      self.terrain_vertex_array.render()
+      self.carve_shader["m_mvp"].write(m_mvp)
+      self.carve_vertex_array.render()
 
       if self.is_rotating:
         self.time_elapsed += delta_time
@@ -171,12 +250,12 @@ class Face(Renderable):
 
 
   def destroy(self):
-      self.face_buffer.release()
-      self.path_buffer.release()
-      self.face_shader.release()
-      self.path_shader.release()
-      self.face_vertex_array.release()
-      self.path_vertex_array.release()
+      self.terrain_buffer.release()
+      self.carve_buffer.release()
+      self.terrain_shader.release()
+      self.carve_shader.release()
+      self.terrain_vertex_array.release()
+      self.carve_vertex_array.release()
 
   def projected_vertices(self, matrix):
      return [glm.vec3(matrix * self.matrix * glm.vec4(v, 1.0)) for v in self.face_vertices]

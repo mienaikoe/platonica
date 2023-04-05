@@ -31,7 +31,7 @@ class PuzzleFace:
       for node in polygon_nodes:
         node.polygons.add(polygon)
 
-    # Associate Polygons
+    # Associate Active Polygons
     for polygon_a in [self.active_polygons]:
       for polygon_b in [self.active_polygons]:
         if polygon_a == polygon_b:
