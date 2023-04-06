@@ -42,6 +42,6 @@ class PuzzleFace:
   def edge_nodes_for_segment(self, segment_idx: int):
     self.generator_definition.vertex_range_for_segment(segment_idx, self.depth)
 
-  def rotate(self):
+  def rotate(self, target_angle: int):
     # TODO
     pass

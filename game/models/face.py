@@ -7,6 +7,7 @@ from engine.vectors import normalize_vector
 from engine.renderable import Renderable
 from engine.camera import Camera
 from engine.shader import get_shader_program
+from engine.animation import AnimationLerper, AnimationLerpFunction
 from puzzles.face_generator_definition import FaceGeneratorDefinition
 from puzzles.puzzle_node import PuzzleNode
 from puzzles.puzzle_face import PuzzleFace
@@ -29,8 +30,7 @@ ACOS133 = np.arccos(1 / (3 * np.sqrt(3)))
 CARVE_DEPTH = 0.05
 FACE_NORMAL_DISTANCE = np.sqrt(1/3)
 
-ROTATION_TARGET_ANGLE = 120
-ROTATION_DURATION = 250
+ROTATION_DURATION = 1000 # ms
 
 # This helps us render the lines above the face instead of inside it
 
@@ -76,7 +76,7 @@ class FaceCoordinateSystem:
       segment_vector_mag
     )
 
-    self.how_many = 0
+    self.rotation_angle = 360 / face_generator_definition.num_segments
 
   def _vector_outside_clip_bounds(self, vector: np.ndarray):
     for (plane_ix, plane_normal) in enumerate(self.clip_plane_normals):
@@ -145,7 +145,14 @@ class Face(Renderable):
     self.nv = glm.vec3(self.coordinate_system.normal_vector)
     self.is_rotating = False
     self.current_angle = 0
+    self.target_angle = 0
     self.time_elapsed = 0
+    self.animation_lerper = AnimationLerper(
+      AnimationLerpFunction.ease_in_out,
+      ROTATION_DURATION,
+      (self.current_angle, self.target_angle)
+    )
+
 
   def __make_terrain_vertices(self):
     polygons = self.puzzle_face.polygons
@@ -181,21 +188,6 @@ class Face(Renderable):
           *self.coordinate_system.uv_coordinates_to_face_coordinates(node.uv_coordinates, CARVE_DEPTH)
         ])
 
-      # Clip bounds
-      # for (ix, vertex) in enumerate(self.face_vertices):
-      #   active_polygon_vertices.append([
-      #     *Colors.RED,
-      #     *vertex
-      #   ])
-      #   active_polygon_vertices.append([
-      #     *Colors.RED,
-      #     *self.face_vertices[ix+1 if ix != 2 else 0]
-      #   ])
-      #   active_polygon_vertices.append([
-      #     *Colors.RED,
-      #     0,0,0
-      #   ])
-
       # walls
       inactive_neighbor_lines = polygon.get_inactive_neighbor_lines()
       for inactive_line_nodes in inactive_neighbor_lines:
@@ -229,18 +221,18 @@ class Face(Renderable):
   def __rotate_by_degrees(self, degrees):
     self.matrix = glm.rotate(glm.mat4(), glm.radians(degrees), self.nv)
 
-  # TODO replace linear function with ease-in
+  def __stop_rotation(self):
+    self.current_angle = self.target_angle
+    self.__rotate_by_degrees(self.target_angle)
+    self.is_rotating = False
+    self.puzzle_face.rotate(self.current_angle)
+
   def __animate_rotate(self):
-    if self.time_elapsed > ROTATION_DURATION and self.current_angle < ROTATION_TARGET_ANGLE:
-      self.__rotate_by_degrees(ROTATION_TARGET_ANGLE)
-      self.is_rotating = False
+    rotation_angle = self.animation_lerper.interpolate(self.time_elapsed)
+    if rotation_angle >= self.target_angle:
+      self.__stop_rotation()
     else:
-      self.current_angle = ROTATION_TARGET_ANGLE * self.time_elapsed / ROTATION_DURATION
-      if self.current_angle > ROTATION_TARGET_ANGLE:
-        self.current_angle = ROTATION_TARGET_ANGLE
-      self.__rotate_by_degrees(self.current_angle)
-      if self.current_angle == ROTATION_TARGET_ANGLE:
-        self.is_rotating = False
+      self.__rotate_by_degrees(rotation_angle)
 
   def renderFace(self, camera: Camera, model_matrix, delta_time):
       m_mvp = camera.view_projection_matrix() * model_matrix * self.matrix
@@ -256,10 +248,9 @@ class Face(Renderable):
 
   def rotate(self):
     self.is_rotating = True
-    self.current_angle = 0
     self.time_elapsed = 0
-    self.puzzle_face.rotate()
-
+    self.target_angle = self.current_angle + self.coordinate_system.rotation_angle
+    self.animation_lerper.set_bounds((self.current_angle, self.target_angle))
 
   def destroy(self):
       self.terrain_buffer.release()
