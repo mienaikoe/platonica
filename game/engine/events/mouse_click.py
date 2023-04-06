@@ -20,6 +20,7 @@ def screen_to_cartesian(screen_coordinates: tuple[int,int]):
 
 def clip_to_screen(clip_coordinates: glm.vec4):
     # appeared to be flipped vertically, so I added "1 -" to the y coordinate
+    # TODO: Still appears to bleed out. Let's try to debug this visually somehow
     return glm.vec2(
         (clip_coordinates[0] * SCREEN_DIMENSIONS[0]) / (2.0 * clip_coordinates[3]) + (SCREEN_DIMENSIONS[0] / 2),
         ((1 - clip_coordinates[1]) * SCREEN_DIMENSIONS[1]) / (2.0 * clip_coordinates[3]) + (SCREEN_DIMENSIONS[1] / 2)

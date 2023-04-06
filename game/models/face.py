@@ -30,7 +30,7 @@ ACOS133 = np.arccos(1 / (3 * np.sqrt(3)))
 CARVE_DEPTH = 0.05
 FACE_NORMAL_DISTANCE = np.sqrt(1/3)
 
-ROTATION_DURATION = 1000 # ms
+ROTATION_DURATION = 500 # ms
 
 # This helps us render the lines above the face instead of inside it
 
