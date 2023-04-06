@@ -26,7 +26,8 @@ COS30 = np.cos(RAD30)
 TAN30 = np.tan(RAD30)
 ACOS133 = np.arccos(1 / (3 * np.sqrt(3)))
 
-CARVE_DEPTH = 0.0
+CARVE_DEPTH = 0.05
+FACE_NORMAL_DISTANCE = np.sqrt(1/3)
 
 ROTATION_TARGET_ANGLE = 120
 ROTATION_DURATION = 250
@@ -86,8 +87,8 @@ class FaceCoordinateSystem:
     return None
 
   def sink_vector(self, vector, sink_depth: float):
-    sink_vector = normalize_vector(self.normal_vector, sink_depth)
-    return np.add(vector, sink_vector)
+    sink_multiplier = (FACE_NORMAL_DISTANCE - sink_depth) / FACE_NORMAL_DISTANCE;
+    return vector * sink_multiplier
 
   def uv_coordinates_to_face_coordinates(self, uv_coordinates: UV, sink_depth=0):
     local_vector = np.add(
@@ -150,12 +151,23 @@ class Face(Renderable):
     polygons = self.puzzle_face.polygons
     polygon_vertices = []
     polygon_uvs = []
+    # Render polygons on outside faces
     for polygon in polygons:
       if polygon.is_active:
         continue
       for node in polygon.nodes:
         polygon_vertices.append(self.coordinate_system.uv_coordinates_to_face_coordinates(node.uv_coordinates))
         polygon_uvs.append(node.uv_coordinates)
+    # Render underside triangles
+    # TODO: Figure out how to commute the carving depth into the underside faces
+    # for (ix, vertex) in enumerate(self.face_vertices):
+    #   polygon_vertices.extend([
+    #     vertex,
+    #     self.face_vertices[ix+1 if ix != 2 else 0],
+    #     [0,0,0],
+    #   ])
+    #   polygon_uvs.extend([(0,0),(1,1),(0.5, SIN60)])
+
     return (polygon_vertices, polygon_uvs)
 
   def __make_carve_vertices(self):
@@ -185,23 +197,23 @@ class Face(Renderable):
       #   ])
 
       # walls
-      # inactive_neighbor_lines = polygon.get_inactive_neighbor_lines()
-      # for inactive_line_nodes in inactive_neighbor_lines:
-      #   terrain_coordinates = [
-      #     self.coordinate_system.uv_coordinates_to_face_coordinates(node.uv_coordinates)
-      #     for node in inactive_line_nodes
-      #   ]
-      #   carve_coordinates = [
-      #     self.coordinate_system.sink_vector(coordinates, CARVE_DEPTH)
-      #     for coordinates in terrain_coordinates
-      #   ]
-      #   quad_triangles = [
-      #     terrain_coordinates[0],terrain_coordinates[1],carve_coordinates[0],
-      #     carve_coordinates[1], carve_coordinates[0], terrain_coordinates[1]
-      #   ]
-      #   active_polygon_vertices.extend([
-      #     [*WALL_COLOR, *v] for v in quad_triangles
-      #   ])
+      inactive_neighbor_lines = polygon.get_inactive_neighbor_lines()
+      for inactive_line_nodes in inactive_neighbor_lines:
+        terrain_coordinates = [
+          self.coordinate_system.uv_coordinates_to_face_coordinates(node.uv_coordinates)
+          for node in inactive_line_nodes
+        ]
+        carve_coordinates = [
+          self.coordinate_system.sink_vector(coordinates, CARVE_DEPTH)
+          for coordinates in terrain_coordinates
+        ]
+        quad_triangles = [
+          terrain_coordinates[0],terrain_coordinates[1],carve_coordinates[0],
+          carve_coordinates[1], carve_coordinates[0], terrain_coordinates[1]
+        ]
+        active_polygon_vertices.extend([
+          [*WALL_COLOR, *v] for v in quad_triangles
+        ])
 
     return active_polygon_vertices
 
@@ -257,5 +269,6 @@ class Face(Renderable):
       self.terrain_vertex_array.release()
       self.carve_vertex_array.release()
 
-  def projected_vertices(self, matrix):
-     return [glm.vec3(matrix * self.matrix * glm.vec4(v, 1.0)) for v in self.face_vertices]
+  def projected_vertices(self, matrix) -> list[glm.vec4]:
+    # This returns a vec4 in clip space
+    return [matrix * self.matrix * glm.vec4(vertex, 1.0) for vertex in self.face_vertices]

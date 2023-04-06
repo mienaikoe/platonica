@@ -96,7 +96,6 @@ class ArcBall:
         self.transform = self.Matrix4fSetRotationFromMatrix3f(
             self.transform, self._rot3x3
         )
-        # print(self.Transform)  # for debugging
         self.on_transform_change(self.transform)
 
     def on_up(self):

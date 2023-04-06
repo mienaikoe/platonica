@@ -10,7 +10,7 @@ from models.types import Vertex
 from models.face import Face
 from engine.arcball import ArcBall
 from engine.events import FACE_ACTIVATED, emit_face_activated
-from engine.events.mouse_click import find_face_clicked
+from engine.events.mouse_click import find_face_clicked_winding
 
 
 MOVEMENT_DEG_PER_DELTA = 0.005
@@ -54,18 +54,17 @@ class Model(Renderable):
             for y in range(4):
                 self.m_model[x][y] = new_transform[x][y]
 
-    def projected_face_vertices(self):
+    def projected_face_vertices(self) -> list[list[glm.vec4]]:
         m_mvp = self.camera.view_projection_matrix() * self.m_model
-        return [f.projected_vertices(m_mvp) for f in self.faces]
+        return [face.projected_vertices(m_mvp) for face in self.faces]
 
     def handle_nonface_click(self, mouse_position:  tuple[int, int]):
         self.arcball.on_down(mouse_position)
         self.is_dragging = True
 
-
     def handle_click(self, mouse_pos):
-        clicked_face_idx = find_face_clicked(mouse_pos, self.camera, self.projected_face_vertices())
-        if clicked_face_idx >= 0:
+        clicked_face_idx = find_face_clicked_winding(mouse_pos, self.camera, self.projected_face_vertices())
+        if clicked_face_idx is not None:
             emit_face_activated(clicked_face_idx)
             return True
         return False
