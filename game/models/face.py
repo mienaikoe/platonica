@@ -1,6 +1,7 @@
 import numpy as np
 import glm
 import moderngl
+import random
 
 from constants.colors import Colors
 from engine.vectors import normalize_vector
@@ -245,7 +246,9 @@ class Face(Renderable):
 
   def __stop_rotation(self, rotation_angle):
     self.__rotate_by_degrees(rotation_angle)
-    self.puzzle_face.rotate()
+    self.puzzle_face.rotate(
+      (rotation_angle % 360) / self.coordinate_system.rotation_angle
+    )
     emit_event(FACE_ROTATED, {})
 
   def __animate_rotate(self, rotation_angle: float):
@@ -264,9 +267,9 @@ class Face(Renderable):
       self.rotation_animator.frame(delta_time)
       self.resonance_animator.frame(delta_time)
 
-  def rotate(self):
+  def rotate(self, num_rotations=None):
     self.rotation_animator.start(
-      self.rotation_animator.current_value + self.coordinate_system.rotation_angle
+      self.rotation_animator.current_value + self.coordinate_system.rotation_angle * (num_rotations or 1)
     )
 
   def set_is_resonant(self, is_resonant: bool):
@@ -276,6 +279,10 @@ class Face(Renderable):
 
   def __animate_resonance(self, new_value: float):
     self.line_color = BASE_LINE_COLOR * new_value
+
+  def scramble(self):
+    num_rotations = random.randint(0,len(self.coordinate_system.segment_vectors))
+    self.rotate(num_rotations)
 
   def destroy(self):
       self.terrain_buffer.release()

@@ -5,7 +5,7 @@ class PuzzlePolygon:
     self.face = face
     self.nodes = nodes
     self.nodes_set = set(nodes)
-    self.is_edge = len([node for node in self.nodes if node.is_edge]) == 2
+    self.is_edge = len([node for node in self.nodes if node.is_edge]) >= 2
     self.neighbors = []
     self._active_neighbors = set()
     self.strange_face_neighbors = set()
@@ -19,6 +19,14 @@ class PuzzlePolygon:
       another_polygon.strange_face_neighbors.add(self)
     self._active_neighbors.add(another_polygon)
     another_polygon._active_neighbors.add(self)
+
+
+  # def disassociate(self, another_polygon: 'PuzzlePolygon'):
+  #   if another_polygon.face != self.face:
+  #     self.strange_face_neighbors.remove(another_polygon)
+  #     another_polygon.strange_face_neighbors.remove(self)
+  #   self._active_neighbors.remove(another_polygon)
+  #   another_polygon._active_neighbors.remove(self)
 
 
   def mates_with(self, another_polygon: 'PuzzlePolygon'):

@@ -45,24 +45,29 @@ class PuzzleFace:
   def edge_nodes_for_segment(self, segment_idx: int):
     self.generator_definition.vertex_range_for_segment(segment_idx, self.depth)
 
-  def rotate(self):
-    new_strange_face_neighbors = {}
-    for polygon in self.active_polygons:
-      if not polygon.is_edge:
-        continue
-      donor_nodes = []
-      for node in polygon.nodes:
-        if not node.is_edge:
-          continue
-        count_idx = self.generator_definition.rotated_count_idx(
-          self.depth, node.indices[1], self.rotations + 1
-        )
-        donor_nodes.append(self.nodes[self.depth][count_idx])
-      donor_polygons = donor_nodes[0].polygons.intersection(donor_nodes[1].polygons)
-      donor_polygon = list(donor_polygons)[0]
-      new_strange_face_neighbors[polygon.key] = donor_polygon.strange_face_neighbors
-    for polygon in self.active_polygons:
-      if not polygon.is_edge:
-        continue
-      polygon.strange_face_neighbors = new_strange_face_neighbors[polygon.key]
-    self.rotations += 1
+  def rotate(self, rotations: int):
+    # new_strange_face_neighbors = {}
+    # edge_polygons = [polygon for polygon in self.polygons if polygon.is_edge]
+    # for polygon in edge_polygons:
+    #   donor_nodes = []
+    #   for node in polygon.nodes:
+    #     if not node.is_edge:
+    #       continue
+    #     count_idx = self.generator_definition.rotated_count_idx(
+    #       self.depth, node.indices[1], self.rotations + 1
+    #     )
+    #     donor_nodes.append(self.nodes[self.depth][count_idx])
+    #   donor_polygons = donor_nodes[0].polygons.intersection(donor_nodes[1].polygons)
+    #   donor_polygon = list(donor_polygons)[0]
+
+    #   if donor_polygon.is_active:
+    #     print(donor_polygon.key + "(active) donating to " + polygon.key)
+
+    #   new_strange_face_neighbors[polygon.key] = donor_polygon.strange_face_neighbors
+
+    # for polygon in edge_polygons:
+    #   for sfn in list(polygon.strange_face_neighbors):
+    #     polygon.disassociate(sfn)
+    #   for sfn in new_strange_face_neighbors[polygon.key]:
+    #     polygon.associate(sfn)
+    self.rotations = rotations

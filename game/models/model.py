@@ -43,7 +43,9 @@ class Model(Renderable):
                 texture_map['uv'][uv_indices[1]],
                 texture_map['uv'][uv_indices[2]],
             )
-            self.faces.append(Face(vs, pf, ctx, 0, uvs))
+            face = Face(vs, pf, ctx, 0, uvs)
+            face.scramble()
+            self.faces.append(face)
 
         self.m_model = glm.mat4()
         self.arcball = ArcBall(self.__update_model_matrix)
@@ -84,9 +86,9 @@ class Model(Renderable):
                 # TODO block face click until rotation is complete
             elif event.type == FACE_ROTATED:
                 is_resonant = self.puzzle.is_resonant()
-                print("Resonant", is_resonant)
                 if self.is_resonant != is_resonant:
                     self.is_resonant = is_resonant
+                    print("resonant", is_resonant)
                     for face in self.faces:
                         face.set_is_resonant(is_resonant)
             self.arcball.handle_event(event)

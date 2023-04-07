@@ -33,54 +33,59 @@ class PuzzleGraph():
       face = PuzzleFace(self.shape, self.depth, face_idx, face_definition)
       self.faces.append(face)
 
-    self._associate_ridge_polygons()
+  #   self._associate_ridge_polygons()
 
-  def _associate_ridge_polygons(self):
-    for (edge_a, edge_b, same_direction) in ShapeFaceRidges[self.shape]:
-      last_idx = self.coordinate_system.vertex_count_for_ring(self.depth) - 1
-      ring_a = self.faces[edge_a[0]].nodes[self.depth]
-      ring_b = self.faces[edge_b[0]].nodes[self.depth]
-      vertex_range_a = self.coordinate_system.vertex_range_for_segment(edge_a[1], self.depth, extra=1)
-      vertex_range_b = self.coordinate_system.vertex_range_for_segment(edge_b[1], self.depth, extra=1)
-      nodes_a = [ring_a[ix if ix <= last_idx else 0] for ix in vertex_range_a]
-      nodes_b = [ring_b[ix if ix <= last_idx else 0] for ix in vertex_range_b]
-      vertex_count = len(nodes_a)
+  # def _associate_ridge_polygons(self):
+  #   for (edge_a, edge_b, same_direction) in ShapeFaceRidges[self.shape]:
+  #     last_idx = self.coordinate_system.vertex_count_for_ring(self.depth) - 1
+  #     ring_a = self.faces[edge_a[0]].nodes[self.depth]
+  #     ring_b = self.faces[edge_b[0]].nodes[self.depth]
+  #     vertex_range_a = self.coordinate_system.vertex_range_for_segment(edge_a[1], self.depth, extra=1)
+  #     vertex_range_b = self.coordinate_system.vertex_range_for_segment(edge_b[1], self.depth, extra=1)
+  #     nodes_a = [ring_a[ix if ix <= last_idx else 0] for ix in vertex_range_a]
+  #     nodes_b = [ring_b[ix if ix <= last_idx else 0] for ix in vertex_range_b]
+  #     vertex_count = len(nodes_a)
 
-      node_pair = (None, None)
-      node_pair_prev = (None, None)
+  #     node_pair = (None, None)
+  #     node_pair_prev = (None, None)
 
-      for ix in range(vertex_count):
-        node_pair_prev = node_pair
-        node_pair = [
-          nodes_a[ix],
-          nodes_b[ix] if same_direction else nodes_b[(vertex_count-1)-ix]
-        ]
+  #     for ix in range(vertex_count):
+  #       node_pair_prev = node_pair
+  #       node_pair = [
+  #         nodes_a[ix],
+  #         nodes_b[ix] if same_direction else nodes_b[(vertex_count-1)-ix]
+  #       ]
 
-        if not node_pair_prev[0] or not node_pair_prev[1] or not node_pair[0] or not node_pair[1]:
-          continue
+  #       if not node_pair_prev[0] or not node_pair_prev[1] or not node_pair[0] or not node_pair[1]:
+  #         continue
 
-        polygons_pair = [
-          node_pair[0].polygons.intersection(node_pair_prev[0].polygons),
-          node_pair[1].polygons.intersection(node_pair_prev[1].polygons),
-        ]
-        if len(polygons_pair[0]) != 1 or len(polygons_pair[1]) != 1:
-          continue
-        polygon_a = polygons_pair[0].pop()
-        polygon_b = polygons_pair[1].pop()
+  #       polygons_pair = [
+  #         node_pair[0].polygons.intersection(node_pair_prev[0].polygons),
+  #         node_pair[1].polygons.intersection(node_pair_prev[1].polygons),
+  #       ]
+  #       if len(polygons_pair[0]) != 1 or len(polygons_pair[1]) != 1:
+  #         continue
+  #       polygon_a = polygons_pair[0].pop()
+  #       polygon_b = polygons_pair[1].pop()
 
-        if not polygon_a.is_edge or not polygon_b.is_edge:
-          continue
-        if not polygon_b.is_active or not polygon_b.is_active:
-          continue
-        polygon_a.associate(polygon_b) # method automatically bidirectionally associates
+  #       if not polygon_a.is_edge or not polygon_b.is_edge:
+  #         continue
+  #       if not polygon_b.is_active or not polygon_b.is_active:
+  #         continue
+  #       polygon_a.associate(polygon_b) # method automatically bidirectionally associates
 
 
   def collect_polygons(self):
     return [polygon for face in self.faces for polygon in face.polygons]
 
   def is_resonant(self):
-    start_polygon = list(self.faces[0].active_polygons)[0]
-    return start_polygon.is_resonant(set())
+    # print("=== Resonance ===")
+    # start_polygon = list(self.faces[0].active_polygons)[0]
+    # return start_polygon.is_resonant(set())
+    for face in self.faces:
+      if face.rotations != 0:
+        return False
+    return True
 
 
 
