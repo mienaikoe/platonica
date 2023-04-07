@@ -66,7 +66,7 @@ class Model(Renderable):
         self.is_dragging = True
 
     def handle_click(self, mouse_pos):
-        clicked_face_idx = find_face_clicked_winding(mouse_pos, self.camera, self.projected_face_vertices())
+        clicked_face_idx = find_face_clicked_winding(mouse_pos, self.projected_face_vertices())
         if clicked_face_idx is not None:
             emit_face_activated(clicked_face_idx)
             return True
