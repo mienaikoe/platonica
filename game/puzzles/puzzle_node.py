@@ -23,5 +23,5 @@ class PuzzleNode:
     self.polygons = set()
     self.is_edge = indices[0] == face.depth
     self.segment_idx = face.generator_definition.segment_for_vertex(indices[0], indices[1])
-    self.node_key = f"{chr(self.face.face_idx)},{','.join([chr(idx) for idx in self.indices])}"
+    self.node_key = f"{str(self.face.face_idx)},{','.join([str(idx) for idx in self.indices])}"
 

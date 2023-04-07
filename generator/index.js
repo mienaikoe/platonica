@@ -4,6 +4,7 @@ import drawShape, { shapeScales, faceWidths } from "./drawShape.js";
 const shapeEl = document.getElementById("shapeInput");
 const depthEl = document.getElementById("depthInput");
 const exportEl = document.getElementById("exportButton");
+const importEl = document.getElementById("importInput");
 
 let faces = {};
 
@@ -78,6 +79,11 @@ exportEl.addEventListener("click", () => {
   downloadAnchorNode.click();
   downloadAnchorNode.remove();
 });
+
+importEl.addEventListener("change", () => {
+  importJson = JSON.parse(importEl.value);
+  importJson.
+})
 
 // Canvas
 const svg = document.getElementById("svg");

@@ -12,6 +12,7 @@ class PuzzleFace:
     self.nodes = [[None] * (self.generator_definition.vertex_count_for_ring(ringIx)) for ringIx in range(depth+1)]
     self.polygons = []
     self.active_polygons = set()
+    self.rotations = 0
 
     # Create all nodes
     for vertex in face_json['vertices']:
@@ -32,8 +33,10 @@ class PuzzleFace:
         node.polygons.add(polygon)
 
     # Associate Active Polygons
-    for polygon_a in [self.active_polygons]:
-      for polygon_b in [self.active_polygons]:
+    for polygon_a in list(self.active_polygons):
+      for polygon_b in list(self.active_polygons):
+        if polygon_a.key == '3,2,12-3,3,19-3,3,20':
+          print("woo", polygon_a.key, polygon_b.key, polygon_a.mates_with(polygon_b))
         if polygon_a == polygon_b:
           continue
         if polygon_a.mates_with(polygon_b):
@@ -42,6 +45,24 @@ class PuzzleFace:
   def edge_nodes_for_segment(self, segment_idx: int):
     self.generator_definition.vertex_range_for_segment(segment_idx, self.depth)
 
-  def rotate(self, target_angle: int):
-    # TODO
-    pass
+  def rotate(self):
+    new_strange_face_neighbors = {}
+    for polygon in self.active_polygons:
+      if not polygon.is_edge:
+        continue
+      donor_nodes = []
+      for node in polygon.nodes:
+        if not node.is_edge:
+          continue
+        count_idx = self.generator_definition.rotated_count_idx(
+          self.depth, node.indices[1], self.rotations + 1
+        )
+        donor_nodes.append(self.nodes[self.depth][count_idx])
+      donor_polygons = donor_nodes[0].polygons.intersection(donor_nodes[1].polygons)
+      donor_polygon = list(donor_polygons)[0]
+      new_strange_face_neighbors[polygon.key] = donor_polygon.strange_face_neighbors
+    for polygon in self.active_polygons:
+      if not polygon.is_edge:
+        continue
+      polygon.strange_face_neighbors = new_strange_face_neighbors[polygon.key]
+    self.rotations += 1

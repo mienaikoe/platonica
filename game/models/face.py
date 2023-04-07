@@ -7,16 +7,19 @@ from engine.vectors import normalize_vector
 from engine.renderable import Renderable
 from engine.camera import Camera
 from engine.shader import get_shader_program
-from engine.animation import AnimationLerper, AnimationLerpFunction
+from engine.animation import AnimationLerper, AnimationLerpFunction, Animator
+from engine.events import emit_event, FACE_ROTATED
 from puzzles.face_generator_definition import FaceGeneratorDefinition
 from puzzles.puzzle_node import PuzzleNode
 from puzzles.puzzle_face import PuzzleFace
 from models.types import Vertex, UV
 from models.helpers import merge_collection_items
 
-INACTIVE_LINE_COLOR = Colors.GRAY
 WALL_COLOR = Colors.CHARCOAL
-LINE_COLOR = Colors.WHITE
+BASE_LINE_COLOR = glm.vec3(Colors.WHITE)
+LINE_LUMINOSITY_INACTIVE = 0.5
+LINE_LUMINOSITY_ACTIVE = 1.0
+DEFAULT_LINE_COLOR = BASE_LINE_COLOR * LINE_LUMINOSITY_INACTIVE
 
 PUZZLE_PATH_WIDTH = 0.1
 RAD60 = np.radians(60)
@@ -31,6 +34,7 @@ CARVE_DEPTH = 0.05
 FACE_NORMAL_DISTANCE = np.sqrt(1/3)
 
 ROTATION_DURATION = 500 # ms
+LUMINATION_DURATION = 1000 # ms
 
 # This helps us render the lines above the face instead of inside it
 
@@ -110,16 +114,17 @@ class Face(Renderable):
     puzzle_face: PuzzleFace,
     ctx: moderngl.Context,
     texture_location: int,
-    vertex_uvs: tuple[UV, UV, UV],
+    texture_uvs: tuple[UV, UV, UV],
     ):
     self.face_vertices = face_vertices
-    self.vertex_uvs = vertex_uvs # Not Used, but don't want to hurt its feelings
+    self.vertex_uvs = texture_uvs # Not Used, but don't want to hurt its feelings
 
     self.coordinate_system = FaceCoordinateSystem(
       puzzle_face.generator_definition, face_vertices
     )
-    self.carve_vector = normalize_vector(self.coordinate_system.normal_vector, CARVE_DEPTH)
     self.puzzle_face = puzzle_face
+
+    self.line_color = DEFAULT_LINE_COLOR
 
     self.matrix = glm.mat4()
 
@@ -133,24 +138,43 @@ class Face(Renderable):
       [(self.terrain_buffer, "2f 3f", "in_textcoord_0", "in_position")]
     )
 
-    carve_vertices = self.__make_carve_vertices()
+    [carve_vertices, wall_vertices] = self.__make_carve_vertices()
     self.carve_shader = get_shader_program(ctx, "line")
     self.carve_buffer = self.__make_vbo(ctx, carve_vertices)
     self.carve_vertex_array = self.__make_vao(
       ctx,
       self.carve_shader,
-      [(self.carve_buffer, "3f 3f", "in_color", "in_position")]
+      [(self.carve_buffer, "3f", "in_position")]
+    )
+
+    self.wall_shader = get_shader_program(ctx, "line")
+    self.wall_shader['v_color'] = WALL_COLOR
+    self.wall_buffer = self.__make_vbo(ctx, wall_vertices)
+    self.wall_vertex_array = self.__make_vao(
+      ctx,
+      self.wall_shader,
+      [(self.wall_buffer, "3f", "in_position")]
     )
 
     self.nv = glm.vec3(self.coordinate_system.normal_vector)
-    self.is_rotating = False
-    self.current_angle = 0
-    self.target_angle = 0
-    self.time_elapsed = 0
-    self.animation_lerper = AnimationLerper(
-      AnimationLerpFunction.ease_in_out,
-      ROTATION_DURATION,
-      (self.current_angle, self.target_angle)
+    self.rotation_animator = Animator(
+      lerper=AnimationLerper(
+        AnimationLerpFunction.ease_in_out,
+        ROTATION_DURATION,
+      ),
+      start_value=0,
+      on_frame=self.__animate_rotate,
+      on_stop=self.__stop_rotation
+    )
+
+    self.resonance_animator = Animator(
+      lerper=AnimationLerper(
+        AnimationLerpFunction.linear,
+        LUMINATION_DURATION,
+      ),
+      start_value=LINE_LUMINOSITY_INACTIVE,
+      on_frame=self.__animate_resonance,
+      on_stop=self.__animate_resonance,
     )
 
 
@@ -180,13 +204,13 @@ class Face(Renderable):
   def __make_carve_vertices(self):
     polygons = self.puzzle_face.active_polygons
     active_polygon_vertices = []
+    wall_vertices = []
     for polygon in polygons:
       # basin
       for node in polygon.nodes:
-        active_polygon_vertices.append([
-          *INACTIVE_LINE_COLOR,
-          *self.coordinate_system.uv_coordinates_to_face_coordinates(node.uv_coordinates, CARVE_DEPTH)
-        ])
+        active_polygon_vertices.append(
+          self.coordinate_system.uv_coordinates_to_face_coordinates(node.uv_coordinates, CARVE_DEPTH)
+        )
 
       # walls
       inactive_neighbor_lines = polygon.get_inactive_neighbor_lines()
@@ -203,11 +227,9 @@ class Face(Renderable):
           terrain_coordinates[0],terrain_coordinates[1],carve_coordinates[0],
           carve_coordinates[1], carve_coordinates[0], terrain_coordinates[1]
         ]
-        active_polygon_vertices.extend([
-          [*WALL_COLOR, *v] for v in quad_triangles
-        ])
+        wall_vertices.extend([v for v in quad_triangles])
 
-    return active_polygon_vertices
+    return (active_polygon_vertices, wall_vertices)
 
   def __make_vao(self, ctx, shader, context):
     return ctx.vertex_array(shader, context)
@@ -221,44 +243,50 @@ class Face(Renderable):
   def __rotate_by_degrees(self, degrees):
     self.matrix = glm.rotate(glm.mat4(), glm.radians(degrees), self.nv)
 
-  def __stop_rotation(self):
-    self.current_angle = self.target_angle
-    self.__rotate_by_degrees(self.target_angle)
-    self.is_rotating = False
-    self.puzzle_face.rotate(self.current_angle)
+  def __stop_rotation(self, rotation_angle):
+    self.__rotate_by_degrees(rotation_angle)
+    self.puzzle_face.rotate()
+    emit_event(FACE_ROTATED, {})
 
-  def __animate_rotate(self):
-    rotation_angle = self.animation_lerper.interpolate(self.time_elapsed)
-    if rotation_angle >= self.target_angle:
-      self.__stop_rotation()
-    else:
-      self.__rotate_by_degrees(rotation_angle)
+  def __animate_rotate(self, rotation_angle: float):
+    self.__rotate_by_degrees(rotation_angle)
 
   def renderFace(self, camera: Camera, model_matrix, delta_time):
       m_mvp = camera.view_projection_matrix() * model_matrix * self.matrix
       self.terrain_shader["m_mvp"].write(m_mvp)
       self.terrain_vertex_array.render()
+      self.carve_shader["v_color"].write(self.line_color)
       self.carve_shader["m_mvp"].write(m_mvp)
       self.carve_vertex_array.render()
+      self.wall_shader["m_mvp"].write(m_mvp)
+      self.wall_vertex_array.render()
 
-      if self.is_rotating:
-        self.time_elapsed += delta_time
-        self.__animate_rotate()
-
+      self.rotation_animator.frame(delta_time)
+      self.resonance_animator.frame(delta_time)
 
   def rotate(self):
-    self.is_rotating = True
-    self.time_elapsed = 0
-    self.target_angle = self.current_angle + self.coordinate_system.rotation_angle
-    self.animation_lerper.set_bounds((self.current_angle, self.target_angle))
+    self.rotation_animator.start(
+      self.rotation_animator.current_value + self.coordinate_system.rotation_angle
+    )
+
+  def set_is_resonant(self, is_resonant: bool):
+    self.resonance_animator.start(
+      LINE_LUMINOSITY_ACTIVE if is_resonant else LINE_LUMINOSITY_INACTIVE
+    )
+
+  def __animate_resonance(self, new_value: float):
+    self.line_color = BASE_LINE_COLOR * new_value
 
   def destroy(self):
       self.terrain_buffer.release()
       self.carve_buffer.release()
+      self.wall_buffer.release()
       self.terrain_shader.release()
       self.carve_shader.release()
+      self.wall_shader.release()
       self.terrain_vertex_array.release()
       self.carve_vertex_array.release()
+      self.wall_vertex_array.release()
 
   def projected_vertices(self, matrix) -> list[glm.vec4]:
     # This returns a vec4 in clip space

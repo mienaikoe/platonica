@@ -36,11 +36,11 @@ class FaceGeneratorDefinition:
       return 1
     return self.vertices_per_segment_per_ring * self.num_segments * ring_idx
 
-  def vertex_range_for_segment(self, segment_idx: int, ring_idx: int):
+  def vertex_range_for_segment(self, segment_idx: int, ring_idx: int, extra=0):
     vertices_per_segment = self.vertices_per_segment_per_ring * ring_idx
     return range(
       vertices_per_segment * segment_idx,
-      vertices_per_segment * (segment_idx+1) - 1,
+      vertices_per_segment * (segment_idx+1) + extra,
     )
 
   def get_center_uv_coordinates(self, depth: int):
@@ -68,6 +68,12 @@ class FaceGeneratorDefinition:
 
     return normalize_vector(uv_coordinates, 1)
 
+  def rotated_count_idx(self, ring_idx: int, count_idx: int, rotation_count: int):
+    # Rotation shifts every vertex by -vertices_per_segment
+    vertex_count = self.vertex_count_for_ring(ring_idx)
+    vertices_per_segment = self.vertices_per_segment_per_ring * ring_idx
+    shifted_count_idx = (count_idx - (rotation_count * vertices_per_segment))
+    return (vertex_count + shifted_count_idx) % vertex_count
 
 face_systems = {
   FaceShape.triangle: FaceGeneratorDefinition(

@@ -1040,7 +1040,7 @@
             [0, 0],
             [1, 1]
           ],
-          "is_active": false
+          "is_active": true
         },
         {
           "indices": [
