@@ -6,6 +6,7 @@ from scenes.gameplay_scene import GameplayScene
 from scenes.menu_scene import MenuScene
 from constants.mode import Mode
 from scenes.test_scene import TestScene
+from engine.events import LEVEL_WON
 
 MAX_FPS = 60
 
@@ -33,7 +34,7 @@ class Main:
             Mode.MENU: MenuScene(self.ctx, self.switch_mode),
             Mode.GAME: GameplayScene(self.ctx, self.switch_mode),
         }
-        self.active_mode = Mode.TEST
+        self.active_mode = Mode.GAME
         self.active_scene = self.scenes[self.active_mode]
         self.active_scene.init()
         self.delta_time = 0  # Time since last frame
@@ -53,7 +54,13 @@ class Main:
     def handle_events(self) -> None:
         if pygame.event.get(pygame.QUIT):
             self.quit()
-        self.active_scene.handle_events(self.delta_time)
+        elif pygame.event.get(LEVEL_WON) and self.active_mode == Mode.GAME:
+            # we detect it here because pygame.time.set_timer
+            # only post events to the main event stacl
+            print('level own')
+            self.active_scene.advance_level()
+        else:
+            self.active_scene.handle_events(self.delta_time)
 
     def render(self) -> None:
         self.active_scene.render(self.delta_time)
