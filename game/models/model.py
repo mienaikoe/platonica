@@ -11,7 +11,7 @@ from engine.renderable import Renderable
 from models.types import Vertex
 from models.face import Face
 from engine.arcball import ArcBall
-from engine.events import FACE_ACTIVATED, FACE_ROTATED, emit_face_activated
+from engine.events import FACE_ACTIVATED, FACE_ROTATED, LEVEL_WON, emit_face_activated
 from engine.events.mouse_click import find_face_clicked_winding
 
 
@@ -47,7 +47,8 @@ class Model(Renderable):
         self.m_model = glm.mat4()
         self.arcball = ArcBall(self.__update_model_matrix)
         self.is_dragging = False
-        self.is_resonant = False
+        self.is_alive = True
+        self.is_puzzle_solved = False
         self.sounds = {
             'rumble': SoundEffect('rumble')
         }
@@ -88,10 +89,12 @@ class Model(Renderable):
                 # TODO block face click until rotation is complete
             elif event.type == FACE_ROTATED:
                 is_resonant = self.puzzle.is_resonant()
-                if self.is_resonant != is_resonant:
-                    self.is_resonant = is_resonant
+                if self.is_puzzle_solved != is_resonant:
+                    self.is_puzzle_solved = is_resonant
                     for face in self.faces:
                         face.set_is_resonant(is_resonant)
+                    # after resonating for some time, we declare the level has been own
+                    pygame.time.set_timer(LEVEL_WON, 1500, loops=1)
             self.arcball.handle_event(event)
 
     def render(self, delta_time: int):
@@ -99,6 +102,7 @@ class Model(Renderable):
             face.renderFace(self.camera, self.m_model, delta_time)
 
     def destroy(self):
+        self.is_alive = False
         for face in self.faces:
-            face.destory()
+            face.destroy()
 
