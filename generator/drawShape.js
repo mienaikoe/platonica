@@ -181,14 +181,14 @@ const drawIcosahedron = (svg, depth) => {
       rotate(180 ${translateX + fullPoint[0] / 2} ${fullPoint[1] * 1.5} )
       `
     );
-    segmentVertices[quad[1]] = drawTriangle(midTopTriangle, depth);
+    segmentVertices[quad[2]] = drawTriangle(midTopTriangle, depth);
 
     const topTriangle = drawGroup(containerGroup);
     topTriangle.setAttribute(
       "transform",
       `translate(${translateX + fullPoint[0] / 2} ${2 * fullPoint[1]})`
     );
-    segmentVertices[quad[1]] = drawTriangle(topTriangle, depth);
+    segmentVertices[quad[3]] = drawTriangle(topTriangle, depth);
   });
 
   return segmentVertices;
