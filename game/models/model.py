@@ -1,6 +1,7 @@
 import moderngl
 import glm
 import pygame
+import math
 
 from engine.camera import Camera
 from engine.texture import get_texture, texture_maps
@@ -14,6 +15,7 @@ from engine.events.mouse_click import find_face_clicked_winding
 
 
 MOVEMENT_DEG_PER_DELTA = 0.005
+CLICK_RADIUS = 3 # pixels
 
 class Model(Renderable):
     def __init__(
@@ -33,6 +35,7 @@ class Model(Renderable):
         texture.use(location=texture_location)
         texture_map = texture_maps[texture_file_name]
 
+        self.mouse_down_position = None
         self.faces = []
         puzzle_faces = puzzle.faces
         for pf in puzzle_faces:
@@ -61,10 +64,6 @@ class Model(Renderable):
         m_mvp = self.camera.view_projection_matrix() * self.m_model
         return [face.projected_vertices(m_mvp) for face in self.faces]
 
-    def handle_nonface_click(self, mouse_position:  tuple[int, int]):
-        self.arcball.on_down(mouse_position)
-        self.is_dragging = True
-
     def handle_click(self, mouse_pos):
         clicked_face_idx = find_face_clicked_winding(mouse_pos, self.projected_face_vertices())
         if clicked_face_idx is not None:
@@ -75,11 +74,16 @@ class Model(Renderable):
     def handle_events(self, delta_time: int):
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
-                click_handled = self.handle_click(pygame.mouse.get_pos())
-                if click_handled:
-                    continue
-            elif event.type == pygame.MOUSEBUTTONUP and self.is_dragging:
-                self.is_dragging = False
+                self.mouse_down_position = pygame.mouse.get_pos()
+            elif event.type == pygame.MOUSEBUTTONUP:
+                mouse_pos = pygame.mouse.get_pos()
+                no_movement = math.sqrt(
+                    math.pow(mouse_pos[0] - self.mouse_down_position[0], 2) +
+                    math.pow(mouse_pos[1] - self.mouse_down_position[1], 2)
+                ) <= CLICK_RADIUS
+                self.mouse_down_position = None
+                if no_movement:
+                    self.handle_click(pygame.mouse.get_pos())
             elif event.type == FACE_ACTIVATED:
                 face_index = event.__dict__['face_index']
                 self.faces[face_index].rotate()
@@ -88,7 +92,6 @@ class Model(Renderable):
                 is_resonant = self.puzzle.is_resonant()
                 if self.is_resonant != is_resonant:
                     self.is_resonant = is_resonant
-                    print("resonant", is_resonant)
                     for face in self.faces:
                         face.set_is_resonant(is_resonant)
             self.arcball.handle_event(event)
