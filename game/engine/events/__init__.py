@@ -13,3 +13,10 @@ def emit_event(event_type: int, payload: any):
 def emit_face_activated(face_index):
     emit_event(FACE_ACTIVATED, { 'face_index': face_index })
 
+def block_events(type = None):
+    pygame.event.set_blocked(type)
+    print('block events')
+
+def allow_events(type = None):
+    pygame.event.set_allowed(type)
+    print('allow events')

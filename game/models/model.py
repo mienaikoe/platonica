@@ -47,6 +47,7 @@ class Model(Renderable):
         self.m_model = glm.mat4()
         self.arcball = ArcBall(self.__update_model_matrix)
         self.is_dragging = False
+        self.is_face_rotating = False
         self.is_alive = True
         self.is_puzzle_solved = False
         self.sounds = {
@@ -63,6 +64,8 @@ class Model(Renderable):
         return [face.projected_vertices(m_mvp) for face in self.faces]
 
     def handle_click(self, mouse_pos):
+        if self.is_face_rotating:
+            return False
         clicked_face_idx = find_face_clicked_winding(mouse_pos, self.projected_face_vertices())
         if clicked_face_idx is not None:
             emit_face_activated(clicked_face_idx)
@@ -84,10 +87,11 @@ class Model(Renderable):
                     self.handle_click(pygame.mouse.get_pos())
             elif event.type == FACE_ACTIVATED:
                 face_index = event.__dict__['face_index']
+                self.is_face_rotating = True
                 self.faces[face_index].rotate()
                 self.sounds['rumble'].play()
-                # TODO block face click until rotation is complete
             elif event.type == FACE_ROTATED:
+                self.is_face_rotating = False
                 is_resonant = self.puzzle.is_resonant()
                 if self.is_puzzle_solved != is_resonant:
                     self.is_puzzle_solved = is_resonant

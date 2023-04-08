@@ -9,7 +9,7 @@ from engine.renderable import Renderable
 from engine.camera import Camera
 from engine.shader import get_shader_program
 from engine.animation import AnimationLerper, AnimationLerpFunction, Animator
-from engine.events import emit_event, FACE_ROTATED
+from engine.events import emit_event, FACE_ROTATED, block_events, allow_events
 from puzzles.face_generator_definition import FaceGeneratorDefinition
 from puzzles.puzzle_face import PuzzleFace
 from models.types import Vertex, UV

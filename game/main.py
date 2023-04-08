@@ -54,13 +54,7 @@ class Main:
     def handle_events(self) -> None:
         if pygame.event.get(pygame.QUIT):
             self.quit()
-        elif pygame.event.get(LEVEL_WON) and self.active_mode == Mode.GAME:
-            # we detect it here because pygame.time.set_timer
-            # only post events to the main event stacl
-            print('level own')
-            self.active_scene.advance_level()
-        else:
-            self.active_scene.handle_events(self.delta_time)
+        self.active_scene.handle_events(self.delta_time)
 
     def render(self) -> None:
         self.active_scene.render(self.delta_time)
