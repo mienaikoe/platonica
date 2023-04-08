@@ -120,10 +120,12 @@ class Face(Renderable):
     self.face_vertices = face_vertices
     self.vertex_uvs = texture_uvs # Not Used, but don't want to hurt its feelings
 
+    self.generator_definition = puzzle_face.generator_definition
     self.coordinate_system = FaceCoordinateSystem(
       puzzle_face.generator_definition, face_vertices
     )
     self.puzzle_face = puzzle_face
+    self.depth = puzzle_face.depth
 
     self.line_color = DEFAULT_LINE_COLOR
 
@@ -139,7 +141,7 @@ class Face(Renderable):
       [(self.terrain_buffer, "2f 3f", "in_textcoord_0", "in_position")]
     )
 
-    [carve_vertices, wall_vertices] = self.__make_carve_vertices()
+    [carve_vertices, wall_vertices, underside_vertices] = self.__make_carve_vertices()
     self.carve_shader = get_shader_program(ctx, "line")
     self.carve_buffer = self.__make_vbo(ctx, carve_vertices)
     self.carve_vertex_array = self.__make_vao(
@@ -155,6 +157,15 @@ class Face(Renderable):
       ctx,
       self.wall_shader,
       [(self.wall_buffer, "3f", "in_position")]
+    )
+
+    self.underside_shader = get_shader_program(ctx, "line")
+    self.underside_shader['v_color'] = WALL_COLOR
+    self.underside_buffer = self.__make_vbo(ctx, underside_vertices)
+    self.underside_vertex_array = self.__make_vao(
+      ctx,
+      self.underside_shader,
+      [(self.underside_buffer, "3f", "in_position")]
     )
 
     self.nv = glm.vec3(self.coordinate_system.normal_vector)
@@ -190,28 +201,21 @@ class Face(Renderable):
       for node in polygon.nodes:
         polygon_vertices.append(self.coordinate_system.uv_coordinates_to_face_coordinates(node.uv_coordinates))
         polygon_uvs.append(node.uv_coordinates)
-    # Render underside triangles
-    # TODO: Figure out how to commute the carving depth into the underside faces
-    # for (ix, vertex) in enumerate(self.face_vertices):
-    #   polygon_vertices.extend([
-    #     vertex,
-    #     self.face_vertices[ix+1 if ix != 2 else 0],
-    #     [0,0,0],
-    #   ])
-    #   polygon_uvs.extend([(0,0),(1,1),(0.5, SIN60)])
-
     return (polygon_vertices, polygon_uvs)
 
   def __make_carve_vertices(self):
     polygons = self.puzzle_face.active_polygons
     active_polygon_vertices = []
     wall_vertices = []
+    underside_inner_vertices = [ None ] * self.generator_definition.vertex_count_for_ring(self.depth)
     for polygon in polygons:
       # basin
       for node in polygon.nodes:
-        active_polygon_vertices.append(
-          self.coordinate_system.uv_coordinates_to_face_coordinates(node.uv_coordinates, CARVE_DEPTH)
-        )
+        top_coordinates = self.coordinate_system.uv_coordinates_to_face_coordinates(node.uv_coordinates)
+        bottom_coordinates = self.coordinate_system.uv_coordinates_to_face_coordinates(node.uv_coordinates, CARVE_DEPTH)
+        active_polygon_vertices.append(bottom_coordinates)
+        if node.is_edge:
+          underside_inner_vertices[node.indices[1]] = [top_coordinates, bottom_coordinates]
 
       # walls
       inactive_neighbor_lines = polygon.get_inactive_neighbor_lines()
@@ -230,7 +234,29 @@ class Face(Renderable):
         ]
         wall_vertices.extend([v for v in quad_triangles])
 
-    return (active_polygon_vertices, wall_vertices)
+    # Underside
+    underside_vertices = [
+      np.array([0,0,0])
+    ]
+    for (ix, vertex) in enumerate(self.face_vertices):
+      underside_vertices.append(vertex)
+      vertex_range = self.generator_definition.vertex_range_for_segment(
+        ix, self.depth, extra=1
+      )
+      top_first = True
+      for count_idx in vertex_range:
+        if count_idx == len(underside_inner_vertices):
+          count_idx = 0
+        underside_wall_vertices = underside_inner_vertices[count_idx]
+        if not underside_wall_vertices:
+          continue
+        if not top_first:
+          underside_wall_vertices.reverse()
+        underside_vertices.extend(underside_wall_vertices)
+        top_first = not top_first
+    underside_vertices.append(self.face_vertices[0])
+
+    return (active_polygon_vertices, wall_vertices, underside_vertices)
 
   def __make_vao(self, ctx, shader, context):
     return ctx.vertex_array(shader, context)
@@ -263,6 +289,8 @@ class Face(Renderable):
       self.carve_vertex_array.render()
       self.wall_shader["m_mvp"].write(m_mvp)
       self.wall_vertex_array.render()
+      self.underside_shader["m_mvp"].write(m_mvp)
+      self.underside_vertex_array.render(mode=moderngl.TRIANGLE_FAN)
 
       self.rotation_animator.frame(delta_time)
       self.resonance_animator.frame(delta_time)
@@ -288,12 +316,15 @@ class Face(Renderable):
       self.terrain_buffer.release()
       self.carve_buffer.release()
       self.wall_buffer.release()
+      self.underside_buffer.release()
       self.terrain_shader.release()
       self.carve_shader.release()
       self.wall_shader.release()
+      self.underside_shader.release()
       self.terrain_vertex_array.release()
       self.carve_vertex_array.release()
       self.wall_vertex_array.release()
+      self.underside_vertex_array.release()
 
   def projected_vertices(self, matrix) -> list[glm.vec4]:
     # This returns a vec4 in clip space

@@ -4,9 +4,9 @@ import moderngl
 from constants.dimensions import ASPECT_RATIO
 from engine.vectors import UnitVector
 
-FOV = 20  # degrees
+FOV = 30  # degrees
 NEAR = 0.1
-CAMERA_DISTANCE = 12
+CAMERA_DISTANCE = 7
 
 
 class Camera:
