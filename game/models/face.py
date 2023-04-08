@@ -115,11 +115,8 @@ class Face(Renderable):
     face_vertices: tuple[Vertex, Vertex, Vertex],
     puzzle_face: PuzzleFace,
     ctx: moderngl.Context,
-    texture_location: int,
-    texture_uvs: tuple[UV, UV, UV],
-    ):
+    texture_location: int):
     self.face_vertices = face_vertices
-    self.vertex_uvs = texture_uvs # Not Used, but don't want to hurt its feelings
 
     self.generator_definition = puzzle_face.generator_definition
     self.coordinate_system = FaceCoordinateSystem(

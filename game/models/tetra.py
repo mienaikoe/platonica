@@ -1,5 +1,4 @@
 import numpy as np
-from constants.colors import Colors
 from models.model import Model
 from models.helpers import face_vertices_from_indices
 

@@ -1,7 +1,6 @@
 from models.model import Model
 import numpy as np
-from models.helpers import triangle_vertices_from_indices
-
+from models.helpers import face_vertices_from_indices
 cube_corners = [
     (-1, -1, 1),    # 0
     (1, -1, 1),     # 1
@@ -26,25 +25,8 @@ cube_indices = [
     (0, 6, 1),
     (0, 5, 6),
 ]
-cube_vertices = triangle_vertices_from_indices(cube_corners, cube_indices)
-texture_corners = [(0, 0), (1, 0), (1, 1), (0, 1)] # black, red, yellow, green
-texture_indices = [
-    (0, 2, 3),
-    (0, 1, 2),
-    (0, 2, 3),
-    (0, 1, 2),
-    (0, 1, 2),
-    (2, 3, 0),
-    (2, 3, 0),
-    (2, 0, 1),
-    (0, 2, 3),
-    (0, 1, 2),
-    (3, 1, 2),
-    (3, 0, 1),
-]
-texture_vertices = triangle_vertices_from_indices(texture_corners, texture_indices)
-
 
 class Cube(Model):
-    def _get_vertex_data(self):
-        return np.hstack([texture_vertices, cube_vertices])
+    def __init__(self, ctx, camera, puzzle):
+        vertices = face_vertices_from_indices(cube_corners, cube_corners)
+        super().__init__(ctx, camera, vertices, puzzle, "david-jorre-unsplash.png")
