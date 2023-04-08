@@ -251,7 +251,8 @@ class Face(Renderable):
         if not underside_wall_vertices:
           continue
         if not top_first:
-          if underside_inner_vertices[count_idx + 1]:
+          next_count_idx = count_idx + 1 if count_idx < len(underside_inner_vertices)-1 else 0
+          if underside_inner_vertices[next_count_idx]:
             underside_vertices.append(underside_wall_vertices[1])
             continue
           underside_wall_vertices.reverse()

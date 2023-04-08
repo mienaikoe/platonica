@@ -41,7 +41,7 @@ class Model(Renderable):
         for pf in puzzle_faces:
             vs = vertices[pf.face_idx]
             face = Face(vs, pf, ctx, 0)
-            face.scramble()
+            # face.scramble()
             self.faces.append(face)
 
         self.m_model = glm.mat4()

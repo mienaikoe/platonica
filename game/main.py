@@ -9,9 +9,8 @@ from scenes.test_scene import TestScene
 
 MAX_FPS = 60
 
-# pygame setup
+# Setup
 pygame.init()
-
 clock = pygame.time.Clock()
 
 # Set OpenGL Attributes and create opengl-enabled screen

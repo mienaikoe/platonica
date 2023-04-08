@@ -7,6 +7,7 @@ from constants.dimensions import SCREEN_DIMENSIONS
 from puzzles.puzzle_graph import PuzzleGraph
 from engine.renderable import Renderable
 from models.tetra import Tetrahedron
+from models.octahedron import Octahedron
 from engine.camera import Camera
 
 class TestScene(Renderable):
@@ -20,8 +21,8 @@ class TestScene(Renderable):
 
     def init(self):
         self.camera = Camera(self.ctx)
-        self.puzzle = PuzzleGraph.from_file_name("test-puzzle-tetra-easy")
-        self.subject = Tetrahedron(self.ctx, self.camera, self.puzzle)
+        self.puzzle = PuzzleGraph.from_file_name("8_2")
+        self.subject = Octahedron(self.ctx, self.camera, self.puzzle)
 
     def handle_events(self, delta_time: int):
         self.subject.handle_events(delta_time)
