@@ -6,10 +6,11 @@ from constants.colors import Colors
 from constants.dimensions import SCREEN_DIMENSIONS
 from puzzles.puzzle_graph import PuzzleGraph
 from engine.renderable import Renderable
-from models.tetra import Tetrahedron
+from models.tetra import Tetrahedron, PopTetra
 from models.octahedron import Octahedron
-from models.icosahedron import Icosahedron
+from models.icosahedron import Icosahedron, PopIcosa
 from engine.camera import Camera
+
 
 class TestScene(Renderable):
     def __init__(self, ctx: mgl.Context, switch_mode: callable):
@@ -23,7 +24,7 @@ class TestScene(Renderable):
     def init(self):
         self.camera = Camera(self.ctx)
         self.puzzle = PuzzleGraph.from_file_name("20_0")
-        self.subject = Icosahedron(self.ctx, self.camera, self.puzzle)
+        self.subject = PopIcosa(self.ctx, self.camera)
 
     def handle_events(self, delta_time: int):
         self.subject.handle_events(delta_time)

@@ -4,9 +4,7 @@ import glm
 import pygame
 import numpy as np
 
-from engine.camera import Camera
 from engine.shader import get_shader_program
-from engine.renderable import Renderable
 from engine.arcball import ArcBall
 
 MOVEMENT_DEG_PER_DELTA = 0.001
@@ -17,10 +15,9 @@ class Ghost():
         self,
         ctx: moderngl.Context,
         face_vertices):
+
         self.ctx = ctx
-
         self.shader = get_shader_program(ctx, "default")
-
         vertex_data = np.array(face_vertices, dtype='f4')
         self.vbo = self.ctx.buffer(vertex_data)
         self.vao = self.ctx.vertex_array( self.shader, [(self.vbo,  "3f", "in_position")] )

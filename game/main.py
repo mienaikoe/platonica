@@ -25,16 +25,17 @@ pygame.display.gl_set_attribute(
 class Main:
     def __init__(self):
         self.screen = pygame.display.set_mode(
-            SCREEN_DIMENSIONS, flags=pygame.OPENGL | pygame.DOUBLEBUF | pygame.GL_CONTEXT_DEBUG_FLAG
+            SCREEN_DIMENSIONS,
+            flags=pygame.OPENGL | pygame.DOUBLEBUF | pygame.GL_CONTEXT_DEBUG_FLAG,
         )
         self.ctx = mgl.create_context()  # OpenGL
-        self.ctx.enable(flags=mgl.DEPTH_TEST)
+        self.ctx.enable(flags=mgl.DEPTH_TEST | mgl.BLEND)
         self.scenes = {
             Mode.TEST: TestScene(self.ctx, self.switch_mode),
             Mode.MENU: MenuScene(self.ctx, self.switch_mode),
             Mode.GAME: GameplayScene(self.ctx, self.switch_mode),
         }
-        self.active_mode = Mode.GAME
+        self.active_mode = Mode.TEST
         self.active_scene = self.scenes[self.active_mode]
         self.active_scene.init()
         self.delta_time = 0  # Time since last frame
