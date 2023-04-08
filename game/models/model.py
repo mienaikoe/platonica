@@ -5,6 +5,7 @@ import math
 
 from engine.camera import Camera
 from engine.texture import get_texture, texture_maps
+from engine.audio.sound_effect import SoundEffect
 from puzzles.puzzle_graph import PuzzleGraph
 from engine.renderable import Renderable
 from models.types import Vertex
@@ -54,6 +55,9 @@ class Model(Renderable):
         self.arcball = ArcBall(self.__update_model_matrix)
         self.is_dragging = False
         self.is_resonant = False
+        self.sounds = {
+            'rumble': SoundEffect('rumble')
+        }
 
     def __update_model_matrix(self, new_transform):
         for x in range(4):
@@ -87,6 +91,7 @@ class Model(Renderable):
             elif event.type == FACE_ACTIVATED:
                 face_index = event.__dict__['face_index']
                 self.faces[face_index].rotate()
+                self.sounds['rumble'].play()
                 # TODO block face click until rotation is complete
             elif event.type == FACE_ROTATED:
                 is_resonant = self.puzzle.is_resonant()
