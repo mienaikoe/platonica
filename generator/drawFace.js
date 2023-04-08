@@ -32,6 +32,16 @@ const GRAY = "#555";
  *
  */
 
+let isMouseDown = false;
+const highlightedPolygonsThisRound = new Set();
+document.body.addEventListener("mousedown", () => {
+  isMouseDown = true;
+});
+document.body.addEventListener("mouseup", () => {
+  isMouseDown = false;
+  highlightedPolygonsThisRound.clear();
+});
+
 const renderLine = (group, from, to, isEdge) => {
   if (!from || !to) {
     return;
@@ -80,6 +90,19 @@ const renderPolygon = (group, vertices) => {
     polygon.paths = vertex.polygons.filter((p) => {
       return p.vertices.filter((v) => verticesSet.has(v)).length === 2;
     });
+  });
+  polygonSVG.addEventListener("mousemove", () => {
+    if (!isMouseDown || highlightedPolygonsThisRound.has(polygonSVG)) {
+      return;
+    }
+    if (new Set(polygonSVG.classList).has("active")) {
+      polygonSVG.setAttribute("class", "");
+      polygon.is_active = false;
+    } else {
+      polygonSVG.setAttribute("class", "active");
+      polygon.is_active = true;
+    }
+    highlightedPolygonsThisRound.add(polygonSVG);
   });
   polygonSVG.addEventListener("click", () => {
     if (new Set(polygonSVG.classList).has("active")) {

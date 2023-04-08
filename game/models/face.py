@@ -11,12 +11,13 @@ from engine.shader import get_shader_program
 from engine.animation import AnimationLerper, AnimationLerpFunction, Animator
 from engine.events import emit_event, FACE_ROTATED
 from puzzles.face_generator_definition import FaceGeneratorDefinition
-from puzzles.puzzle_node import PuzzleNode
 from puzzles.puzzle_face import PuzzleFace
 from models.types import Vertex, UV
 from models.helpers import merge_collection_items
 
 WALL_COLOR = Colors.CHARCOAL
+UNDERSIDE_COLOR = Colors.CHARCOAL
+UNDERSIDE_NUDGE = 0.99 # To make sure there's not an overlap that causes rendering weirdness
 BASE_LINE_COLOR = glm.vec3(Colors.WHITE)
 LINE_LUMINOSITY_INACTIVE = 0.5
 LINE_LUMINOSITY_ACTIVE = 1.0
@@ -160,7 +161,7 @@ class Face(Renderable):
     )
 
     self.underside_shader = get_shader_program(ctx, "line")
-    self.underside_shader['v_color'] = WALL_COLOR
+    self.underside_shader['v_color'] = UNDERSIDE_COLOR
     self.underside_buffer = self.__make_vbo(ctx, underside_vertices)
     self.underside_vertex_array = self.__make_vao(
       ctx,
@@ -214,8 +215,10 @@ class Face(Renderable):
         top_coordinates = self.coordinate_system.uv_coordinates_to_face_coordinates(node.uv_coordinates)
         bottom_coordinates = self.coordinate_system.uv_coordinates_to_face_coordinates(node.uv_coordinates, CARVE_DEPTH)
         active_polygon_vertices.append(bottom_coordinates)
+        count_idx = node.indices[1]
         if node.is_edge:
-          underside_inner_vertices[node.indices[1]] = [top_coordinates, bottom_coordinates]
+          if underside_inner_vertices[count_idx] is None:
+            underside_inner_vertices[count_idx] = [top_coordinates, bottom_coordinates]
 
       # walls
       inactive_neighbor_lines = polygon.get_inactive_neighbor_lines()
@@ -251,10 +254,14 @@ class Face(Renderable):
         if not underside_wall_vertices:
           continue
         if not top_first:
+          if underside_inner_vertices[count_idx + 1]:
+            underside_vertices.append(underside_wall_vertices[1])
+            continue
           underside_wall_vertices.reverse()
         underside_vertices.extend(underside_wall_vertices)
         top_first = not top_first
     underside_vertices.append(self.face_vertices[0])
+    underside_vertices = np.array(underside_vertices) * UNDERSIDE_NUDGE
 
     return (active_polygon_vertices, wall_vertices, underside_vertices)
 

@@ -82,8 +82,10 @@ exportEl.addEventListener("click", () => {
 
 importEl.addEventListener("change", () => {
   importJson = JSON.parse(importEl.value);
-  importJson.
-})
+  importJson.faces.forEach((face) => {
+    console.log(face);
+  });
+});
 
 // Canvas
 const svg = document.getElementById("svg");
