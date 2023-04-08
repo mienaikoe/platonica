@@ -5,6 +5,7 @@ import glm
 from constants.colors import Colors
 from constants.dimensions import SCREEN_DIMENSIONS
 from puzzles.puzzle_graph import PuzzleGraph
+from engine.events import LEVEL_WON
 from engine.renderable import Renderable
 from models.tetra import Tetrahedron 
 from engine.camera import Camera
@@ -37,6 +38,9 @@ class GameplayScene(Renderable):
             print('GAME WOM')
 
     def handle_events(self, delta_time: int):
+        if pygame.event.get(LEVEL_WON):
+            print('level own detected from scene')
+            self.advance_level()
         if self.current_level().is_alive:
             self.current_level().handle_events(delta_time)
 
