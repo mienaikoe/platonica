@@ -5,7 +5,7 @@ from engine.shader import get_shader_program
 
 class ShadeableObject:
 
-  """
+    """
     SceneObject(
       ctx,
       "line",
@@ -18,37 +18,44 @@ class ShadeableObject:
         [1., 1., -1.],
       ]
     )
-  """
-  def __init__(
-    self,
-    ctx: mgl.Context,
-    shader_name: str,
-    shader_inputs: dict,
-    shader_vertices: np.ndarray
-  ):
-    self.shader = get_shader_program(ctx, shader_name)
-    buffer = self.__make_vbo(ctx, shader_vertices)
+    """
 
-    input_sizes = []
-    input_names = []
-    for input_name, input_size in shader_inputs.items():
-      input_sizes.append(input_size)
-      input_names.append(input_name)
+    def __init__(
+        self,
+        ctx: mgl.Context,
+        shader_name: str,
+        shader_inputs: dict,
+        shader_vertices: np.ndarray,
+    ):
+        self.shader = get_shader_program(ctx, shader_name)
+        buffer = self.__make_vbo(ctx, shader_vertices)
 
-    self.vao= self.__make_vao(
-      ctx,
-      self.shader,
-      [(buffer, " ".join(input_sizes), *input_names)]
-    )
+        input_sizes = []
+        input_names = []
+        for input_name, input_size in shader_inputs.items():
+            input_sizes.append(input_size)
+            input_names.append(input_name)
 
-  def render(self, uniforms: dict):
-    for key, val in uniforms.items():
-      self.shader[key] = val
-    self.vao.render()
+        self.vao = self.__make_vao(
+            ctx, self.shader, [(buffer, " ".join(input_sizes), *input_names)]
+        )
 
-  def __make_vao(self, ctx, shader, context):
-    return ctx.vertex_array(shader, context)
+    def render(self, uniforms: dict):
+        """
+        values in uniform dict must be non-primitives.
+        if you have a primative (int, float), store it in glm.vect(1)
+        """
+        for key, val in uniforms.items():
+            self.shader[key].write(val)
+        self.vao.render()
 
-  def __make_vbo(self, ctx, vertices):
-    return ctx.buffer(np.array(vertices, dtype='f4'))
+    def __make_vao(self, ctx, shader, context):
+        return ctx.vertex_array(shader, context)
 
+    def __make_vbo(self, ctx, vertices):
+        return ctx.buffer(np.array(vertices, dtype="f4"))
+
+    def destroy(self):
+        self.vbo.release()
+        self.shader.release()
+        self.vao.release()
