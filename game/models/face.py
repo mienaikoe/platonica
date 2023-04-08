@@ -198,17 +198,18 @@ class Face(Renderable):
     for polygon in polygons:
       if polygon.is_active:
         continue
+      # print(polygon.key)
       for node in polygon.nodes:
         polygon_vertices.append(self.coordinate_system.uv_coordinates_to_face_coordinates(node.uv_coordinates))
         polygon_uvs.append(node.uv_coordinates)
     return (polygon_vertices, polygon_uvs)
 
   def __make_carve_vertices(self):
-    polygons = self.puzzle_face.active_polygons
+    active_polygons = self.puzzle_face.active_polygons
     active_polygon_vertices = []
     wall_vertices = []
     underside_inner_vertices = [ None ] * self.generator_definition.vertex_count_for_ring(self.depth)
-    for polygon in polygons:
+    for polygon in active_polygons:
       # basin
       for node in polygon.nodes:
         top_coordinates = self.coordinate_system.uv_coordinates_to_face_coordinates(node.uv_coordinates)

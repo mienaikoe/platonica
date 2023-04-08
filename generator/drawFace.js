@@ -321,12 +321,27 @@ export const drawSquare = (group, depth) => {
           nextInnerVertex = vertices[previousRingIdx][nextInnerIdx];
         }
 
-        renderPolygon(polygonGroup, [
-          vertex,
-          nextVertex,
-          nextInnerVertex,
-          directInnerVertex,
-        ]);
+        if (segmentCountIdx !== verticesPerSegment - 1) {
+          if (segmentCountIdx >= verticesPerSegment / 2) {
+            renderPolygon(polygonGroup, [
+              vertex,
+              nextVertex,
+              directInnerVertex,
+            ]);
+            renderPolygon(polygonGroup, [
+              nextVertex,
+              nextInnerVertex,
+              directInnerVertex,
+            ]);
+          } else {
+            renderPolygon(polygonGroup, [vertex, nextVertex, nextInnerVertex]);
+            renderPolygon(polygonGroup, [
+              vertex,
+              directInnerVertex,
+              nextInnerVertex,
+            ]);
+          }
+        }
 
         renderVertex(group, vertex, isEdge);
       }

@@ -14,14 +14,13 @@ def triangle_vertices_from_indices(
 
 def face_vertices_from_indices(
     vertices: list[tuple[float,float,float]],
-    indices: list[tuple[int,int,int]]
+    face_indices: list[tuple[int,int,int]]
 ):
     face_vertices = []
-    for i in indices:
-        v0 = vertices[i[0]]
-        v1 = vertices[i[1]]
-        v2 = vertices[i[2]]
-        face_vertices.append((v0, v1, v2))
+    for vert_indices in face_indices:
+        face_vertices.append(
+            [vertices[vert_index] for vert_index in vert_indices]
+        )
     return face_vertices
 
 def merge_collection_items(a: list, b: list):

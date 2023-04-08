@@ -34,7 +34,7 @@ class Main:
             Mode.MENU: MenuScene(self.ctx, self.switch_mode),
             Mode.GAME: GameplayScene(self.ctx, self.switch_mode),
         }
-        self.active_mode = Mode.GAME
+        self.active_mode = Mode.TEST
         self.active_scene = self.scenes[self.active_mode]
         self.active_scene.init()
         self.delta_time = 0  # Time since last frame

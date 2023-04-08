@@ -7,6 +7,7 @@ from constants.dimensions import SCREEN_DIMENSIONS
 from puzzles.puzzle_graph import PuzzleGraph
 from engine.renderable import Renderable
 from models.tetra import Tetrahedron
+from models.cube import Cube
 from models.octahedron import Octahedron
 from models.icosahedron import Icosahedron
 from engine.camera import Camera
@@ -22,8 +23,8 @@ class TestScene(Renderable):
 
     def init(self):
         self.camera = Camera(self.ctx)
-        self.puzzle = PuzzleGraph.from_file_name("20_0")
-        self.subject = Icosahedron(self.ctx, self.camera, self.puzzle)
+        self.puzzle = PuzzleGraph.from_file_name("6_0")
+        self.subject = Cube(self.ctx, self.camera, self.puzzle)
 
     def handle_events(self, delta_time: int):
         self.subject.handle_events(delta_time)
