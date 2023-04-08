@@ -140,22 +140,24 @@ class Face(Renderable):
     )
 
     [carve_vertices, wall_vertices, underside_vertices] = self.__make_carve_vertices()
-    self.carve_shader = get_shader_program(ctx, "line")
-    self.carve_buffer = self.__make_vbo(ctx, carve_vertices)
-    self.carve_vertex_array = self.__make_vao(
-      ctx,
-      self.carve_shader,
-      [(self.carve_buffer, "3f", "in_position")]
-    )
+    self.has_carvings = len(carve_vertices) > 0
+    if self.has_carvings:
+      self.carve_shader = get_shader_program(ctx, "line")
+      self.carve_buffer = self.__make_vbo(ctx, carve_vertices)
+      self.carve_vertex_array = self.__make_vao(
+        ctx,
+        self.carve_shader,
+        [(self.carve_buffer, "3f", "in_position")]
+      )
 
-    self.wall_shader = get_shader_program(ctx, "line")
-    self.wall_shader['v_color'] = WALL_COLOR
-    self.wall_buffer = self.__make_vbo(ctx, wall_vertices)
-    self.wall_vertex_array = self.__make_vao(
-      ctx,
-      self.wall_shader,
-      [(self.wall_buffer, "3f", "in_position")]
-    )
+      self.wall_shader = get_shader_program(ctx, "line")
+      self.wall_shader['v_color'] = WALL_COLOR
+      self.wall_buffer = self.__make_vbo(ctx, wall_vertices)
+      self.wall_vertex_array = self.__make_vao(
+        ctx,
+        self.wall_shader,
+        [(self.wall_buffer, "3f", "in_position")]
+      )
 
     self.underside_shader = get_shader_program(ctx, "line")
     self.underside_shader['v_color'] = UNDERSIDE_COLOR
@@ -289,11 +291,14 @@ class Face(Renderable):
       m_mvp = camera.view_projection_matrix() * model_matrix * self.matrix
       self.terrain_shader["m_mvp"].write(m_mvp)
       self.terrain_vertex_array.render()
-      self.carve_shader["v_color"].write(self.line_color)
-      self.carve_shader["m_mvp"].write(m_mvp)
-      self.carve_vertex_array.render()
-      self.wall_shader["m_mvp"].write(m_mvp)
-      self.wall_vertex_array.render()
+
+      if self.has_carvings:
+        self.carve_shader["v_color"].write(self.line_color)
+        self.carve_shader["m_mvp"].write(m_mvp)
+        self.carve_vertex_array.render()
+        self.wall_shader["m_mvp"].write(m_mvp)
+        self.wall_vertex_array.render()
+
       self.underside_shader["m_mvp"].write(m_mvp)
       self.underside_vertex_array.render(mode=moderngl.TRIANGLE_FAN)
 
@@ -319,16 +324,19 @@ class Face(Renderable):
 
   def destroy(self):
       self.terrain_buffer.release()
-      self.carve_buffer.release()
-      self.wall_buffer.release()
-      self.underside_buffer.release()
       self.terrain_shader.release()
-      self.carve_shader.release()
-      self.wall_shader.release()
-      self.underside_shader.release()
       self.terrain_vertex_array.release()
-      self.carve_vertex_array.release()
-      self.wall_vertex_array.release()
+
+      if self.has_carvings:
+        self.carve_buffer.release()
+        self.carve_shader.release()
+        self.carve_vertex_array.release()
+        self.wall_buffer.release()
+        self.wall_shader.release()
+        self.wall_vertex_array.release()
+
+      self.underside_buffer.release()
+      self.underside_shader.release()
       self.underside_vertex_array.release()
 
   def projected_vertices(self, matrix) -> list[glm.vec4]:
