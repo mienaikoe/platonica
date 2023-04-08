@@ -55,6 +55,9 @@ class ShadeableObject:
     def __make_vbo(self, ctx, vertices):
         return ctx.buffer(np.array(vertices, dtype="f4"))
 
+    def set_uniform(self, uniform_name: str, uniform_value):
+        self.shader[uniform_name].write(uniform_value)
+
     def destroy(self):
         self.vbo.release()
         self.shader.release()
