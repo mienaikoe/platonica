@@ -34,20 +34,13 @@ class Model(Renderable):
         texture = get_texture(ctx, texture_file_name)
         texture_location = 0
         texture.use(location=texture_location)
-        texture_map = texture_maps[texture_file_name]
 
         self.mouse_down_position = None
         self.faces = []
         puzzle_faces = puzzle.faces
         for pf in puzzle_faces:
             vs = vertices[pf.face_idx]
-            uv_indices = texture_map['faces'][pf.face_idx]
-            uvs = (
-                texture_map['uv'][uv_indices[0]],
-                texture_map['uv'][uv_indices[1]],
-                texture_map['uv'][uv_indices[2]],
-            )
-            face = Face(vs, pf, ctx, 0, uvs)
+            face = Face(vs, pf, ctx, 0)
             face.scramble()
             self.faces.append(face)
 
