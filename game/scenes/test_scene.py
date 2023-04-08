@@ -10,7 +10,9 @@ from models.tetra import Tetrahedron
 from models.cube import Cube
 from models.octahedron import Octahedron
 from models.icosahedron import Icosahedron
+from ui.red_plane import RedPlane
 from engine.camera import Camera
+
 
 class TestScene(Renderable):
     def __init__(self, ctx: mgl.Context, switch_mode: callable):
@@ -25,6 +27,7 @@ class TestScene(Renderable):
         self.camera = Camera(self.ctx)
         self.puzzle = PuzzleGraph.from_file_name("6_0")
         self.subject = Cube(self.ctx, self.camera, self.puzzle)
+        self.plane = RedPlane(self.ctx, self.camera.view_projection_matrix())
 
     def handle_events(self, delta_time: int):
         self.subject.handle_events(delta_time)
@@ -32,6 +35,7 @@ class TestScene(Renderable):
     def render(self, delta_time: int):
         self.ctx.clear(color=Colors.WHITE)
         self.subject.render(delta_time)
+        self.plane.render(delta_time)
 
     def destroy(self):
         self.subject.destroy()
