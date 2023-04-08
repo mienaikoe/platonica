@@ -4,18 +4,32 @@ import pygame
 import glm
 from constants.colors import Colors
 from constants.dimensions import SCREEN_DIMENSIONS
+from constants.shape import Shape, SHAPE_VERTICES
 from puzzles.puzzle_graph import PuzzleGraph
 from engine.events import LEVEL_WON
 from engine.renderable import Renderable
-from models.tetra import Tetrahedron 
+from models.polyhedron import Polyhedron
 from engine.camera import Camera
 
-LEVEL_FILES = ['4_4', '4_5a', '4_6a']
+LEVELS = [
+    {
+        'shape': Shape.tetrahedron,
+        'puzzle': '4_4',
+        'texture': "david-jorre-unsplash.png",
+    }, {
+        'shape': Shape.tetrahedron,
+        'puzzle': '4_5a',
+        'texture': "david-jorre-unsplash.png",
+    },{
+        'shape': Shape.tetrahedron,
+        'puzzle': '4_6a',
+        'texture': "david-jorre-unsplash.png",
+    }
+]
 
 class GameplayScene(Renderable):
-    def __init__(self, ctx: mgl.Context, switch_mode: callable):
+    def __init__(self, ctx: mgl.Context):
         self.ctx = ctx
-        self.switch_mode = switch_mode
         self.center = (
             SCREEN_DIMENSIONS[0] / 2,
             SCREEN_DIMENSIONS[1] / 2,
@@ -23,13 +37,22 @@ class GameplayScene(Renderable):
         self.camera = Camera(self.ctx)
 
     def init(self):
-        self.levels = [ Tetrahedron(self.ctx, self.camera,
-                                    PuzzleGraph.from_file_name(file)) for file in LEVEL_FILES ]
+        self.levels = []
+        for level in LEVELS:
+            self.levels.append(
+                Polyhedron(
+                    self.ctx,
+                    self.camera,
+                    SHAPE_VERTICES[level['shape']],
+                    PuzzleGraph.from_file_name(level['puzzle']),
+                    level['texture']
+                )
+            )
         self.current_level_index = 0
-    
+
     def current_level(self):
         return self.levels[self.current_level_index]
-    
+
     def advance_level(self):
         self.current_level().destroy()
         if self.current_level_index < len(self.levels) - 1:

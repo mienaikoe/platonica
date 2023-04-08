@@ -18,7 +18,7 @@ from engine.events.mouse_click import find_face_clicked_winding
 MOVEMENT_DEG_PER_DELTA = 0.005
 CLICK_RADIUS = 3 # pixels
 
-class Model(Renderable):
+class Polyhedron(Renderable):
     def __init__(
         self,
         ctx: moderngl.Context,
@@ -77,14 +77,15 @@ class Model(Renderable):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 self.mouse_down_position = pygame.mouse.get_pos()
             elif event.type == pygame.MOUSEBUTTONUP:
-                mouse_pos = pygame.mouse.get_pos()
-                no_movement = math.sqrt(
-                    math.pow(mouse_pos[0] - self.mouse_down_position[0], 2) +
-                    math.pow(mouse_pos[1] - self.mouse_down_position[1], 2)
-                ) <= CLICK_RADIUS
-                self.mouse_down_position = None
-                if no_movement:
-                    self.handle_click(pygame.mouse.get_pos())
+                if self.mouse_down_position:
+                    mouse_pos = pygame.mouse.get_pos()
+                    no_movement = math.sqrt(
+                        math.pow(mouse_pos[0] - self.mouse_down_position[0], 2) +
+                        math.pow(mouse_pos[1] - self.mouse_down_position[1], 2)
+                    ) <= CLICK_RADIUS
+                    self.mouse_down_position = None
+                    if no_movement:
+                        self.handle_click(pygame.mouse.get_pos())
             elif event.type == FACE_ACTIVATED:
                 face_index = event.__dict__['face_index']
                 self.is_face_rotating = True

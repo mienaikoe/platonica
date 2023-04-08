@@ -3,9 +3,6 @@ import pygame
 import moderngl as mgl
 from constants.dimensions import SCREEN_DIMENSIONS
 from scenes.gameplay_scene import GameplayScene
-from scenes.menu_scene import MenuScene
-from constants.mode import Mode
-from scenes.test_scene import TestScene
 from engine.events import LEVEL_WON
 
 MAX_FPS = 60
@@ -30,35 +27,22 @@ class Main:
         )
         self.ctx = mgl.create_context()  # OpenGL
         self.ctx.enable(flags=mgl.DEPTH_TEST)
-        self.scenes = {
-            Mode.TEST: TestScene(self.ctx, self.switch_mode),
-            Mode.MENU: MenuScene(self.ctx, self.switch_mode),
-            Mode.GAME: GameplayScene(self.ctx, self.switch_mode),
-        }
-        self.active_mode = Mode.TEST
-        self.active_scene = self.scenes[self.active_mode]
-        self.active_scene.init()
+        self.scene = GameplayScene(self.ctx)
+        self.scene.init()
         self.delta_time = 0  # Time since last frame
 
-    def switch_mode(self, new_mode: Mode):
-        if new_mode != self.active_mode:
-            self.active_scene.destroy()
-            self.active_mode = new_mode
-            self.active_scene = self.scenes[self.active_mode]
-            self.active_scene.init()
-
     def quit(self):
-        self.active_scene.destroy()
+        self.scene.destroy()
         pygame.quit()
         exit()
 
     def handle_events(self) -> None:
         if pygame.event.get(pygame.QUIT):
             self.quit()
-        self.active_scene.handle_events(self.delta_time)
+        self.scene.handle_events(self.delta_time)
 
     def render(self) -> None:
-        self.active_scene.render(self.delta_time)
+        self.scene.render(self.delta_time)
         pygame.display.flip()
 
     def run(self):
