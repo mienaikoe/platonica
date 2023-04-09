@@ -45,5 +45,6 @@ class Plane(Renderable):
         self.vao.render()
 
     def destroy(self):
-        self.vao.release()
         self.vbo.release()
+        self.shader.release()
+        self.vao.release()
