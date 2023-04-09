@@ -45,13 +45,14 @@ class ShadeableObject:
             ctx, self.shader, [(buffer, " ".join(input_sizes), *input_names)]
         )
 
-    def render(self, uniforms: dict):
+    def render(self, uniforms=None):
         """
         values in uniform dict must be non-primitives.
         if you have a primative (int, float), store it in glm.vect(1)
         """
-        for key, val in uniforms.items():
-            self.shader[key].write(val)
+        if uniforms is not None:
+          for key, val in uniforms.items():
+              self.shader[key].write(val)
         self.vao.render()
 
     def __make_vao(self, ctx, shader, context):
