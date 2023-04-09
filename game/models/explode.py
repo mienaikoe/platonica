@@ -17,6 +17,7 @@ class ExplodingModel:
         self.camera = camera
         self.shader = get_shader_program(ctx, "explode")
         self.shader["run_time"] = 3
+        self.shader["explode"] = False
         vertices_with_normals = []
         for face in face_vertices:
             v0 = glm.vec3(face[0])
@@ -45,13 +46,16 @@ class ExplodingModel:
     def render(self, delta_time):
         m_mvp = self.camera.view_projection_matrix() * self.matrix
         self.shader["m_mvp"].write(m_mvp)
-        self.time += delta_time
-        self.shader["time"] = self.time / 1000
+        if self.shader["explode"]:
+            self.time += delta_time
+            self.shader["time"] = self.time / 1000
         self.vao.render()
 
     def handle_events(self, delta_time: int):
         for evt in pygame.event.get():
-            self.arcball.handle_event(evt)
+            if evt.type == pygame.MOUSEBUTTONDOWN:
+                self.shader["explode"] = True
+            # self.arcball.handle_event(evt)
 
     def destroy(self):
         self.shader.release()

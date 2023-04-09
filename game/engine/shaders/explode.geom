@@ -4,6 +4,7 @@ layout(triangle_strip,max_vertices=3)out;
 
 uniform float time;// in seconds
 uniform float run_time;// in seconds
+uniform bool explode;
 uniform mat4 m_mvp;
 
 in Vertex
@@ -36,7 +37,7 @@ void main()
     //------ Generate a new face along the direction of the face normal
     // only if diff_len is not too small.
     //
-    if(length(diff_len)>.001)
+    if(length(diff_len)>.001&&explode)
     {
         int i;
         for(i=0;i<gl_in.length();i++)
@@ -50,6 +51,20 @@ void main()
             vertex_color=vec4(vertex[i].color.xyz,fade);
             EmitVertex();
         }
+        EndPrimitive();
+    }else{
+        gl_Position=gl_in[0].gl_Position;
+        vertex_color=vertex[0].color;
+        EmitVertex();
+        
+        gl_Position=gl_in[1].gl_Position;
+        vertex_color=vertex[1].color;
+        EmitVertex();
+        
+        gl_Position=gl_in[2].gl_Position;
+        vertex_color=vertex[2].color;
+        EmitVertex();
+        
         EndPrimitive();
     }
 }
