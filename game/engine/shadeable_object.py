@@ -1,5 +1,5 @@
 import numpy as np
-import moderngl as mgl
+import moderngl
 from engine.shader import get_shader_program
 
 
@@ -22,12 +22,17 @@ class ShadeableObject:
 
     def __init__(
         self,
-        ctx: mgl.Context,
-        shader_name: str,
+        ctx: moderngl.Context,
+        shader: moderngl.Program | str,
         shader_inputs: dict,
         shader_vertices: np.ndarray,
     ):
-        self.shader = get_shader_program(ctx, shader_name)
+        if isinstance(shader, str):
+            self.shader = get_shader_program(ctx, shader)
+            self.is_own_shader = True
+        else:
+            self.shader = shader
+            self.is_own_shader = False
         buffer = self.__make_vbo(ctx, shader_vertices)
 
         input_sizes = []
@@ -60,5 +65,6 @@ class ShadeableObject:
 
     def destroy(self):
         self.vbo.release()
-        self.shader.release()
         self.vao.release()
+        if self.is_own_shader:
+            self.shader.release()
