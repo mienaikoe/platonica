@@ -9,7 +9,7 @@ class Progress(Plane):
         position = glm.vec2(1.5, 1.5)
         super().__init__(ctx, camera_matrix, position)
 
-        shader = get_shader_program(ctx, "plane")
+        shader = get_shader_program(ctx, "uniform_color")
 
         self.dots = [
             ProgressDot(ctx, self.matrix, shader, 0),

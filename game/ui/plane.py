@@ -34,8 +34,8 @@ class Plane(Renderable):
             dtype="f4",
         )
 
-        self.shader = get_shader_program(self.ctx, "plane")
-        self.shader["color"].write(color)
+        self.shader = get_shader_program(self.ctx, "uniform_color")
+        self.shader["v_color"].write(color)
         vertex_data = np.array(vertex_data, dtype="f4")
         self.vbo = self.ctx.buffer(vertex_data)
         self.vao = self.ctx.vertex_array(self.shader, [(self.vbo, "3f", "in_position")])
