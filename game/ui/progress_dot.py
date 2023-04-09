@@ -39,7 +39,7 @@ class ProgressDot(ShadeableObject):
 
     def render(self):
         uniforms = {
-            "color": FILL_COLOR if self.done else EMPTY_COLOR,
+            "v_color": FILL_COLOR if self.done else EMPTY_COLOR,
             "m_mvp": self.matrix,
         }
         super().render(uniforms)

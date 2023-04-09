@@ -12,18 +12,16 @@ from engine.arcball import ArcBall
 MOVEMENT_DEG_PER_DELTA = 0.001
 
 
-class Ghost():
-    def __init__(
-        self,
-        ctx: moderngl.Context,
-        face_vertices):
+class Ghost:
+    def __init__(self, ctx: moderngl.Context, face_vertices):
         self.ctx = ctx
 
-        self.shader = get_shader_program(ctx, "default")
+        self.shader = get_shader_program(ctx, "uniform_color")
+        self.shader["v_color"] = glm.vec3(1.0, 0.0, 0.0)
 
-        vertex_data = np.array(face_vertices, dtype='f4')
+        vertex_data = np.array(face_vertices, dtype="f4")
         self.vbo = self.ctx.buffer(vertex_data)
-        self.vao = self.ctx.vertex_array( self.shader, [(self.vbo,  "3f", "in_position")] )
+        self.vao = self.ctx.vertex_array(self.shader, [(self.vbo, "3f", "in_position")])
         self.matrix = glm.mat4()
         self.arcball = ArcBall(self.__update_model_matrix)
 
@@ -47,5 +45,3 @@ class Ghost():
             self.vao.release()
         if self.vbo:
             self.vbo.release()
-
-
