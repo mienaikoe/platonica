@@ -37,7 +37,7 @@ void main()
     //------ Generate a new face along the direction of the face normal
     // only if diff_len is not too small.
     //
-    if(length(diff_len)>.001&&explode)
+    if(length(diff_len)>.001)
     {
         int i;
         for(i=0;i<gl_in.length();i++)

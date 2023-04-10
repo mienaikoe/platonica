@@ -26,7 +26,7 @@ class Main:
             flags=pygame.OPENGL | pygame.DOUBLEBUF | pygame.GL_CONTEXT_DEBUG_FLAG,
         )
         self.ctx = mgl.create_context()  # OpenGL
-        self.ctx.enable(flags=mgl.DEPTH_TEST)
+        self.ctx.enable(flags=mgl.DEPTH_TEST | mgl.BLEND)
         self.scene = GameplayScene(self.ctx)
         self.scene.init()
         self.delta_time = 0  # Time since last frame
