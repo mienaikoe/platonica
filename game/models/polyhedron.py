@@ -8,15 +8,19 @@ from engine.texture import get_texture, texture_maps
 from engine.audio.sound_effect import SoundEffect
 from puzzles.puzzle_graph import PuzzleGraph
 from engine.renderable import Renderable
+from engine.shader import get_shader_program
 from models.types import Vertex
 from models.face import Face
 from engine.arcball import ArcBall
-from engine.events import FACE_ACTIVATED, FACE_ROTATED, LEVEL_WON, emit_face_activated
+from engine.events import FACE_ACTIVATED, FACE_ROTATED, LEVEL_WON, NEXT_LEVEL, DONE_RESONATE, emit_face_activated, emit_event
 from engine.events.mouse_click import find_face_clicked_winding
 
 
 MOVEMENT_DEG_PER_DELTA = 0.005
 CLICK_RADIUS = 3  # pixels
+
+EXPLOSION_RUNTIME = 4000 # in ms
+RESONATE_RUNTIME = 1000 # in ms
 
 
 class Polyhedron(Renderable):
@@ -32,16 +36,24 @@ class Polyhedron(Renderable):
         self.ctx = ctx
         self.camera = camera
 
+        self.time = 0.0
+
         texture = get_texture(ctx, texture_file_name)
         texture_location = 0
         texture.use(location=texture_location)
+
+        self.terrain_shader = get_shader_program(ctx, "exploding_image")
+        self.terrain_shader["u_texture_0"] = texture_location
+        self.terrain_shader["time"] = self.time
+        self.terrain_shader["run_time"] = EXPLOSION_RUNTIME
+        self.terrain_shader["explode"] = False
 
         self.mouse_down_position = None
         self.faces = []
         puzzle_faces = puzzle.faces
         for pf in puzzle_faces:
             vs = vertices[pf.face_idx]
-            face = Face(vs, pf, ctx, 0)
+            face = Face(vs, pf, ctx, self.terrain_shader)
             face.scramble()
             self.faces.append(face)
 
@@ -75,6 +87,17 @@ class Polyhedron(Renderable):
             return True
         return False
 
+    def start_exploding(self):
+        self.terrain_shader["explode"] = True
+        self.terrain_shader["time"] = 0.0
+    
+    def render_exploding(self, delta_time):
+        self.time += delta_time
+        self.terrain_shader["time"] = self.time / 1000.0
+
+    def stop_exploding(self):
+        self.terrain_shader["explode"] = True
+
     def handle_events(self, delta_time: int):
         for event in pygame.event.get():
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -104,15 +127,25 @@ class Polyhedron(Renderable):
                     self.is_puzzle_solved = is_resonant
                     for face in self.faces:
                         face.set_is_resonant(is_resonant)
-                    # after resonating for some time, we declare the level has been own
-                    pygame.time.set_timer(LEVEL_WON, 1500, loops=1)
+                    pygame.time.set_timer(DONE_RESONATE, RESONATE_RUNTIME, loops=1)
+            elif event.type == DONE_RESONATE:
+                for face in self.faces:
+                    face.explode()
+                self.start_exploding()
+                pygame.time.set_timer(LEVEL_WON, EXPLOSION_RUNTIME, loops=1)
+            elif event.type == LEVEL_WON:
+                # let game scene know to go to next level
+                emit_event(NEXT_LEVEL, {})
             self.arcball.handle_event(event)
 
     def render(self, delta_time: int):
+        if self.is_puzzle_solved:
+            self.render_exploding(delta_time)
         for face in self.faces:
             face.renderFace(self.camera, self.m_model, delta_time)
 
     def destroy(self):
         self.is_alive = False
+        self.terrain_shader.release()
         for face in self.faces:
             face.destroy()
