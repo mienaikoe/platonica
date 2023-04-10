@@ -5,7 +5,7 @@ from constants.colors import Colors
 from engine.shadeable_object import ShadeableObject
 
 EMPTY_COLOR = Colors.GRAY
-FILL_COLOR = Colors.GREEN
+FILL_COLOR = Colors.LIME
 
 vertices = [
     glm.vec3(0.0, 0.0, 0.0),
@@ -13,17 +13,18 @@ vertices = [
     glm.vec3(0.0, 0.2, 0.0),
 ]
 
+PAD = 0.02
 
 class ProgressDot(ShadeableObject):
     def __init__(self, ctx, matrix, shader, degrees):
-        offset = glm.vec3(0.01, 0.01, 0.0)
+        offset = glm.vec3(PAD, PAD, 0.0)
         match degrees:
             case 90:
-                offset = glm.vec3(-0.01, 0.01, 0.0)
+                offset = glm.vec3(-PAD, PAD, 0.0)
             case 180:
-                offset = glm.vec3(-0.01, -0.01, 0.0)
+                offset = glm.vec3(-PAD, -PAD, 0.0)
             case 270:
-                offset = glm.vec3(0.01, -0.01, 0.0)
+                offset = glm.vec3(PAD, -PAD, 0.0)
         transform = glm.translate(offset) * glm.rotate(
             glm.radians(degrees), glm.vec3(0, 0, 1)
         )

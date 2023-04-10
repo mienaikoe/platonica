@@ -20,7 +20,7 @@ UNDERSIDE_COLOR = Colors.CHARCOAL
 UNDERSIDE_NUDGE = (
     0.99  # To make sure there's not an overlap that causes rendering weirdness
 )
-BASE_LINE_COLOR = Colors.WHITE
+BASE_LINE_COLOR = Colors.RED
 LINE_LUMINOSITY_INACTIVE = 0.5
 LINE_LUMINOSITY_ACTIVE = 1.0
 DEFAULT_LINE_COLOR = BASE_LINE_COLOR * LINE_LUMINOSITY_INACTIVE
@@ -311,6 +311,7 @@ class Face(Renderable):
     def renderFace(self, camera: Camera, model_matrix, delta_time):
         m_mvp = camera.view_projection_matrix() * model_matrix * self.matrix
         self.terrain_shader["m_mvp"].write(m_mvp)
+        self.terrain_shader["v_nv"].write(self.nv)
         self.terrain_vertex_array.render()
 
         if self.is_level_won:

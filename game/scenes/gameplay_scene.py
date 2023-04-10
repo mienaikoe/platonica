@@ -18,17 +18,17 @@ LEVELS = [
     {
         "shape": Shape.tetrahedron,
         "puzzle": "4_4",
-        "texture": "david-jorre-unsplash.png",
+        "texture": "david-jorre-unsplash_lighter.png",
     },
     {
         "shape": Shape.tetrahedron,
         "puzzle": "4_5a",
-        "texture": "david-jorre-unsplash.png",
+        "texture": "david-jorre-unsplash_lighter.png",
     },
     {
         "shape": Shape.tetrahedron,
         "puzzle": "4_6a",
-        "texture": "david-jorre-unsplash.png",
+        "texture": "david-jorre-unsplash_lighter.png",
     },
 ]
 

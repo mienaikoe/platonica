@@ -48,6 +48,8 @@ class Polyhedron(Renderable):
         self.terrain_shader["time"] = self.time
         self.terrain_shader["run_time"] = EXPLOSION_RUNTIME
         self.terrain_shader["explode"] = False
+        self.terrain_shader["v_light"].write(-camera.position)
+        self.terrain_shader["v_ambient"].write(glm.vec3(0.2,0.2,0.2))
 
         self.mouse_down_position = None
         self.faces = []
@@ -152,6 +154,7 @@ class Polyhedron(Renderable):
 
 
     def render(self, delta_time: int):
+        self.terrain_shader['m_model'].write(self.m_model)
         if self.is_puzzle_solved:
             self.render_exploding(delta_time)
         for face in self.faces:

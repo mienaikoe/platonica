@@ -29,7 +29,7 @@ class Main:
         )
         self.ctx = mgl.create_context()  # OpenGL
         self.ctx.enable(flags=mgl.DEPTH_TEST | mgl.BLEND)
-        self.scene = TutorialScene(self.ctx)
+        self.scene = GameplayScene(self.ctx)
         self.scene.init()
         self.delta_time = 0  # Time since last frame
 

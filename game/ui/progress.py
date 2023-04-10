@@ -6,10 +6,14 @@ from engine.shader import get_shader_program
 
 class Progress(Plane):
     def __init__(self, ctx, camera_matrix):
-        position = glm.vec2(1.5, 1.5)
+        position = glm.vec2(1.7, -1.7)
         super().__init__(ctx, camera_matrix, position)
 
         shader = get_shader_program(ctx, "uniform_color")
+
+        self.matrix = (self.matrix *
+            glm.scale(glm.vec3(0.5, 0.5, 0.5))
+        )
 
         self.dots = [
             ProgressDot(ctx, self.matrix, shader, 0),
