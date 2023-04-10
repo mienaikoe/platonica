@@ -21,7 +21,6 @@ void main(){
     vec3 P2=gl_in[2].gl_Position.xyz;
     vec3 V0=P0-P1;
     vec3 V1=P2-P1;
-    vec3 N=normalize(cross(V1,V0));
     
     vec3 diff=V1-V0;
     float diff_len=length(diff);

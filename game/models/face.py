@@ -193,8 +193,6 @@ class Face(Renderable):
         for polygon in polygons:
             if polygon.is_active:
                 continue
-            # TODO get normal for polygon
-            # print(polygon.key)
             for node in polygon.nodes:
                 polygon_vertices.append(
                     self.coordinate_system.uv_coordinates_to_face_coordinates(
