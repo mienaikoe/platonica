@@ -8,6 +8,10 @@ LEVEL_WON = pygame.USEREVENT + 4
 DONE_RESONATE = pygame.USEREVENT + 5
 NEXT_LEVEL = pygame.USEREVENT + 6
 
+ARCBALL_MOVE = pygame.USEREVENT + 7
+
+SCENE_FINISH = pygame.USEREVENT + 8
+
 def emit_event(event_type: int, payload: any):
     evt = pygame.event.Event(event_type, payload)
     pygame.event.post(evt)

@@ -2,8 +2,10 @@
 import pygame
 import moderngl as mgl
 from constants.dimensions import SCREEN_DIMENSIONS
+from scenes.tutorial_scene import TutorialScene
 from scenes.gameplay_scene import GameplayScene
-from engine.events import LEVEL_WON
+from scenes.test_scene import TestScene
+from engine.events import LEVEL_WON, SCENE_FINISH
 
 MAX_FPS = 60
 
@@ -27,9 +29,14 @@ class Main:
         )
         self.ctx = mgl.create_context()  # OpenGL
         self.ctx.enable(flags=mgl.DEPTH_TEST | mgl.BLEND)
-        self.scene = GameplayScene(self.ctx)
+        self.scene = TutorialScene(self.ctx)
         self.scene.init()
         self.delta_time = 0  # Time since last frame
+
+    def next_scene(self):
+        if self.scene.__class__ == TutorialScene:
+            self.scene = GameplayScene(self.ctx)
+            self.scene.init()
 
     def quit(self):
         self.scene.destroy()
@@ -39,6 +46,8 @@ class Main:
     def handle_events(self) -> None:
         if pygame.event.get(pygame.QUIT):
             self.quit()
+        if pygame.event.get(SCENE_FINISH):
+            self.next_scene()
         self.scene.handle_events(self.delta_time)
 
     def render(self) -> None:

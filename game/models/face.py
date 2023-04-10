@@ -20,10 +20,11 @@ UNDERSIDE_COLOR = Colors.CHARCOAL
 UNDERSIDE_NUDGE = (
     0.99  # To make sure there's not an overlap that causes rendering weirdness
 )
-BASE_LINE_COLOR = glm.vec3(Colors.WHITE)
+BASE_LINE_COLOR = Colors.WHITE
 LINE_LUMINOSITY_INACTIVE = 0.5
 LINE_LUMINOSITY_ACTIVE = 1.0
 DEFAULT_LINE_COLOR = BASE_LINE_COLOR * LINE_LUMINOSITY_INACTIVE
+DEFAULT_LINE_COLOR[3] = 1.0
 
 PUZZLE_PATH_WIDTH = 0.1
 RAD60 = np.radians(60)
@@ -341,11 +342,12 @@ class Face(Renderable):
 
     def __animate_resonance(self, new_value: float):
         self.line_color = BASE_LINE_COLOR * new_value
+        self.line_color[3] = 1.0
 
     def scramble(self):
         num_rotations = random.randint(0, len(self.coordinate_system.segment_vectors))
         self.rotate(num_rotations)
-    
+
     def explode(self):
         self.is_level_won = True
         if self.has_carvings:

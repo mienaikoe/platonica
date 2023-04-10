@@ -16,6 +16,7 @@ Copied from https://github.com/zishun/pyqt-meshviewer/blob/master/ArcBall.py
 
 import pygame
 import numpy as np
+from engine.events import emit_event, ARCBALL_MOVE
 
 from constants.dimensions import SCREEN_DIMENSIONS
 __all__ = ['ArcBall', 'ArcBallUtil']
@@ -23,7 +24,7 @@ __all__ = ['ArcBall', 'ArcBallUtil']
 SQRT3 = np.sqrt(3)
 
 class ArcBall:
-    def __init__(self, on_transform_change: callable):
+    def __init__(self, on_transform_change: callable, **kwargs):
         # Saved Vectors - used so we don't allocate new vectors
         # every time an event occurs
         self.start_vector = np.zeros(3, 'f4')  # Saved click vector
@@ -46,6 +47,8 @@ class ArcBall:
         self.on_transform_change = on_transform_change
 
         self.is_dragging = False
+
+        self.emit_events = kwargs.get("emit_events", False)
 
     def handle_event(self, event: pygame.event.Event):
         match event.type:
@@ -97,6 +100,8 @@ class ArcBall:
             self.transform, self._rot3x3
         )
         self.on_transform_change(self.transform)
+        if self.emit_events:
+            emit_event(ARCBALL_MOVE, {})
 
     def on_up(self):
         if not self.is_dragging:

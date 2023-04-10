@@ -4,8 +4,8 @@ import glm
 from constants.colors import Colors
 from engine.shadeable_object import ShadeableObject
 
-EMPTY_COLOR = glm.vec4(Colors.GRAY, 1.0)
-FILL_COLOR = glm.vec4(Colors.GREEN, 1.0)
+EMPTY_COLOR = Colors.GRAY
+FILL_COLOR = Colors.GREEN
 
 vertices = [
     glm.vec3(0.0, 0.0, 0.0),

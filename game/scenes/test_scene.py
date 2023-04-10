@@ -1,22 +1,16 @@
-import os
 import moderngl as mgl
-import pygame
-import glm
 from constants.colors import Colors
 from constants.dimensions import SCREEN_DIMENSIONS
+from constants.shape import Shape, SHAPE_VERTICES
 from puzzles.puzzle_graph import PuzzleGraph
 from engine.renderable import Renderable
-from models.tetra import Tetrahedron
-from models.cube import Cube
-from models.octahedron import Octahedron
-from models.icosahedron import Icosahedron
 from engine.camera import Camera
+from models.polyhedron import Polyhedron
 
 
 class TestScene(Renderable):
-    def __init__(self, ctx: mgl.Context, switch_mode: callable):
+    def __init__(self, ctx: mgl.Context):
         self.ctx = ctx
-        self.switch_mode = switch_mode
         self.center = (
             SCREEN_DIMENSIONS[0] / 2,
             SCREEN_DIMENSIONS[1] / 2,
@@ -25,7 +19,9 @@ class TestScene(Renderable):
     def init(self):
         self.camera = Camera(self.ctx)
         self.puzzle = PuzzleGraph.from_file_name("6_0")
-        self.subject = Cube(self.ctx, self.camera, self.puzzle)
+        self.subject = Polyhedron(
+            self.ctx, self.camera, SHAPE_VERTICES[Shape.tetrahedron], self.puzzle, "generic.png"
+        )
 
     def handle_events(self, delta_time: int):
         self.subject.handle_events(delta_time)

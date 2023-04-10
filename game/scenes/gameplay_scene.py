@@ -45,15 +45,15 @@ class GameplayScene(Renderable):
     def init(self):
         self.levels = []
         for level in LEVELS:
-            self.levels.append(
-                Polyhedron(
-                    self.ctx,
-                    self.camera,
-                    SHAPE_VERTICES[level["shape"]],
-                    PuzzleGraph.from_file_name(level["puzzle"]),
-                    level["texture"],
-                )
+            level_poly = Polyhedron(
+                self.ctx,
+                self.camera,
+                SHAPE_VERTICES[level["shape"]],
+                PuzzleGraph.from_file_name(level["puzzle"]),
+                level["texture"],
             )
+            level_poly.scramble()
+            self.levels.append(level_poly)
         self.current_level_index = 0
         self.progress = Progress(self.ctx, self.camera.view_projection_matrix())
 
@@ -83,4 +83,4 @@ class GameplayScene(Renderable):
 
     def destroy(self):
         for lvl in self.levels:
-            self.lvl.destroy()
+            lvl.destroy()

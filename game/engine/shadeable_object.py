@@ -33,7 +33,7 @@ class ShadeableObject:
         else:
             self.shader = shader
             self.is_own_shader = False
-        buffer = self.__make_vbo(ctx, shader_vertices)
+        self.vbo = self.__make_vbo(ctx, shader_vertices)
 
         input_sizes = []
         input_names = []
@@ -42,10 +42,10 @@ class ShadeableObject:
             input_names.append(input_name)
 
         self.vao = self.__make_vao(
-            ctx, self.shader, [(buffer, " ".join(input_sizes), *input_names)]
+            ctx, self.shader, [(self.vbo, " ".join(input_sizes), *input_names)]
         )
 
-    def render(self, uniforms=None):
+    def render(self, uniforms=None, mode=None):
         """
         values in uniform dict must be non-primitives.
         if you have a primative (int, float), store it in glm.vect(1)
@@ -53,7 +53,7 @@ class ShadeableObject:
         if uniforms is not None:
           for key, val in uniforms.items():
               self.shader[key].write(val)
-        self.vao.render()
+        self.vao.render(mode=mode or moderngl.TRIANGLES)
 
     def __make_vao(self, ctx, shader, context):
         return ctx.vertex_array(shader, context)

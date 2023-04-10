@@ -17,7 +17,7 @@ class Ghost:
         self.ctx = ctx
 
         self.shader = get_shader_program(ctx, "uniform_color")
-        self.shader["v_color"] = glm.vec3(1.0, 0.0, 0.0)
+        self.shader["v_color"] = glm.vec4(1.0, 0.0, 0.0, 1.0)
 
         vertex_data = np.array(face_vertices, dtype="f4")
         self.vbo = self.ctx.buffer(vertex_data)
