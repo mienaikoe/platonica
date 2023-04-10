@@ -104,13 +104,14 @@ class FaceCoordinateSystem:
         return local_vector
 
 
+
 class Face(Renderable):
     def __init__(
         self,
         face_vertices: tuple[Vertex, Vertex, Vertex],
         puzzle_face: PuzzleFace,
         ctx: moderngl.Context,
-        texture_location: int,
+        terrain_shader: moderngl.Program,
     ):
         self.face_vertices = face_vertices
 
@@ -125,12 +126,11 @@ class Face(Renderable):
 
         self.matrix = glm.mat4()
 
+        self.is_level_won = False
+
         (terrain_vertices, terrain_uvs) = self.__make_terrain_vertices()
-        self.terrain_shader = get_shader_program(ctx, "image")
-        self.terrain_shader["u_texture_0"] = texture_location
-        self.terrain_buffer = self.__make_vbo_with_uv(
-            ctx, terrain_vertices, terrain_uvs
-        )
+        self.terrain_shader = terrain_shader
+        self.terrain_buffer = self.__make_vbo_with_uv(ctx, terrain_vertices, terrain_uvs)
         self.terrain_vertex_array = self.__make_vao(
             ctx,
             self.terrain_shader,
@@ -193,7 +193,6 @@ class Face(Renderable):
         for polygon in polygons:
             if polygon.is_active:
                 continue
-            # print(polygon.key)
             for node in polygon.nodes:
                 polygon_vertices.append(
                     self.coordinate_system.uv_coordinates_to_face_coordinates(
@@ -313,6 +312,9 @@ class Face(Renderable):
         self.terrain_shader["m_mvp"].write(m_mvp)
         self.terrain_vertex_array.render()
 
+        if self.is_level_won:
+            return
+
         if self.has_carvings:
             self.carve_shader["v_color"].write(self.line_color)
             self.carve_shader["m_mvp"].write(m_mvp)
@@ -343,12 +345,9 @@ class Face(Renderable):
     def scramble(self):
         num_rotations = random.randint(0, len(self.coordinate_system.segment_vectors))
         self.rotate(num_rotations)
-
-    def destroy(self):
-        self.terrain_buffer.release()
-        self.terrain_shader.release()
-        self.terrain_vertex_array.release()
-
+    
+    def explode(self):
+        self.is_level_won = True
         if self.has_carvings:
             self.carve_buffer.release()
             self.carve_shader.release()
@@ -360,6 +359,10 @@ class Face(Renderable):
         self.underside_buffer.release()
         self.underside_shader.release()
         self.underside_vertex_array.release()
+
+    def destroy(self):
+        self.terrain_buffer.release()
+        self.terrain_vertex_array.release()
 
     def projected_vertices(self, matrix) -> list[glm.vec4]:
         # This returns a vec4 in clip space

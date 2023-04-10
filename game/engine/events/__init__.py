@@ -5,6 +5,8 @@ FACE_ROTATING = pygame.USEREVENT + 2
 FACE_ROTATED = pygame.USEREVENT + 3
 
 LEVEL_WON = pygame.USEREVENT + 4
+DONE_RESONATE = pygame.USEREVENT + 5
+NEXT_LEVEL = pygame.USEREVENT + 6
 
 def emit_event(event_type: int, payload: any):
     evt = pygame.event.Event(event_type, payload)
