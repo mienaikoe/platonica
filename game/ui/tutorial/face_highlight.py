@@ -18,7 +18,7 @@ class FaceHighlight(Renderable):
       {
         "in_position": "3f",
       },
-      np.array(face.face_vertices) * 1.01
+      np.array(face.face_vertices) * 1.02
     )
     self.brightness_animator = Animator(
       AnimationLerper(AnimationLerpFunction.linear, 1000),

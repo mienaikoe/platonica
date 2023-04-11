@@ -35,7 +35,7 @@ COS30 = np.cos(RAD30)
 TAN30 = np.tan(RAD30)
 ACOS133 = np.arccos(1 / (3 * np.sqrt(3)))
 
-CARVE_DEPTH = 0.05
+CARVE_DEPTH = 0.03
 FACE_NORMAL_DISTANCE = np.sqrt(1 / 3)
 
 ROTATION_DURATION = 500  # ms
