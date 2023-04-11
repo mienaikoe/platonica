@@ -13,7 +13,7 @@ from engine.camera import Camera
 from ui.progress import Progress
 
 LEVELS = [
-        {
+    {
         "shape": Shape.tetrahedron,
         "puzzle": "4_alien",
         "texture": "david-jorre-unsplash_lighter.png",
@@ -46,7 +46,6 @@ class GameplayScene(Renderable):
         self.camera = Camera(self.ctx)
 
     def init(self):
-        print("init")
         self.levels = []
         for level in LEVELS:
             level_poly = Polyhedron(

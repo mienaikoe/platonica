@@ -28,7 +28,7 @@ class Polyhedron(Renderable):
         self,
         ctx: moderngl.Context,
         camera: Camera,
-        vertices: list[tuple[Vertex, Vertex, Vertex]],
+        vertices: list[list[Vertex]],
         puzzle: PuzzleGraph,
         texture_file_name: str,
         **kwargs,

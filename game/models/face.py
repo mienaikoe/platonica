@@ -49,13 +49,18 @@ class FaceCoordinateSystem:
         self,
         face_generator_definition: FaceGeneratorDefinition,
         vertices: list[Vertex],
+        uv_width: float,
     ):
         self.face_generator_definition = face_generator_definition
 
+        uv_unit = uv_width * np.linalg.norm(np.subtract(vertices[1], vertices[0]))
+
         self.vertex_vectors = [np.array(vertex) for vertex in vertices]
         self.origin_vector = vertices[0]
-        self.u_vector = np.subtract(vertices[1], vertices[0])
-        segment_vector_mag = np.linalg.norm(self.u_vector)
+        self.u_vector = normalize_vector(
+            np.subtract(vertices[1], vertices[0]),
+            uv_unit
+        )
 
         middle_vector = np.array([0, 0, 0])
         self.segment_vectors = []
@@ -64,18 +69,18 @@ class FaceCoordinateSystem:
             next_vertex_ix = ix + 1 if ix < len(vertices) - 1 else 0
             next_vertex = vertices[next_vertex_ix]
             self.segment_vectors.append(
-                normalize_vector(np.subtract(next_vertex, vertex), segment_vector_mag),
+                normalize_vector(np.subtract(next_vertex, vertex), uv_unit),
             )
             self.clip_plane_normals.append(np.cross(vertex, next_vertex))
             middle_vector = np.add(middle_vector, np.array(vertex) / len(vertices))
 
         self.normal_vector = normalize_vector(
             np.cross(self.segment_vectors[0], self.segment_vectors[1]),
-            segment_vector_mag,
+            uv_unit,
         )
 
         self.v_vector = normalize_vector(
-            np.cross(self.normal_vector, self.u_vector), segment_vector_mag
+            np.cross(self.normal_vector, self.u_vector), uv_unit
         )
 
         self.rotation_angle = 360 / face_generator_definition.num_segments
@@ -118,7 +123,7 @@ class Face(Renderable):
 
         self.generator_definition = puzzle_face.generator_definition
         self.coordinate_system = FaceCoordinateSystem(
-            puzzle_face.generator_definition, face_vertices
+            puzzle_face.generator_definition, face_vertices, puzzle_face.generator_definition.segment_length
         )
         self.puzzle_face = puzzle_face
         self.depth = puzzle_face.depth
@@ -303,6 +308,7 @@ class Face(Renderable):
         self.puzzle_face.rotate(
             (rotation_angle % 360) / self.coordinate_system.rotation_angle
         )
+        print(self.puzzle_face.face_idx, self.puzzle_face.rotations)
         emit_event(FACE_ROTATED, {})
 
     def __animate_rotate(self, rotation_angle: float):

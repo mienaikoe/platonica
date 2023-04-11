@@ -277,6 +277,8 @@ const drawDodecahedron = (svg, depth) => {
     );
     segmentVertices[segmentGroup[5]] = drawPentagon(centerPentagon, depth);
   });
+
+  return segmentVertices;
 };
 
 const drawShape = {

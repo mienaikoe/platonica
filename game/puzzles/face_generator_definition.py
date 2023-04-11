@@ -7,7 +7,7 @@ RING_UNIT_Y = -1
 RING_UNIT_X_SQUARE = RING_UNIT_Y
 RING_UNIT_X_EQUILATERAL = 1.5 * RING_UNIT_Y / np.cos(np.radians(30))
 RING_UNIT_X_PENTAGONAL = 1.0 * RING_UNIT_Y / np.tan(np.radians(54))
-
+COS72 = np.cos(np.deg2rad(72))
 class FaceGeneratorDefinition:
   @staticmethod
   def from_shape(shape: Shape):
@@ -18,12 +18,14 @@ class FaceGeneratorDefinition:
     num_segments: int,
     vertices_per_segment_per_ring: int,
     ring_vector: tuple[float, float],
-    segment_rotation: int
+    segment_rotation: int,
+    segment_length: float,
   ):
     self.num_segments = num_segments
     self.vertices_per_segment_per_ring = vertices_per_segment_per_ring
     self.ring_vector = np.array(ring_vector, dtype='f4')
     self.segment_rotation = np.radians(segment_rotation)
+    self.segment_length = segment_length
 
   def segment_for_vertex(self, ring_idx: int, count_idx: int):
     vertices_per_segment = self.vertices_per_segment_per_ring * ring_idx
@@ -80,19 +82,22 @@ face_systems = {
     num_segments=3,
     vertices_per_segment_per_ring=3,
     ring_vector=[RING_UNIT_X_EQUILATERAL, RING_UNIT_Y],
-    segment_rotation=120
+    segment_rotation=120,
+    segment_length=1
   ),
   FaceShape.square: FaceGeneratorDefinition(
     num_segments=4,
     vertices_per_segment_per_ring=2,
     ring_vector=[RING_UNIT_X_SQUARE, RING_UNIT_Y],
-    segment_rotation=90
+    segment_rotation=90,
+    segment_length=1
   ),
   FaceShape.pentagon: FaceGeneratorDefinition(
     num_segments=5,
     vertices_per_segment_per_ring=1,
     ring_vector=[RING_UNIT_X_PENTAGONAL, RING_UNIT_Y],
-    segment_rotation=72
+    segment_rotation=72,
+    segment_length=(1 + (2 * COS72))
   ),
 }
 
