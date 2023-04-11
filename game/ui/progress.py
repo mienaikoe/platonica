@@ -23,7 +23,8 @@ class Progress(Plane):
         ]
 
     def complete_level(self, index):
-        self.dots[index].mark_done()
+        if index < len(self.dots):
+            self.dots[index].mark_done()
 
     def render(self, delta_time: int):
         for dot in self.dots:
