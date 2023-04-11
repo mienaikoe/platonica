@@ -44,11 +44,14 @@ class Main:
         exit()
 
     def handle_events(self) -> None:
-        if pygame.event.get(pygame.QUIT):
-            self.quit()
-        if pygame.event.get(SCENE_FINISH):
-            self.next_scene()
-        self.scene.handle_events(self.delta_time)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.quit()
+            elif event.type == SCENE_FINISH:
+                print("Scene Finish")
+                self.next_scene()
+            else:
+                self.scene.handle_event(event, self.delta_time)
 
     def render(self) -> None:
         self.scene.render(self.delta_time)

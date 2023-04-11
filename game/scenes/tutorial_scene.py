@@ -38,23 +38,23 @@ class TutorialScene(Renderable):
         self.init_rotation_step()
         self.step = 0
 
-    def handle_events(self, delta_time: int):
-        for event in pygame.event.get():
-          self.subject.handle_event(event, delta_time)
-          if event.type == ARCBALL_MOVE:
-            if self.step < 1:
-              self.init_face_step()
-              self.step = 1
-          if event.type == FACE_ACTIVATED:
-            if self.step < 2:
-              self.init_close_step()
-              self.step = 2
-          elif event.type == DONE_RESONATE:
-            if self.step < 3:
-              self.finish()
-              self.step = 4
-          elif event.type == LEVEL_WON:
-            emit_event(SCENE_FINISH, {})
+    def handle_event(self, event: pygame.event.Event, delta_time: int):
+        self.subject.handle_event(event, delta_time)
+        if event.type == ARCBALL_MOVE:
+          if self.step < 1:
+            self.init_face_step()
+            self.step = 1
+        if event.type == FACE_ACTIVATED:
+          if self.step < 2:
+            self.init_close_step()
+            self.step = 2
+        elif event.type == DONE_RESONATE:
+          if self.step < 3:
+            self.finish()
+            self.step = 4
+        elif event.type == LEVEL_WON:
+          print("level won")
+          emit_event(SCENE_FINISH, {})
 
     def _destroy_tutorial_obj(self):
         if self.tutorial_obj is not None:

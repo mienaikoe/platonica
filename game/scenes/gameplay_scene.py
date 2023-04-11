@@ -15,7 +15,7 @@ from ui.progress import Progress
 LEVELS = [
         {
         "shape": Shape.tetrahedron,
-        "puzzle": "4_two-diamonds",
+        "puzzle": "4_alien",
         "texture": "david-jorre-unsplash_lighter.png",
     },
     {
@@ -46,6 +46,7 @@ class GameplayScene(Renderable):
         self.camera = Camera(self.ctx)
 
     def init(self):
+        print("init")
         self.levels = []
         for level in LEVELS:
             level_poly = Polyhedron(
@@ -71,12 +72,12 @@ class GameplayScene(Renderable):
         else:
             print("GAME WOM")
 
-    def handle_events(self, delta_time: int):
-        if pygame.event.get(NEXT_LEVEL):
+    def handle_event(self, event: pygame.event.Event, delta_time: int):
+        if event.type == NEXT_LEVEL:
             print("level own detected from scene")
             self.advance_level()
         if self.current_level().is_alive:
-            self.current_level().handle_events(delta_time)
+            self.current_level().handle_event(event, delta_time)
 
     def render(self, delta_time: int):
         self.ctx.clear(color=Colors.WHITE)
