@@ -4,7 +4,7 @@ import glm
 from constants.colors import Colors
 from engine.shadeable_object import ShadeableObject
 
-EMPTY_COLOR = Colors.GRAY
+EMPTY_COLOR = Colors.LIGHT_GRAY
 FILL_COLOR = Colors.LIME
 
 vertices = [

@@ -18,9 +18,7 @@ class RotationArrow(Renderable):
       (1, 1, 1, 1, 0)
     ]
 
-    texture = get_texture(self.ctx, 'rotation_arrow.png')
-    texture_location = 1
-    texture.use(location=texture_location)
+    (texture, texture_location) = get_texture(self.ctx, 'rotation_arrow.png')
 
     self.arrow = ShadeableObject(
       self.ctx,

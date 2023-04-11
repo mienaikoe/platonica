@@ -39,9 +39,7 @@ class Polyhedron(Renderable):
 
         self.time = 0.0
 
-        texture = get_texture(ctx, texture_file_name)
-        texture_location = 0
-        texture.use(location=texture_location)
+        (texture, texture_location) = get_texture(ctx, texture_file_name)
 
         self.terrain_shader = get_shader_program(ctx, "exploding_image")
         self.terrain_shader["u_texture_0"] = texture_location
