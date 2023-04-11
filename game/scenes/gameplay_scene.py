@@ -17,7 +17,7 @@ LEVEL_FILES = ["4_4", "4_5a", "4_6a"]
 LEVELS = [
     {
         "shape": Shape.octahedron,
-        "puzzle": "platonica-puzzle-1681179620876",
+        "puzzle": "8_Xs_and_Os",
         "texture": "david-jorre-unsplash_lighter.png",
     },
     {
