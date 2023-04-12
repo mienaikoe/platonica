@@ -75,7 +75,6 @@ class Polyhedron(Renderable):
         self.m_model = glm.mat4()
 
         self.arcball = ArcBall(self.__update_model_matrix, emit_events=kwargs.get("emit_arcball_events", False))
-        self.is_dragging = False
 
         self.is_face_rotating = False
         self.is_alive = True

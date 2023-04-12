@@ -29,12 +29,12 @@ class AnimationLerper:
         self._interpolator = self._interpolate_ease_in_out
 
   def _interpolate_ease_in(self, time_elapsed: float):
-    return math.pow(time_elapsed / self.duration_ms, 5)
+    return math.pow(time_elapsed / self.duration_ms, 3)
 
 
   def _interpolate_ease_out(self, time_elapsed: float):
     time_percent = time_elapsed / self.duration_ms
-    return 1 - math.pow(1-time_percent, 5)
+    return 1 - math.pow(1-time_percent, 3)
 
   def _interpolate_ease_in_out(self, time_elapsed: float):
     time_percent = time_elapsed / self.duration_ms

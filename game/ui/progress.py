@@ -6,7 +6,7 @@ from engine.shader import get_shader_program
 
 class Progress(Plane):
     def __init__(self, ctx, camera_matrix):
-        position = glm.vec2(1.7, -1.7)
+        position = glm.vec3(1.6, -1.15, -2.1)
         super().__init__(ctx, camera_matrix, position)
 
         shader = get_shader_program(ctx, "uniform_color")
