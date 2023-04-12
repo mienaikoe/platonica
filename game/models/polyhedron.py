@@ -2,6 +2,7 @@ import moderngl
 import glm
 import pygame
 import math
+import numpy as np
 from constants.colors import BlendModes, Colors
 
 from engine.camera import Camera
@@ -23,11 +24,14 @@ CLICK_RADIUS = 3  # pixels
 
 EXPLOSION_RUNTIME = 4000 # in ms
 RESONATE_RUNTIME = 1000 # in ms
+INTRODUCTION_RUNTIME = 3000 # ms
 
 
 DEFAULT_PATH_STYLE = (Colors.GRAY, BlendModes.Opaque)
 LINE_LUMINOSITY_INACTIVE = 0.5
 LINE_LUMINOSITY_ACTIVE = 1.0
+INTRODUCTION_ROTATION = -np.deg2rad(360) * 2
+INTRODUCTION_Z = 30
 
 
 class Polyhedron(Renderable):
@@ -92,6 +96,17 @@ class Polyhedron(Renderable):
             on_stop=self.__animate_resonance,
         )
 
+        self.introduction_animator = Animator(
+            lerper=AnimationLerper(
+                AnimationLerpFunction.ease_out,
+                INTRODUCTION_RUNTIME,
+            ),
+            start_value=1.0,
+        )
+
+    def introduce(self):
+        self.introduction_animator.start(0.0)
+
     def __update_model_matrix(self, new_transform):
         for x in range(4):
             for y in range(4):
@@ -148,7 +163,7 @@ class Polyhedron(Renderable):
         if event.type == pygame.MOUSEBUTTONDOWN:
             self.mouse_down_position = pygame.mouse.get_pos()
         elif event.type == pygame.MOUSEBUTTONUP:
-            if self.mouse_down_position:
+            if self.mouse_down_position and not self.introduction_animator.is_animating:
                 mouse_pos = pygame.mouse.get_pos()
                 no_movement = (
                     math.sqrt(
@@ -156,9 +171,10 @@ class Polyhedron(Renderable):
                         + math.pow(mouse_pos[1] - self.mouse_down_position[1], 2)
                     ) <= CLICK_RADIUS
                 )
-                self.mouse_down_position = None
+
                 if no_movement:
                     self.handle_click(pygame.mouse.get_pos())
+            self.mouse_down_position = None
         elif event.type == FACE_ACTIVATED:
             face_index = event.__dict__["face_index"]
             self.is_face_rotating = True
@@ -179,11 +195,20 @@ class Polyhedron(Renderable):
         elif event.type == LEVEL_WON:
             # let game scene know to go to next level
             emit_event(NEXT_LEVEL, {})
-
-        self.arcball.handle_event(event)
+        if not self.introduction_animator.is_animating:
+            self.arcball.handle_event(event)
 
 
     def render(self, delta_time: int):
+        if self.introduction_animator.is_animating:
+            introduction_progress = self.introduction_animator.frame(delta_time)
+            self.m_model = glm.translate(
+                glm.vec3(0.0, 0.0,INTRODUCTION_Z * introduction_progress)
+            ) * glm.rotate(
+                INTRODUCTION_ROTATION * introduction_progress,
+                (0.0, 1.0, 0.0)
+            )
+
         self.terrain_shader['m_model'].write(self.m_model)
         self.carve_shader['v_color'].write(self.path_color)
         if self.is_puzzle_solved:

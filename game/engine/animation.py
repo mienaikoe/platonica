@@ -60,8 +60,7 @@ class Animator:
     self,
     lerper: AnimationLerper,
     start_value: float,
-    on_frame=None, # callable
-    on_stop=None # callable
+    **kwargs
   ):
     self.is_animating = False
     self.current_value = start_value
@@ -69,8 +68,8 @@ class Animator:
     self.time_elapsed = 0
     self.lerper = lerper
     self.difference = 0
-    self.on_frame = on_frame
-    self.on_stop = on_stop
+    self.on_frame = kwargs.get("on_frame", None)
+    self.on_stop = kwargs.get("on_stop", None)
 
   def start(self, target_value: float):
     self.is_animating = True

@@ -5,7 +5,7 @@ from engine.renderable import Renderable
 import numpy as np
 
 
-class Plane(Renderable):
+class ColorPlane(Renderable):
     def __init__(
         self,
         ctx: moderngl.Context,

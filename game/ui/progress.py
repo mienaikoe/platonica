@@ -1,10 +1,10 @@
 import glm
-from ui.plane import Plane
+from ui.color_plane import ColorPlane
 from ui.progress_dot import ProgressDot
 from engine.shader import get_shader_program
 
 
-class Progress(Plane):
+class Progress(ColorPlane):
     def __init__(self, ctx, camera_matrix):
         position = glm.vec3(1.6, -1.15, -2.1)
         super().__init__(ctx, camera_matrix, position)
