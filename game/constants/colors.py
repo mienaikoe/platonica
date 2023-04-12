@@ -15,6 +15,7 @@ class BlendModes:
     Overlay     = 1
     Multipy     = 2
     Reflect     = 3
+    Screen      = 4
 
 def set_opacity(color: glm.vec4, opacity: float):
     return glm.vec4(color.rgb, opacity)

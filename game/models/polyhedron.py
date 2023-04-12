@@ -22,10 +22,10 @@ MOVEMENT_DEG_PER_DELTA = 0.005
 CLICK_RADIUS = 3  # pixels
 
 EXPLOSION_RUNTIME = 4000 # in ms
-RESONATE_RUNTIME = 2000 # in ms
+RESONATE_RUNTIME = 1000 # in ms
 
 
-DEFAULT_PATH_COLOR = Colors.GRAY
+DEFAULT_PATH_STYLE = (Colors.GRAY, BlendModes.Opaque)
 LINE_LUMINOSITY_INACTIVE = 0.5
 LINE_LUMINOSITY_ACTIVE = 1.0
 
@@ -48,7 +48,8 @@ class Polyhedron(Renderable):
 
         (texture, texture_location) = get_texture(ctx, texture_file_name)
 
-        self.base_path_color = kwargs.get("path_color", DEFAULT_PATH_COLOR)
+        (color, blend_mode) = kwargs.get("path_style", DEFAULT_PATH_STYLE)
+        self.base_path_color = color
         self.path_color = self.base_path_color
 
         self.terrain_shader = get_shader_program(ctx, "exploding_image")
@@ -60,8 +61,8 @@ class Polyhedron(Renderable):
         self.terrain_shader["v_ambient"].write(glm.vec3(0.2,0.2,0.2))
 
         self.carve_shader = get_shader_program(ctx, "blend_color_image")
-        self.carve_shader["blend_mode"] = BlendModes.Reflect
-        # TODO pass blend mode as color
+        self.carve_shader["blend_mode"] = blend_mode
+        self.carve_shader["lumin"] = 0.0
 
         self.mouse_down_position = None
         self.faces = []
@@ -126,8 +127,8 @@ class Polyhedron(Renderable):
         )
 
     def __animate_resonance(self, new_value: float):
-        self.path_color = self.base_path_color * new_value
-        self.path_color[3] = 1.0
+        # self.path_color = self.base_path_color * new_value
+        self.carve_shader["lumin"] = new_value
 
     def start_exploding(self):
         self.terrain_shader["explode"] = True

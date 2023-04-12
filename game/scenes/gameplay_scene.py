@@ -1,7 +1,7 @@
 import os
 import moderngl as mgl
 import pygame
-from constants.colors import Colors, set_opacity
+from constants.colors import Colors, set_opacity, BlendModes
 from constants.dimensions import SCREEN_DIMENSIONS
 from constants.shape import Shape, SHAPE_VERTICES
 from puzzles.puzzle_graph import PuzzleGraph
@@ -11,13 +11,13 @@ from models.polyhedron import Polyhedron
 from engine.camera import Camera
 from ui.progress import Progress
 
-SHAPE_COLORS = {
-   Shape.tetrahedron : set_opacity(Colors.DARK_RED, 0.6),
-   Shape.cube : set_opacity(Colors.LIME, 0.8),
+SHAPE_STYLES = {
+   Shape.tetrahedron : (Colors.DARK_RED, BlendModes.Overlay),
+   Shape.cube : (set_opacity(Colors.LIME, 0.8), BlendModes.Reflect),
    # colors below TBD
-   Shape.octahedron: Colors.GRAY,
-   Shape.dodecahedron: Colors.GRAY,
-   Shape.icosahedron: Colors.GRAY,
+   Shape.octahedron: (Colors.GRAY, BlendModes.Opaque),
+   Shape.dodecahedron: (Colors.GRAY, BlendModes.Opaque),
+   Shape.icosahedron: (Colors.GRAY, BlendModes.Opaque),
 }
 
 LEVELS = [
@@ -62,7 +62,7 @@ class GameplayScene(Renderable):
                 SHAPE_VERTICES[level["shape"]],
                 PuzzleGraph.from_file_name(level["puzzle"]),
                 level["texture"],
-                path_color=SHAPE_COLORS[level["shape"]],
+                path_style=SHAPE_STYLES[level["shape"]],
             )
             # TODO we probably want to just have a map of polyhedra and all it's properties
             # vertices, path color, blend mode, etc.
