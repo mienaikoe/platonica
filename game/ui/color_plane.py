@@ -33,6 +33,7 @@ class ColorPlane(Renderable):
         )
 
         self.shader = get_shader_program(self.ctx, "uniform_color")
+        self.shader["m_mvp"].write(self.matrix)
         self.shader["v_color"].write(color)
         vertex_data = np.array(vertex_data, dtype="f4")
         self.vbo = self.ctx.buffer(vertex_data)
@@ -42,7 +43,6 @@ class ColorPlane(Renderable):
         if color is not None:
             self.shader["v_color"].write(color)
 
-        self.shader["m_mvp"].write(self.matrix)
         self.vao.render(mode=moderngl.TRIANGLE_STRIP)
 
     def destroy(self):

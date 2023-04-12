@@ -29,6 +29,10 @@ class Fader():
   def fade_in(self):
     self.animator.start(0.0)
 
+  def set(self, value: float):
+    self.animator.current_value = value
+    self.animator.target_value = value
+
   def render(self, delta_time: int):
     if self.animator.is_animating:
         fade_opacity = self.animator.frame(delta_time)

@@ -15,7 +15,6 @@ from puzzles.puzzle_face import PuzzleFace
 from models.types import Vertex, UV
 from models.helpers import merge_collection_items
 
-
 UNDERSIDE_NUDGE = (
     0.99  # To make sure there's not an overlap that causes rendering weirdness
 )

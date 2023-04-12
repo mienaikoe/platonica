@@ -24,7 +24,7 @@ CLICK_RADIUS = 3  # pixels
 
 EXPLOSION_RUNTIME = 4000 # in ms
 RESONATE_RUNTIME = 1000 # in ms
-INTRODUCTION_RUNTIME = 3000 # ms
+INTRODUCTION_RUNTIME = 4000 # ms
 
 LINE_LUMINOSITY_INACTIVE = 0.5
 LINE_LUMINOSITY_ACTIVE = 1.0
@@ -39,7 +39,6 @@ class Polyhedron(Renderable):
         camera: Camera,
         vertices: list[list[Vertex]],
         puzzle: PuzzleGraph,
-        texture_file_name: str,
         style: ShapeStyle,
         **kwargs,
     ):
@@ -49,7 +48,7 @@ class Polyhedron(Renderable):
 
         self.time = 0.0
 
-        (texture, texture_location) = get_texture(ctx, texture_file_name)
+        (texture, texture_location) = get_texture(ctx, style.texture_name)
 
         self.style = style
 
@@ -62,6 +61,8 @@ class Polyhedron(Renderable):
         self.terrain_shader["v_ambient"].write(glm.vec3(0.2,0.2,0.2))
 
         self.carve_shader = get_shader_program(ctx, "blend_color_image")
+        self.carve_shader["u_texture_0"] = texture_location
+        self.carve_shader["v_color"].write(style.path_color)
         self.carve_shader["blend_mode"] = style.blend_mode
         self.carve_shader["lumin"] = 0.0
 

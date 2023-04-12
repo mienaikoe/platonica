@@ -23,11 +23,13 @@ def set_opacity(color: glm.vec4, opacity: float):
 class ShapeStyle:
   def __init__(
     self,
+    texture_name: str,
     path_color: glm.vec4,
     wall_color: glm.vec4,
     underside_color: glm.vec4,
     blend_mode: BlendModes
   ):
+    self.texture_name = texture_name
     self.path_color = path_color
     self.wall_color = wall_color
     self.underside_color = underside_color

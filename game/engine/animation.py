@@ -66,10 +66,18 @@ class Animator:
     self.current_value = start_value
     self.target_value = start_value
     self.time_elapsed = 0
+    self.delay_time = 0
     self.lerper = lerper
     self.difference = 0
     self.on_frame = kwargs.get("on_frame", None)
     self.on_stop = kwargs.get("on_stop", None)
+
+  def delay(self, target_value: float, delay_time: int):
+    self.is_animating = True
+    self.time_elapsed = 0
+    self.target_value = target_value
+    self.difference = target_value - self.current_value
+    self.delay_time = delay_time
 
   def start(self, target_value: float):
     self.is_animating = True
@@ -79,8 +87,16 @@ class Animator:
 
   def frame(self, delta_time: int):
     if not self.is_animating:
-      return
+      return self.current_value
+
     self.time_elapsed += delta_time
+
+    if self.delay_time > 0:
+      if self.time_elapsed >= self.delay_time:
+        self.delay_time = 0
+        self.time_elapsed = 0
+      return self.current_value
+
     progression = self.lerper.interpolate(self.time_elapsed)
     new_value = self.current_value + (progression * self.difference)
     if progression >= 1:
