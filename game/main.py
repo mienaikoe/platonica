@@ -1,11 +1,15 @@
 # Example file showing a basic pygame "game loop"
+import os
 import pygame
 import moderngl as mgl
 from constants.dimensions import SCREEN_DIMENSIONS
 from scenes.tutorial_scene import TutorialScene
 from scenes.gameplay_scene import GameplayScene
 from scenes.test_scene import TestScene
-from engine.events import LEVEL_WON, SCENE_FINISH
+from engine.events import PUZZLE_SOLVED, SCENE_FINISH
+from dotenv import load_dotenv
+
+load_dotenv()
 
 MAX_FPS = 60
 
@@ -29,7 +33,11 @@ class Main:
         )
         self.ctx = mgl.create_context()  # OpenGL
         self.ctx.enable(flags=mgl.DEPTH_TEST | mgl.BLEND)
-        self.scene = GameplayScene(self.ctx)
+        print(os.environ['SKIP_TUTORIAL'])
+        if os.environ['SKIP_TUTORIAL'] == '1':
+            self.scene = GameplayScene(self.ctx)
+        else:
+            self.scene = TutorialScene(self.ctx)
         self.scene.init()
         self.delta_time = 0  # Time since last frame
 

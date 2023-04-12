@@ -10,7 +10,7 @@ from models.polyhedron import Polyhedron
 from puzzles.puzzle_graph import PuzzleGraph
 from engine.renderable import Renderable
 from engine.camera import Camera
-from engine.events import FACE_ACTIVATED, DONE_RESONATE, ARCBALL_MOVE, LEVEL_WON, SCENE_FINISH, emit_event
+from engine.events import FACE_ACTIVATED, DONE_RESONATE, ARCBALL_MOVE, PUZZLE_SOLVED, SCENE_FINISH, emit_event
 
 
 class TutorialScene(Renderable):
@@ -52,7 +52,7 @@ class TutorialScene(Renderable):
           if self.step < 3:
             self.finish()
             self.step = 4
-        elif event.type == LEVEL_WON:
+        elif event.type == PUZZLE_SOLVED:
           print("level won")
           emit_event(SCENE_FINISH, {})
 

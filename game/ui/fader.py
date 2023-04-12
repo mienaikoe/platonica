@@ -39,3 +39,6 @@ class Fader():
       pass
     else:
         self.plane.render(delta_time)
+
+  def destroy(self):
+    self.plane.destroy()

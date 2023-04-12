@@ -15,7 +15,7 @@ from engine.shader import get_shader_program
 from models.types import Vertex
 from models.face import Face
 from engine.arcball import ArcBall
-from engine.events import FACE_ACTIVATED, FACE_ROTATED, LEVEL_WON, NEXT_LEVEL, DONE_RESONATE, emit_face_activated, emit_event
+from engine.events import FACE_ACTIVATED, FACE_ROTATED, PUZZLE_SOLVED, NEXT_PUZZLE, DONE_RESONATE, emit_face_activated, emit_event
 from engine.events.mouse_click import find_face_clicked_winding
 
 
@@ -191,10 +191,10 @@ class Polyhedron(Renderable):
             for face in self.faces:
                 face.explode()
             self.start_exploding()
-            pygame.time.set_timer(LEVEL_WON, EXPLOSION_RUNTIME, loops=1)
-        elif event.type == LEVEL_WON:
+            pygame.time.set_timer(PUZZLE_SOLVED, EXPLOSION_RUNTIME, loops=1)
+        elif event.type == PUZZLE_SOLVED:
             # let game scene know to go to next level
-            emit_event(NEXT_LEVEL, {})
+            emit_event(NEXT_PUZZLE, {})
         if not self.introduction_animator.is_animating:
             self.arcball.handle_event(event)
 
