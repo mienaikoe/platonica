@@ -16,14 +16,14 @@ from ui.progress import Progress
 
 LEVELS = [
     {
-        "shape": Shape.cube,
-        "puzzle": "6_sudoku",
-        "texture": "cube06a.png",
-    },
-    {
         "shape": Shape.tetrahedron,
         "puzzle": "4_alien",
         "texture": "david-jorre-unsplash_lighter.png",
+    },
+    {
+        "shape": Shape.cube,
+        "puzzle": "6_sudoku",
+        "texture": "cube06a.png",
     },
     {
         "shape": Shape.octahedron,

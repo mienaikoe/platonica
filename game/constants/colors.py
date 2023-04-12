@@ -7,4 +7,9 @@ class Colors:
     CHARCOAL    = glm.vec4(0.1, 0.1, 0.1, 1.0)
     GREEN       = glm.vec4(0.0, 1.0, 0.1, 1.0)
     LIME        = glm.vec4(0.25, .67, 0.15, 1.0)
-    RED         = glm.vec4(1.0, 0.3, 0.3, 1.0)
+    RED         = glm.vec4(1.0, 0.2, 0, 1.0)
+    DARK_RED    = glm.vec4(1.0, 0.3, 0.3, 1.0)
+
+class BlendModes:
+    Overlay = 1
+    Multipy = 2

@@ -3,7 +3,7 @@ import glm
 import moderngl
 import random
 
-from constants.colors import Colors
+from constants.colors import Colors, BlendModes
 from engine.vectors import normalize_vector
 from engine.renderable import Renderable
 from engine.camera import Camera
@@ -20,7 +20,7 @@ UNDERSIDE_COLOR = Colors.CHARCOAL
 UNDERSIDE_NUDGE = (
     0.99  # To make sure there's not an overlap that causes rendering weirdness
 )
-BASE_LINE_COLOR = Colors.GRAY
+BASE_LINE_COLOR = Colors.RED
 LINE_LUMINOSITY_INACTIVE = 0.5
 LINE_LUMINOSITY_ACTIVE = 1.0
 DEFAULT_LINE_COLOR = BASE_LINE_COLOR * LINE_LUMINOSITY_INACTIVE
@@ -147,13 +147,16 @@ class Face(Renderable):
             carve_vertices,
             wall_vertices,
             underside_vertices,
+            carve_uvs,
         ] = self.__make_carve_vertices()
         self.has_carvings = len(carve_vertices) > 0
         if self.has_carvings:
-            self.carve_shader = get_shader_program(ctx, "uniform_color")
-            self.carve_buffer = self.__make_vbo(ctx, carve_vertices)
+            self.carve_shader = get_shader_program(ctx, "carve")
+            self.carve_shader["v_color"] = BASE_LINE_COLOR
+            self.carve_shader["blend_mode"] = BlendModes.Overlay
+            self.carve_buffer = self.__make_vbo_with_uv(ctx, carve_vertices, carve_uvs)
             self.carve_vertex_array = self.__make_vao(
-                ctx, self.carve_shader, [(self.carve_buffer, "3f", "in_position")]
+                ctx, self.carve_shader, [(self.carve_buffer, "2f 3f", "in_textcoord_0", "in_position")]
             )
 
             self.wall_shader = get_shader_program(ctx, "uniform_color")
@@ -211,6 +214,7 @@ class Face(Renderable):
     def __make_carve_vertices(self):
         active_polygons = self.puzzle_face.active_polygons
         active_polygon_vertices = []
+        active_polygon_uvs = []
         wall_vertices = []
         underside_inner_vertices = [
             None
@@ -229,6 +233,7 @@ class Face(Renderable):
                     )
                 )
                 active_polygon_vertices.append(bottom_coordinates)
+                active_polygon_uvs.append(node.uv_coordinates)
                 count_idx = node.indices[1]
                 if node.is_edge:
                     if underside_inner_vertices[count_idx] is None:
@@ -289,7 +294,7 @@ class Face(Renderable):
         underside_vertices.append(self.face_vertices[0])
         underside_vertices = np.array(underside_vertices) * UNDERSIDE_NUDGE
 
-        return (active_polygon_vertices, wall_vertices, underside_vertices)
+        return (active_polygon_vertices, wall_vertices, underside_vertices, active_polygon_uvs)
 
     def __make_vao(self, ctx, shader, context):
         return ctx.vertex_array(shader, context)
