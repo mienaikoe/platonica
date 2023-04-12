@@ -15,8 +15,9 @@ void main(){
         vec3(0.0,0.0,0.0),
         vec3(1.0, 1.0, 1.0)
     );
+    vec4 textureColor = texture(u_texture_0, v_uv);
     vec3 fillColor=vec3(
-        texture(u_texture_0, v_uv).rgb * lighting
+        textureColor.rgb * lighting
     );
-    fragColor=vec4(fillColor, opacity);
+    fragColor=vec4(fillColor, opacity * textureColor.a);
 }

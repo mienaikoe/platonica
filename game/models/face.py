@@ -308,7 +308,6 @@ class Face(Renderable):
         self.puzzle_face.rotate(
             (rotation_angle % 360) / self.coordinate_system.rotation_angle
         )
-        print(self.puzzle_face.face_idx, self.puzzle_face.rotations)
         emit_event(FACE_ROTATED, {})
 
     def __animate_rotate(self, rotation_angle: float):
