@@ -17,7 +17,7 @@ def get_texture(ctx: moderngl.Context, texture_filename: str):
 def _get_texture_by_filename(ctx: moderngl.Context, texture_filename: str):
     global _next_texture_location
     path = os.path.join(dir_path, '..','assets','textures',texture_filename)
-    texture_surface = pygame.image.load(path).convert()
+    texture_surface = pygame.image.load(path).convert_alpha()
     texture_surface = pygame.transform.flip(texture_surface, flip_x=False, flip_y=True)
     texture = ctx.texture(
         size=texture_surface.get_size(),
