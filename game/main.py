@@ -33,7 +33,6 @@ class Main:
         )
         self.ctx = mgl.create_context()  # OpenGL
         self.ctx.enable(flags=mgl.DEPTH_TEST | mgl.BLEND)
-        print(os.environ['SKIP_TUTORIAL'])
         if os.environ['SKIP_TUTORIAL'] == '1':
             self.scene = GameplayScene(self.ctx)
         else:

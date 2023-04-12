@@ -15,8 +15,7 @@ from puzzles.puzzle_face import PuzzleFace
 from models.types import Vertex, UV
 from models.helpers import merge_collection_items
 
-WALL_COLOR = Colors.CHARCOAL
-UNDERSIDE_COLOR = Colors.CHARCOAL
+
 UNDERSIDE_NUDGE = (
     0.99  # To make sure there's not an overlap that causes rendering weirdness
 )
@@ -34,6 +33,7 @@ CARVE_DEPTH = 0.03
 FACE_NORMAL_DISTANCE = np.sqrt(1 / 3)
 
 ROTATION_DURATION = 500  # ms
+PULL_DISTANCE = 0.2
 
 # This helps us render the lines above the face instead of inside it
 
@@ -113,6 +113,8 @@ class Face(Renderable):
         ctx: moderngl.Context,
         terrain_shader: moderngl.Program,
         carve_shader: moderngl.Program,
+        wall_shader: moderngl.Program,
+        underside_shader: moderngl.Program,
     ):
         self.face_vertices = face_vertices
 
@@ -125,7 +127,7 @@ class Face(Renderable):
 
         self.matrix = glm.mat4()
 
-        self.is_level_won = False
+        self.is_puzzle_solved = False
 
         (terrain_vertices, terrain_uvs) = self.__make_terrain_vertices()
         self.terrain_shader_ref = terrain_shader
@@ -150,18 +152,16 @@ class Face(Renderable):
                 ctx, self.carve_shader_ref, [(self.carve_buffer, "2f 3f", "in_textcoord_0", "in_position")]
             )
 
-            self.wall_shader = get_shader_program(ctx, "uniform_color")
-            self.wall_shader["v_color"] = WALL_COLOR
+            self.wall_shader_ref = wall_shader
             self.wall_buffer = self.__make_vbo(ctx, wall_vertices)
             self.wall_vertex_array = self.__make_vao(
-                ctx, self.wall_shader, [(self.wall_buffer, "3f", "in_position")]
+                ctx, self.wall_shader_ref, [(self.wall_buffer, "3f", "in_position")]
             )
 
-        self.underside_shader = get_shader_program(ctx, "uniform_color")
-        self.underside_shader["v_color"] = UNDERSIDE_COLOR
+        self.underside_shader_ref = underside_shader
         self.underside_buffer = self.__make_vbo(ctx, underside_vertices)
         self.underside_vertex_array = self.__make_vao(
-            ctx, self.underside_shader, [(self.underside_buffer, "3f", "in_position")]
+            ctx, self.underside_shader_ref, [(self.underside_buffer, "3f", "in_position")]
         )
 
         self.nv = glm.vec3(self.coordinate_system.normal_vector)
@@ -171,7 +171,6 @@ class Face(Renderable):
                 ROTATION_DURATION,
             ),
             start_value=0,
-            on_frame=self.__animate_rotate,
             on_stop=self.__stop_rotation,
         )
 
@@ -286,43 +285,47 @@ class Face(Renderable):
     def __make_vbo_with_uv(self, ctx, vertices, uvs):
         return self.__make_vbo(ctx, merge_collection_items(uvs, vertices))
 
-    def __rotate_by_degrees(self, degrees):
-        self.matrix = glm.rotate(glm.mat4(), glm.radians(degrees), self.nv)
+    def __rotate_by_rotations(self, rotations):
+        partway_through = rotations % 1
+        pull_amount = 0.5 * (partway_through if partway_through < 0.5 else 1.0 - partway_through)
+        pull_matrix = glm.translate(normalize_vector(-self.nv, pull_amount))
 
-    def __stop_rotation(self, rotation_angle):
-        self.__rotate_by_degrees(rotation_angle)
-        self.puzzle_face.rotate(
-            (rotation_angle % 360) / self.coordinate_system.rotation_angle
-        )
+        rotation_angle = self.coordinate_system.rotation_angle * rotations
+        self.matrix = pull_matrix * glm.rotate(glm.mat4(), glm.radians(rotation_angle), self.nv)
+
+    def __stop_rotation(self, rotations):
+        rotation_angle = self.coordinate_system.rotation_angle * rotations
+        self.__rotate_by_rotations(rotations)
+        self.puzzle_face.rotate(rotations % len(self.coordinate_system.segment_vectors))
         emit_event(FACE_ROTATED, {})
 
-    def __animate_rotate(self, rotation_angle: float):
-        self.__rotate_by_degrees(rotation_angle)
-
     def renderFace(self, camera: Camera, model_matrix, delta_time):
+        if self.rotation_animator.is_animating:
+            rotations = self.rotation_animator.frame(delta_time)
+            self.__rotate_by_rotations(rotations)
+
         m_mvp = camera.view_projection_matrix() * model_matrix * self.matrix
         self.terrain_shader_ref["m_mvp"].write(m_mvp)
         self.terrain_shader_ref["v_nv"].write(self.nv)
         self.terrain_vertex_array.render()
 
-        if self.is_level_won:
+        if self.is_puzzle_solved:
             return
 
         if self.has_carvings:
             self.carve_shader_ref["m_mvp"].write(m_mvp)
             self.carve_vertex_array.render()
-            self.wall_shader["m_mvp"].write(m_mvp)
+            self.wall_shader_ref["m_mvp"].write(m_mvp)
             self.wall_vertex_array.render()
 
-        self.underside_shader["m_mvp"].write(m_mvp)
+        self.underside_shader_ref["m_mvp"].write(m_mvp)
         self.underside_vertex_array.render(mode=moderngl.TRIANGLE_FAN)
 
         self.rotation_animator.frame(delta_time)
 
-    def rotate(self, num_rotations=None):
+    def rotate(self, num_rotations=1):
         self.rotation_animator.start(
-            self.rotation_animator.current_value
-            + self.coordinate_system.rotation_angle * (num_rotations or 1)
+            self.rotation_animator.current_value + num_rotations
         )
 
     def scramble(self):
@@ -330,16 +333,14 @@ class Face(Renderable):
         self.rotate(num_rotations)
 
     def explode(self):
-        self.is_level_won = True
+        self.is_puzzle_solved = True
         if self.has_carvings:
             self.carve_buffer.release()
             self.carve_vertex_array.release()
             self.wall_buffer.release()
-            self.wall_shader.release()
             self.wall_vertex_array.release()
 
         self.underside_buffer.release()
-        self.underside_shader.release()
         self.underside_vertex_array.release()
 
     def destroy(self):

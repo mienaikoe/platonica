@@ -3,7 +3,7 @@ import glm
 import pygame
 import math
 import numpy as np
-from constants.colors import BlendModes, Colors
+from constants.colors import BlendModes, Colors, ShapeStyle
 
 from engine.camera import Camera
 from engine.texture import get_texture, texture_maps
@@ -26,8 +26,6 @@ EXPLOSION_RUNTIME = 4000 # in ms
 RESONATE_RUNTIME = 1000 # in ms
 INTRODUCTION_RUNTIME = 3000 # ms
 
-
-DEFAULT_PATH_STYLE = (Colors.GRAY, BlendModes.Opaque)
 LINE_LUMINOSITY_INACTIVE = 0.5
 LINE_LUMINOSITY_ACTIVE = 1.0
 INTRODUCTION_ROTATION = -np.deg2rad(360) * 2
@@ -42,6 +40,7 @@ class Polyhedron(Renderable):
         vertices: list[list[Vertex]],
         puzzle: PuzzleGraph,
         texture_file_name: str,
+        style: ShapeStyle,
         **kwargs,
     ):
         self.puzzle = puzzle
@@ -52,9 +51,7 @@ class Polyhedron(Renderable):
 
         (texture, texture_location) = get_texture(ctx, texture_file_name)
 
-        (color, blend_mode) = kwargs.get("path_style", DEFAULT_PATH_STYLE)
-        self.base_path_color = color
-        self.path_color = self.base_path_color
+        self.style = style
 
         self.terrain_shader = get_shader_program(ctx, "exploding_image")
         self.terrain_shader["u_texture_0"] = texture_location
@@ -65,15 +62,26 @@ class Polyhedron(Renderable):
         self.terrain_shader["v_ambient"].write(glm.vec3(0.2,0.2,0.2))
 
         self.carve_shader = get_shader_program(ctx, "blend_color_image")
-        self.carve_shader["blend_mode"] = blend_mode
+        self.carve_shader["blend_mode"] = style.blend_mode
         self.carve_shader["lumin"] = 0.0
+
+        self.wall_shader = get_shader_program(ctx, "uniform_color")
+        self.wall_shader["v_color"] = style.wall_color
+
+        self.underside_shader = get_shader_program(ctx, "uniform_color")
+        self.underside_shader["v_color"] = style.underside_color
 
         self.mouse_down_position = None
         self.faces = []
         puzzle_faces = puzzle.faces
         for pf in puzzle_faces:
             vs = vertices[pf.face_idx]
-            face = Face(vs, pf, ctx, self.terrain_shader, self.carve_shader)
+            face = Face(vs, pf, ctx,
+                terrain_shader=self.terrain_shader,
+                carve_shader=self.carve_shader,
+                wall_shader=self.wall_shader,
+                underside_shader=self.underside_shader,
+            )
             self.faces.append(face)
 
         self.m_model = glm.mat4()
@@ -210,7 +218,7 @@ class Polyhedron(Renderable):
             )
 
         self.terrain_shader['m_model'].write(self.m_model)
-        self.carve_shader['v_color'].write(self.path_color)
+        self.carve_shader['v_color'].write(self.style.path_color)
         if self.is_puzzle_solved:
             self.render_exploding(delta_time)
         for face in self.faces:
@@ -221,5 +229,7 @@ class Polyhedron(Renderable):
         self.is_alive = False
         self.terrain_shader.release()
         self.carve_shader.release()
+        self.wall_shader.release()
+        self.underside_shader.release()
         for face in self.faces:
             face.destroy()

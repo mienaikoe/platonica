@@ -1,7 +1,7 @@
 import moderngl as mgl
 import pygame
 
-from constants.colors import Colors, set_opacity, BlendModes
+from constants.colors import Colors, set_opacity, BlendModes, ShapeStyle
 from constants.dimensions import SCREEN_DIMENSIONS
 from constants.shape import Shape, SHAPE_VERTICES
 from puzzles.puzzle_graph import PuzzleGraph
@@ -14,12 +14,37 @@ from ui.progress import Progress
 from scenes.gameplay_levels import LEVELS
 
 SHAPE_STYLES = {
-   Shape.tetrahedron : (Colors.DARK_RED, BlendModes.Overlay),
-   Shape.cube : (set_opacity(Colors.LIME, 0.8), BlendModes.Reflect),
-   # colors below TBD
-   Shape.octahedron: (Colors.GRAY, BlendModes.Opaque),
-   Shape.dodecahedron: (Colors.GRAY, BlendModes.Opaque),
-   Shape.icosahedron: (Colors.GRAY, BlendModes.Opaque),
+    Shape.tetrahedron : ShapeStyle(
+        Colors.DARK_RED,
+        Colors.CHARCOAL,
+        Colors.CHARCOAL,
+        BlendModes.Overlay
+    ),
+    Shape.cube : ShapeStyle(
+        set_opacity(Colors.LIME, 0.8),
+        Colors.CHARCOAL,
+        Colors.CHARCOAL,
+        BlendModes.Reflect
+    ),
+    # colors below TBD
+    Shape.octahedron: ShapeStyle(
+        Colors.GRAY,
+        Colors.CHARCOAL,
+        Colors.CHARCOAL,
+        BlendModes.Opaque
+    ),
+    Shape.dodecahedron: ShapeStyle(
+        Colors.GRAY,
+        Colors.CHARCOAL,
+        Colors.CHARCOAL,
+        BlendModes.Opaque
+    ),
+    Shape.icosahedron: ShapeStyle(
+        Colors.GRAY,
+        Colors.CHARCOAL,
+        Colors.CHARCOAL,
+        BlendModes.Opaque
+    ),
 }
 
 class GameplayScene(Renderable):
@@ -53,7 +78,7 @@ class GameplayScene(Renderable):
                 SHAPE_VERTICES[level["shape"]],
                 PuzzleGraph.from_file_name(puzzle),
                 level["texture"],
-                path_style=SHAPE_STYLES[level["shape"]],
+                style=SHAPE_STYLES[level["shape"]],
             )
             # TODO we probably want to just have a map of polyhedra and all it's properties
             # vertices, path color, blend mode, etc.
@@ -92,9 +117,7 @@ class GameplayScene(Renderable):
             print("GAME WOM")
 
     def handle_event(self, event: pygame.event.Event, delta_time: int):
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            print(self.current_puzzle().is_alive)
-        elif event.type == NEXT_PUZZLE:
+        if event.type == NEXT_PUZZLE:
             self._end_puzzle()
 
         if self.current_puzzle().is_alive:

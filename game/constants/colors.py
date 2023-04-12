@@ -19,3 +19,17 @@ class BlendModes:
 
 def set_opacity(color: glm.vec4, opacity: float):
     return glm.vec4(color.rgb, opacity)
+
+class ShapeStyle:
+  def __init__(
+    self,
+    path_color: glm.vec4,
+    wall_color: glm.vec4,
+    underside_color: glm.vec4,
+    blend_mode: BlendModes
+  ):
+    self.path_color = path_color
+    self.wall_color = wall_color
+    self.underside_color = underside_color
+    self.blend_mode = blend_mode
+
