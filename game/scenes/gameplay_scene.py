@@ -12,15 +12,17 @@ from models.polyhedron import Polyhedron
 from engine.camera import Camera
 from ui.progress import Progress
 
+# 1, 4, 6
+
 LEVELS = [
-    {
-        "shape": Shape.tetrahedron,
-        "puzzle": "4_alien",
-        "texture": "david-jorre-unsplash_lighter.png",
-    },
     {
         "shape": Shape.cube,
         "puzzle": "6_sudoku",
+        "texture": "cube06a.png",
+    },
+    {
+        "shape": Shape.tetrahedron,
+        "puzzle": "4_alien",
         "texture": "david-jorre-unsplash_lighter.png",
     },
     {
