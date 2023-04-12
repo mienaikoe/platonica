@@ -49,12 +49,14 @@ class Polyhedron(Renderable):
         self.terrain_shader["v_light"].write(-camera.position)
         self.terrain_shader["v_ambient"].write(glm.vec3(0.2,0.2,0.2))
 
+        path_color = kwargs.get("path_color", None)
+
         self.mouse_down_position = None
         self.faces = []
         puzzle_faces = puzzle.faces
         for pf in puzzle_faces:
             vs = vertices[pf.face_idx]
-            face = Face(vs, pf, ctx, self.terrain_shader)
+            face = Face(vs, pf, ctx, self.terrain_shader, path_color)
             self.faces.append(face)
 
         self.m_model = glm.mat4()

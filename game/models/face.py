@@ -20,7 +20,7 @@ UNDERSIDE_COLOR = Colors.CHARCOAL
 UNDERSIDE_NUDGE = (
     0.99  # To make sure there's not an overlap that causes rendering weirdness
 )
-BASE_LINE_COLOR = Colors.RED
+BASE_LINE_COLOR = Colors.GRAY
 LINE_LUMINOSITY_INACTIVE = 0.5
 LINE_LUMINOSITY_ACTIVE = 1.0
 DEFAULT_LINE_COLOR = BASE_LINE_COLOR * LINE_LUMINOSITY_INACTIVE
@@ -118,6 +118,7 @@ class Face(Renderable):
         puzzle_face: PuzzleFace,
         ctx: moderngl.Context,
         terrain_shader: moderngl.Program,
+        path_color: glm.vec4 = DEFAULT_LINE_COLOR,
     ):
         self.face_vertices = face_vertices
 
@@ -128,7 +129,7 @@ class Face(Renderable):
         self.puzzle_face = puzzle_face
         self.depth = puzzle_face.depth
 
-        self.line_color = DEFAULT_LINE_COLOR
+        self.line_color = path_color
 
         self.matrix = glm.mat4()
 
@@ -151,9 +152,8 @@ class Face(Renderable):
         ] = self.__make_carve_vertices()
         self.has_carvings = len(carve_vertices) > 0
         if self.has_carvings:
-            self.carve_shader = get_shader_program(ctx, "carve")
-            self.carve_shader["v_color"] = BASE_LINE_COLOR
-            self.carve_shader["blend_mode"] = BlendModes.Overlay
+            self.carve_shader = get_shader_program(ctx, "blend_color_image")
+            self.carve_shader["blend_mode"] = BlendModes.Reflect
             self.carve_buffer = self.__make_vbo_with_uv(ctx, carve_vertices, carve_uvs)
             self.carve_vertex_array = self.__make_vao(
                 ctx, self.carve_shader, [(self.carve_buffer, "2f 3f", "in_textcoord_0", "in_position")]
