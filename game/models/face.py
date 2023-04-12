@@ -20,11 +20,6 @@ UNDERSIDE_COLOR = Colors.CHARCOAL
 UNDERSIDE_NUDGE = (
     0.99  # To make sure there's not an overlap that causes rendering weirdness
 )
-BASE_LINE_COLOR = Colors.GRAY
-LINE_LUMINOSITY_INACTIVE = 0.5
-LINE_LUMINOSITY_ACTIVE = 1.0
-DEFAULT_LINE_COLOR = BASE_LINE_COLOR * LINE_LUMINOSITY_INACTIVE
-DEFAULT_LINE_COLOR[3] = 1.0
 
 PUZZLE_PATH_WIDTH = 0.1
 RAD60 = np.radians(60)
@@ -39,7 +34,6 @@ CARVE_DEPTH = 0.03
 FACE_NORMAL_DISTANCE = np.sqrt(1 / 3)
 
 ROTATION_DURATION = 500  # ms
-LUMINATION_DURATION = 1000  # ms
 
 # This helps us render the lines above the face instead of inside it
 
@@ -118,7 +112,7 @@ class Face(Renderable):
         puzzle_face: PuzzleFace,
         ctx: moderngl.Context,
         terrain_shader: moderngl.Program,
-        path_color: glm.vec4 = DEFAULT_LINE_COLOR,
+        carve_shader: moderngl.Program,
     ):
         self.face_vertices = face_vertices
 
@@ -129,18 +123,16 @@ class Face(Renderable):
         self.puzzle_face = puzzle_face
         self.depth = puzzle_face.depth
 
-        self.line_color = path_color
-
         self.matrix = glm.mat4()
 
         self.is_level_won = False
 
         (terrain_vertices, terrain_uvs) = self.__make_terrain_vertices()
-        self.terrain_shader = terrain_shader
+        self.terrain_shader_ref = terrain_shader
         self.terrain_buffer = self.__make_vbo_with_uv(ctx, terrain_vertices, terrain_uvs)
         self.terrain_vertex_array = self.__make_vao(
             ctx,
-            self.terrain_shader,
+            self.terrain_shader_ref,
             [(self.terrain_buffer, "2f 3f", "in_textcoord_0", "in_position")],
         )
 
@@ -152,11 +144,10 @@ class Face(Renderable):
         ] = self.__make_carve_vertices()
         self.has_carvings = len(carve_vertices) > 0
         if self.has_carvings:
-            self.carve_shader = get_shader_program(ctx, "blend_color_image")
-            self.carve_shader["blend_mode"] = BlendModes.Reflect
+            self.carve_shader_ref = carve_shader
             self.carve_buffer = self.__make_vbo_with_uv(ctx, carve_vertices, carve_uvs)
             self.carve_vertex_array = self.__make_vao(
-                ctx, self.carve_shader, [(self.carve_buffer, "2f 3f", "in_textcoord_0", "in_position")]
+                ctx, self.carve_shader_ref, [(self.carve_buffer, "2f 3f", "in_textcoord_0", "in_position")]
             )
 
             self.wall_shader = get_shader_program(ctx, "uniform_color")
@@ -182,16 +173,6 @@ class Face(Renderable):
             start_value=0,
             on_frame=self.__animate_rotate,
             on_stop=self.__stop_rotation,
-        )
-
-        self.resonance_animator = Animator(
-            lerper=AnimationLerper(
-                AnimationLerpFunction.linear,
-                LUMINATION_DURATION,
-            ),
-            start_value=LINE_LUMINOSITY_INACTIVE,
-            on_frame=self.__animate_resonance,
-            on_stop=self.__animate_resonance,
         )
 
     def __make_terrain_vertices(self):
@@ -320,16 +301,15 @@ class Face(Renderable):
 
     def renderFace(self, camera: Camera, model_matrix, delta_time):
         m_mvp = camera.view_projection_matrix() * model_matrix * self.matrix
-        self.terrain_shader["m_mvp"].write(m_mvp)
-        self.terrain_shader["v_nv"].write(self.nv)
+        self.terrain_shader_ref["m_mvp"].write(m_mvp)
+        self.terrain_shader_ref["v_nv"].write(self.nv)
         self.terrain_vertex_array.render()
 
         if self.is_level_won:
             return
 
         if self.has_carvings:
-            self.carve_shader["v_color"].write(self.line_color)
-            self.carve_shader["m_mvp"].write(m_mvp)
+            self.carve_shader_ref["m_mvp"].write(m_mvp)
             self.carve_vertex_array.render()
             self.wall_shader["m_mvp"].write(m_mvp)
             self.wall_vertex_array.render()
@@ -338,22 +318,12 @@ class Face(Renderable):
         self.underside_vertex_array.render(mode=moderngl.TRIANGLE_FAN)
 
         self.rotation_animator.frame(delta_time)
-        self.resonance_animator.frame(delta_time)
 
     def rotate(self, num_rotations=None):
         self.rotation_animator.start(
             self.rotation_animator.current_value
             + self.coordinate_system.rotation_angle * (num_rotations or 1)
         )
-
-    def set_is_resonant(self, is_resonant: bool):
-        self.resonance_animator.start(
-            LINE_LUMINOSITY_ACTIVE if is_resonant else LINE_LUMINOSITY_INACTIVE
-        )
-
-    def __animate_resonance(self, new_value: float):
-        self.line_color = BASE_LINE_COLOR * new_value
-        self.line_color[3] = 1.0
 
     def scramble(self):
         num_rotations = random.randint(0, len(self.coordinate_system.segment_vectors))
@@ -363,7 +333,6 @@ class Face(Renderable):
         self.is_level_won = True
         if self.has_carvings:
             self.carve_buffer.release()
-            self.carve_shader.release()
             self.carve_vertex_array.release()
             self.wall_buffer.release()
             self.wall_shader.release()

@@ -2,9 +2,11 @@ import moderngl
 import glm
 import pygame
 import math
+from constants.colors import BlendModes, Colors
 
 from engine.camera import Camera
 from engine.texture import get_texture, texture_maps
+from engine.animation import AnimationLerper, AnimationLerpFunction, Animator
 from engine.audio.sound_effect import SoundEffect
 from puzzles.puzzle_graph import PuzzleGraph
 from engine.renderable import Renderable
@@ -20,7 +22,12 @@ MOVEMENT_DEG_PER_DELTA = 0.005
 CLICK_RADIUS = 3  # pixels
 
 EXPLOSION_RUNTIME = 4000 # in ms
-RESONATE_RUNTIME = 1000 # in ms
+RESONATE_RUNTIME = 2000 # in ms
+
+
+DEFAULT_PATH_COLOR = Colors.GRAY
+LINE_LUMINOSITY_INACTIVE = 0.5
+LINE_LUMINOSITY_ACTIVE = 1.0
 
 
 class Polyhedron(Renderable):
@@ -41,6 +48,9 @@ class Polyhedron(Renderable):
 
         (texture, texture_location) = get_texture(ctx, texture_file_name)
 
+        self.base_path_color = kwargs.get("path_color", DEFAULT_PATH_COLOR)
+        self.path_color = self.base_path_color
+
         self.terrain_shader = get_shader_program(ctx, "exploding_image")
         self.terrain_shader["u_texture_0"] = texture_location
         self.terrain_shader["time"] = self.time
@@ -49,14 +59,16 @@ class Polyhedron(Renderable):
         self.terrain_shader["v_light"].write(-camera.position)
         self.terrain_shader["v_ambient"].write(glm.vec3(0.2,0.2,0.2))
 
-        path_color = kwargs.get("path_color", None)
+        self.carve_shader = get_shader_program(ctx, "blend_color_image")
+        self.carve_shader["blend_mode"] = BlendModes.Reflect
+        # TODO pass blend mode as color
 
         self.mouse_down_position = None
         self.faces = []
         puzzle_faces = puzzle.faces
         for pf in puzzle_faces:
             vs = vertices[pf.face_idx]
-            face = Face(vs, pf, ctx, self.terrain_shader, path_color)
+            face = Face(vs, pf, ctx, self.terrain_shader, self.carve_shader)
             self.faces.append(face)
 
         self.m_model = glm.mat4()
@@ -69,6 +81,16 @@ class Polyhedron(Renderable):
         self.is_puzzle_solved = False
 
         self.sounds = {"rumble": SoundEffect("rumble")}
+
+        self.resonance_animator = Animator(
+            lerper=AnimationLerper(
+                AnimationLerpFunction.linear,
+                RESONATE_RUNTIME,
+            ),
+            start_value=LINE_LUMINOSITY_INACTIVE,
+            on_frame=self.__animate_resonance,
+            on_stop=self.__animate_resonance,
+        )
 
     def __update_model_matrix(self, new_transform):
         for x in range(4):
@@ -97,6 +119,15 @@ class Polyhedron(Renderable):
             emit_face_activated(clicked_face_idx)
             return True
         return False
+
+    def set_is_resonant(self, is_resonant: bool):
+        self.resonance_animator.start(
+            LINE_LUMINOSITY_ACTIVE if is_resonant else LINE_LUMINOSITY_INACTIVE
+        )
+
+    def __animate_resonance(self, new_value: float):
+        self.path_color = self.base_path_color * new_value
+        self.path_color[3] = 1.0
 
     def start_exploding(self):
         self.terrain_shader["explode"] = True
@@ -138,8 +169,7 @@ class Polyhedron(Renderable):
             is_resonant = self.puzzle.is_resonant()
             if self.is_puzzle_solved != is_resonant:
                 self.is_puzzle_solved = is_resonant
-                for face in self.faces:
-                    face.set_is_resonant(is_resonant)
+                self.set_is_resonant(is_resonant)
                 pygame.time.set_timer(DONE_RESONATE, RESONATE_RUNTIME, loops=1)
         elif event.type == DONE_RESONATE:
             for face in self.faces:
@@ -155,13 +185,16 @@ class Polyhedron(Renderable):
 
     def render(self, delta_time: int):
         self.terrain_shader['m_model'].write(self.m_model)
+        self.carve_shader['v_color'].write(self.path_color)
         if self.is_puzzle_solved:
             self.render_exploding(delta_time)
         for face in self.faces:
             face.renderFace(self.camera, self.m_model, delta_time)
+        self.resonance_animator.frame(delta_time)
 
     def destroy(self):
         self.is_alive = False
         self.terrain_shader.release()
+        self.carve_shader.release()
         for face in self.faces:
             face.destroy()
