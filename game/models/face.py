@@ -285,15 +285,18 @@ class Face(Renderable):
         return self.__make_vbo(ctx, merge_collection_items(uvs, vertices))
 
     def __rotate_by_rotations(self, rotations):
-        partway_through = rotations % 1
-        pull_amount = 0.5 * (partway_through if partway_through < 0.5 else 1.0 - partway_through)
-        pull_matrix = glm.translate(normalize_vector(-self.nv, pull_amount))
-
         rotation_angle = self.coordinate_system.rotation_angle * rotations
-        self.matrix = pull_matrix * glm.rotate(glm.mat4(), glm.radians(rotation_angle), self.nv)
+        rotation_matrix = glm.rotate(glm.mat4(), glm.radians(rotation_angle), self.nv)
+
+        partway_through = rotations % 1
+        if partway_through == 0.0 or partway_through == 1.0:
+            self.matrix = rotation_matrix
+        else:
+            pull_amount = 0.5 * (partway_through if partway_through < 0.5 else 1.0 - partway_through)
+            pull_matrix = glm.translate(normalize_vector(-self.nv, pull_amount))
+            self.matrix = pull_matrix * rotation_matrix
 
     def __stop_rotation(self, rotations):
-        rotation_angle = self.coordinate_system.rotation_angle * rotations
         self.__rotate_by_rotations(rotations)
         self.puzzle_face.rotate(rotations % len(self.coordinate_system.segment_vectors))
         emit_event(FACE_ROTATED, {})
