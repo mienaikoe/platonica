@@ -9,7 +9,7 @@ LEVELS = [
     ],
     "style": ShapeStyle(
         "david-jorre-unsplash_lighter.png",
-        Colors.DARK_RED,
+        Colors.RED,
         Colors.CHARCOAL,
         Colors.CHARCOAL,
         BlendModes.Overlay
@@ -21,7 +21,7 @@ LEVELS = [
     ],
     "style": ShapeStyle(
       "cube06a.png",
-      set_opacity(Colors.LIME, 0.8),
+      Colors.APPLE_GREEN,
       Colors.CHARCOAL,
       Colors.CHARCOAL,
       BlendModes.Reflect
