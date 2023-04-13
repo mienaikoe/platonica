@@ -1,3 +1,4 @@
+import pygame
 import glm
 from constants.dimensions import SCREEN_DIMENSIONS
 from models.types import Vertex
@@ -16,11 +17,13 @@ def clip_to_screen(clip_coordinates: glm.vec4):
     )
 
 
-def find_face_clicked_winding(mouse_pos: tuple[int, int], faces: list[list[Vertex]]):
+def find_mouse_face(mouse_pos: tuple[int, int], faces: list[list[Vertex]]):
     mouse_pos_vec = glm.vec2(mouse_pos)
     for (face_ix, face) in enumerate(faces):
         face_vec3 = [glm.vec3(vertex) for vertex in face]
         face_normal = -glm.cross(face_vec3[1] - face_vec3[0], face_vec3[2] - face_vec3[0])
+
+        # Normals are reversed
         if face_normal.z < 0:
             continue
 
@@ -43,3 +46,23 @@ def find_face_clicked_winding(mouse_pos: tuple[int, int], faces: list[list[Verte
             return face_ix
 
     return None
+
+
+CLICK_MAX_TIME = 300 # ms
+
+class ClickDetector:
+    def __init__(self, on_click: callable):
+        self.mouse_down_time = None
+        self.on_click = on_click
+
+    def handle_event(self, event: pygame.event.Event, world_time: int):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            self.mouse_down_time = world_time
+
+        elif event.type == pygame.MOUSEBUTTONUP:
+            if self.mouse_down_time is not None and world_time - self.mouse_down_time < CLICK_MAX_TIME:
+                self.on_click(
+                    pygame.mouse.get_pos()
+                )
+            self.mouse_down_time = None
+

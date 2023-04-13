@@ -82,6 +82,7 @@ class Animator:
   def start(self, target_value: float):
     self.is_animating = True
     self.time_elapsed = 0
+    self.delay_time = 0
     self.target_value = target_value
     self.difference = target_value - self.current_value
 

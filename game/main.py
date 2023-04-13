@@ -39,6 +39,7 @@ class Main:
             self.scene = TutorialScene(self.ctx)
         self.scene.init()
         self.delta_time = 0  # Time since last frame
+        self.world_time = 0
 
     def next_scene(self):
         if self.scene.__class__ == TutorialScene:
@@ -58,7 +59,7 @@ class Main:
                 print("Scene Finish")
                 self.next_scene()
             else:
-                self.scene.handle_event(event, self.delta_time)
+                self.scene.handle_event(event, self.world_time)
 
     def render(self) -> None:
         self.scene.render(self.delta_time)
@@ -69,6 +70,7 @@ class Main:
             self.handle_events()
             self.render()
             self.delta_time = clock.tick(MAX_FPS)
+            self.world_time += self.delta_time
 
 
 Main().run()

@@ -32,7 +32,8 @@ CARVE_DEPTH = 0.03
 FACE_NORMAL_DISTANCE = np.sqrt(1 / 3)
 
 ROTATION_DURATION = 500  # ms
-PULL_DISTANCE = 0.2
+PULL_DURATION = 200 # ms
+PULL_DISTANCE = 0.1
 
 # This helps us render the lines above the face instead of inside it
 
@@ -124,7 +125,8 @@ class Face(Renderable):
         self.puzzle_face = puzzle_face
         self.depth = puzzle_face.depth
 
-        self.matrix = glm.mat4()
+        self.rot_matrix = glm.mat4()
+        self.pull_matrix = glm.mat4()
 
         self.is_puzzle_solved = False
 
@@ -171,6 +173,13 @@ class Face(Renderable):
             ),
             start_value=0,
             on_stop=self.__stop_rotation,
+        )
+        self.pull_animator = Animator(
+            lerper=AnimationLerper(
+                AnimationLerpFunction.ease_in_out,
+                PULL_DURATION,
+            ),
+            start_value=0,
         )
 
     def __make_terrain_vertices(self):
@@ -286,15 +295,12 @@ class Face(Renderable):
 
     def __rotate_by_rotations(self, rotations):
         rotation_angle = self.coordinate_system.rotation_angle * rotations
-        rotation_matrix = glm.rotate(glm.mat4(), glm.radians(rotation_angle), self.nv)
+        self.rot_matrix = glm.rotate(glm.mat4(), glm.radians(rotation_angle), self.nv)
 
-        partway_through = rotations % 1
-        if partway_through == 0.0 or partway_through == 1.0:
-            self.matrix = rotation_matrix
-        else:
-            pull_amount = 0.5 * (partway_through if partway_through < 0.5 else 1.0 - partway_through)
-            pull_matrix = glm.translate(normalize_vector(-self.nv, pull_amount))
-            self.matrix = pull_matrix * rotation_matrix
+    def __pull_by_distance(self, pull_distance):
+        self.pull_matrix = glm.translate(
+            normalize_vector(-self.nv, pull_distance)
+        )
 
     def __stop_rotation(self, rotations):
         self.__rotate_by_rotations(rotations)
@@ -306,7 +312,12 @@ class Face(Renderable):
             rotations = self.rotation_animator.frame(delta_time)
             self.__rotate_by_rotations(rotations)
 
-        m_mvp = camera.view_projection_matrix() * model_matrix * self.matrix
+        if self.pull_animator.is_animating:
+            pull_distance = self.pull_animator.frame(delta_time)
+            self.__pull_by_distance(pull_distance)
+
+
+        m_mvp = camera.view_projection_matrix() * model_matrix * self.rot_matrix * self.pull_matrix
         self.terrain_shader_ref["m_mvp"].write(m_mvp)
         self.terrain_shader_ref["v_nv"].write(self.nv)
         self.terrain_vertex_array.render()
@@ -323,12 +334,18 @@ class Face(Renderable):
         self.underside_shader_ref["m_mvp"].write(m_mvp)
         self.underside_vertex_array.render(mode=moderngl.TRIANGLE_FAN)
 
-        self.rotation_animator.frame(delta_time)
+        # self.rotation_animator.frame(delta_time)
 
     def rotate(self, num_rotations=1):
         self.rotation_animator.start(
             self.rotation_animator.current_value + num_rotations
         )
+
+    def pull(self):
+        self.pull_animator.start(PULL_DISTANCE)
+
+    def push(self):
+        self.pull_animator.start(0)
 
     def scramble(self):
         num_rotations = random.randint(0, len(self.coordinate_system.segment_vectors))
@@ -352,6 +369,6 @@ class Face(Renderable):
     def projected_vertices(self, matrix) -> list[glm.vec4]:
         # This returns a vec4 in clip space
         return [
-            matrix * self.matrix * glm.vec4(vertex, 1.0)
+            matrix * self.rot_matrix * glm.vec4(vertex, 1.0)
             for vertex in self.face_vertices
         ]

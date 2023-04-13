@@ -16,7 +16,7 @@ from models.types import Vertex
 from models.face import Face
 from engine.arcball import ArcBall
 from engine.events import FACE_ACTIVATED, FACE_ROTATED, PUZZLE_SOLVED, NEXT_PUZZLE, DONE_RESONATE, emit_face_activated, emit_event
-from engine.events.mouse_click import find_face_clicked_winding
+from engine.events.mouse import find_mouse_face, ClickDetector
 
 
 MOVEMENT_DEG_PER_DELTA = 0.005
@@ -72,7 +72,10 @@ class Polyhedron(Renderable):
         self.underside_shader = get_shader_program(ctx, "uniform_color")
         self.underside_shader["v_color"] = style.underside_color
 
-        self.mouse_down_position = None
+        self.click_detector = ClickDetector(
+            on_click=self.handle_click
+        )
+
         self.faces = []
         puzzle_faces = puzzle.faces
         for pf in puzzle_faces:
@@ -92,6 +95,7 @@ class Polyhedron(Renderable):
         self.is_face_rotating = False
         self.is_alive = True
         self.is_puzzle_solved = False
+        self.hovered_face_idx = None
 
         self.sounds = {"rumble": SoundEffect("rumble")}
 
@@ -133,16 +137,26 @@ class Polyhedron(Renderable):
             for face in self.faces:
                 face.scramble()
 
-    def handle_click(self, mouse_pos):
+    def handle_click(self, _mouse_pos):
         if self.is_face_rotating:
-            return False
-        clicked_face_idx = find_face_clicked_winding(
+            return
+
+        if self.hovered_face_idx is not None:
+            emit_face_activated(self.hovered_face_idx)
+
+    def handle_move(self, mouse_pos):
+        if self.click_detector.mouse_down_time is not None:
+            return
+
+        hovered_face_idx = find_mouse_face(
             mouse_pos, self.projected_face_vertices()
         )
-        if clicked_face_idx is not None:
-            emit_face_activated(clicked_face_idx)
-            return True
-        return False
+        if hovered_face_idx != self.hovered_face_idx:
+            if self.hovered_face_idx is not None:
+                self.faces[self.hovered_face_idx].push()
+            if hovered_face_idx is not None:
+                self.faces[hovered_face_idx].pull()
+            self.hovered_face_idx = hovered_face_idx
 
     def set_is_resonant(self, is_resonant: bool):
         self.resonance_animator.start(
@@ -168,22 +182,9 @@ class Polyhedron(Renderable):
         for event in pygame.event.get():
             self.handle_event(event, delta_time)
 
-    def handle_event(self, event: pygame.event.Event, delta_time: int):
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            self.mouse_down_position = pygame.mouse.get_pos()
-        elif event.type == pygame.MOUSEBUTTONUP:
-            if self.mouse_down_position and not self.introduction_animator.is_animating:
-                mouse_pos = pygame.mouse.get_pos()
-                no_movement = (
-                    math.sqrt(
-                        math.pow(mouse_pos[0] - self.mouse_down_position[0], 2)
-                        + math.pow(mouse_pos[1] - self.mouse_down_position[1], 2)
-                    ) <= CLICK_RADIUS
-                )
-
-                if no_movement:
-                    self.handle_click(pygame.mouse.get_pos())
-            self.mouse_down_position = None
+    def handle_event(self, event: pygame.event.Event, world_time: int):
+        if event.type == pygame.MOUSEMOTION:
+            self.handle_move(pygame.mouse.get_pos())
         elif event.type == FACE_ACTIVATED:
             face_index = event.__dict__["face_index"]
             self.is_face_rotating = True
@@ -205,6 +206,7 @@ class Polyhedron(Renderable):
             # let game scene know to go to next level
             emit_event(NEXT_PUZZLE, {})
         if not self.introduction_animator.is_animating:
+            self.click_detector.handle_event(event, world_time)
             self.arcball.handle_event(event)
 
 
