@@ -64,7 +64,7 @@ class Polyhedron(Renderable):
         self.carve_shader["u_texture_0"] = texture_location
         self.carve_shader["v_color"].write(style.path_color)
         self.carve_shader["blend_mode"] = style.blend_mode
-        self.carve_shader["lumin"] = 0.0
+        self.carve_shader["lumin"] = LINE_LUMINOSITY_INACTIVE
 
         self.wall_shader = get_shader_program(ctx, "uniform_color")
         self.wall_shader["v_color"] = style.wall_color

@@ -63,8 +63,6 @@ class GameplayScene(Renderable):
                 PuzzleGraph.from_file_name(puzzle),
                 style=level["style"],
             )
-            # TODO we probably want to just have a map of polyhedra and all it's properties
-            # vertices, path color, blend mode, etc.
             level_poly.scramble()
             self.puzzles.append(level_poly)
 

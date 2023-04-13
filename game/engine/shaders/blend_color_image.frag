@@ -70,5 +70,5 @@ void main() {
   } else {
     fillColor = v_color.rgb;
   }
-  fragColor = lumin > 0.0 ? lumin * vec4(fillColor, 1.0) : vec4(fillColor, 1.0);
+  fragColor = vec4(lumin * fillColor, 1.0);
 }
