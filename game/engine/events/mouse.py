@@ -48,7 +48,7 @@ def find_mouse_face(mouse_pos: tuple[int, int], faces: list[list[Vertex]]):
     return None
 
 
-CLICK_MAX_TIME = 300 # ms
+CLICK_MAX_TIME = 200 # ms
 
 class ClickDetector:
     def __init__(self, on_click: callable):
@@ -60,9 +60,10 @@ class ClickDetector:
             self.mouse_down_time = world_time
 
         elif event.type == pygame.MOUSEBUTTONUP:
-            if self.mouse_down_time is not None and world_time - self.mouse_down_time < CLICK_MAX_TIME:
-                self.on_click(
-                    pygame.mouse.get_pos()
-                )
-            self.mouse_down_time = None
+            if self.mouse_down_time is not None:
+                if world_time - self.mouse_down_time < CLICK_MAX_TIME:
+                    self.on_click(
+                        pygame.mouse.get_pos()
+                    )
+                self.mouse_down_time = None
 

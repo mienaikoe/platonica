@@ -145,7 +145,7 @@ class Polyhedron(Renderable):
             emit_face_activated(self.hovered_face_idx)
 
     def handle_move(self, mouse_pos):
-        if self.click_detector.mouse_down_time is not None:
+        if self.is_puzzle_solved:
             return
 
         hovered_face_idx = find_mouse_face(
@@ -159,6 +159,9 @@ class Polyhedron(Renderable):
             self.hovered_face_idx = hovered_face_idx
 
     def set_is_resonant(self, is_resonant: bool):
+        if self.hovered_face_idx is not None:
+            self.faces[self.hovered_face_idx].push()
+        self.is_puzzle_solved = is_resonant
         self.resonance_animator.start(
             LINE_LUMINOSITY_ACTIVE if is_resonant else LINE_LUMINOSITY_INACTIVE
         )
@@ -178,10 +181,6 @@ class Polyhedron(Renderable):
     def stop_exploding(self):
         self.terrain_shader["explode"] = True
 
-    def handle_events(self, delta_time: int):
-        for event in pygame.event.get():
-            self.handle_event(event, delta_time)
-
     def handle_event(self, event: pygame.event.Event, world_time: int):
         if event.type == pygame.MOUSEMOTION:
             self.handle_move(pygame.mouse.get_pos())
@@ -193,8 +192,7 @@ class Polyhedron(Renderable):
         elif event.type == FACE_ROTATED:
             self.is_face_rotating = False
             is_resonant = self.puzzle.is_resonant()
-            if self.is_puzzle_solved != is_resonant:
-                self.is_puzzle_solved = is_resonant
+            if is_resonant:
                 self.set_is_resonant(is_resonant)
                 pygame.time.set_timer(DONE_RESONATE, RESONATE_RUNTIME, loops=1)
         elif event.type == DONE_RESONATE:

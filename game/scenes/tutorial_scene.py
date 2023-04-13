@@ -1,6 +1,6 @@
 import pygame
 import moderngl
-from constants.colors import Colors
+from constants.colors import Colors, ShapeStyle, BlendModes
 from constants.dimensions import SCREEN_DIMENSIONS
 from constants.shape import Shape, SHAPE_VERTICES
 from ui.tutorial.path_highlight import PathHighlight
@@ -31,7 +31,13 @@ class TutorialScene(Renderable):
             self.camera,
             SHAPE_VERTICES[Shape.tetrahedron],
             puzzle,
-            "wireframe-equilateral.png",
+            ShapeStyle(
+              "wireframe-equilateral.png",
+              Colors.GRAY,
+              Colors.CHARCOAL,
+              Colors.CHARCOAL,
+              BlendModes.Multipy,
+            ),
             emit_arcball_events=True
         )
         self.subject.scramble({2: 1})

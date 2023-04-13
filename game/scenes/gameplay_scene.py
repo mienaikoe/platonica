@@ -1,9 +1,11 @@
-import moderngl as mgl
+import moderngl
 import pygame
+import glm
 
 from constants.colors import Colors, set_opacity, BlendModes, ShapeStyle
 from constants.dimensions import SCREEN_DIMENSIONS
 from constants.shape import Shape, SHAPE_VERTICES
+from ui.color_plane import ColorPlane
 from ui.intro_plane import IntroPlane
 from puzzles.puzzle_graph import PuzzleGraph
 from engine.events import NEXT_PUZZLE
@@ -20,7 +22,7 @@ INTRO_FADE = 2000  # ms
 INTRO_STAY = 2000  # ms
 
 class GameplayScene(Renderable):
-    def __init__(self, ctx: mgl.Context):
+    def __init__(self, ctx: moderngl.Context):
         self.ctx = ctx
         self.center = (
             SCREEN_DIMENSIONS[0] / 2,
@@ -40,6 +42,18 @@ class GameplayScene(Renderable):
         )
         self.progress = Progress(self.ctx, self.camera.view_projection_matrix())
         self.fader = Fader(self.ctx, self.camera.view_projection_matrix(), on_stop=self._fade_stopped)
+        # Example of a button
+        # self.button = ColorPlane(
+        #     self.ctx,
+        #     self.camera.view_projection_matrix(),
+        #     position=glm.vec3(1.6, -1.15, -2.1),
+        #     dimensions=glm.vec2(1.0,1.0),
+        #     color=Colors.LIME,
+        #     on_click=self._on_click
+        # )
+
+    # def _on_click(self):
+    #     print("hiii")
 
 
     def init(self):
@@ -98,12 +112,12 @@ class GameplayScene(Renderable):
         else:
             print("GAME WOM")
 
-    def handle_event(self, event: pygame.event.Event, delta_time: int):
+    def handle_event(self, event: pygame.event.Event, world_time: int):
         if event.type == NEXT_PUZZLE:
             self._end_puzzle()
 
         if self.current_puzzle().is_alive:
-            self.current_puzzle().handle_event(event, delta_time)
+            self.current_puzzle().handle_event(event, world_time)
 
     def render(self, delta_time: int):
         self.ctx.clear(color=Colors.WHITE)

@@ -298,9 +298,12 @@ class Face(Renderable):
         self.rot_matrix = glm.rotate(glm.mat4(), glm.radians(rotation_angle), self.nv)
 
     def __pull_by_distance(self, pull_distance):
-        self.pull_matrix = glm.translate(
-            normalize_vector(-self.nv, pull_distance)
-        )
+        if pull_distance == 0:
+            self.pull_matrix = glm.mat4x4()
+        else:
+            self.pull_matrix = glm.translate(
+                normalize_vector(-self.nv, pull_distance)
+            )
 
     def __stop_rotation(self, rotations):
         self.__rotate_by_rotations(rotations)

@@ -30,7 +30,7 @@ class PathHighlight(Renderable):
       {
         "in_position": "3f",
       },
-      np.array(path_vertices) * 1.02
+      np.array(path_vertices) * 1.11
     )
     self.brightness_animator = Animator(
       AnimationLerper(AnimationLerpFunction.linear, 1000),

@@ -1,5 +1,7 @@
+import pygame
+
 class Renderable:
-    def handle_events(self, delta_time: int):
+    def handle_event(self, event: pygame.event.Event, world_time: int):
         """
         handle any incoming events before the render
         @param delta_time: the number of milliseconds(?) since the last frame

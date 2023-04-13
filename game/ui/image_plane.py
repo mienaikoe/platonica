@@ -1,14 +1,18 @@
 import numpy as np
 from moderngl import Context
-from engine.animation import Animator, AnimationLerper, AnimationLerpFunction
 from engine.texture import get_texture
 import glm
 from engine.shadeable_object import ShadeableObject
-from engine.renderable import Renderable
-import moderngl
+
+from ui.plane import Plane
 
 
-class ImagePlane(Renderable):
+UV_VERTICES = [
+   (1,0), (0,0),  (1,1),(0,1),
+]
+
+
+class ImagePlane(Plane):
   def __init__(
     self,
     ctx: Context,
@@ -16,43 +20,36 @@ class ImagePlane(Renderable):
     position: glm.vec3,
     dimensions: glm.vec2,
     texture_filename: str,
+    **kwargs
   ):
-    self.ctx = ctx
+    super().__init__(ctx, camera_matrix, position, dimensions, **kwargs)
 
-    self.matrix = (
-        camera_matrix
-        * glm.translate(position)
-        * glm.scale(glm.vec3(dimensions.xy, 1.0))
-    )
+    (_texture, texture_location) = get_texture(self.ctx, texture_filename)
+    self.obj.shader["u_texture_0"] = texture_location
 
-    vertex_data = np.array(
-        [
-            (0, 0, 1 , -1 , 0),  # 0
-            (0, 1,  1 , 1 , 0),  # 1
-            (1, 0, -1 ,  -1 , 0),  # 3
-            (1, 1,  -1 ,  1 , 0),  # 2
-        ],
-        dtype="f4",
-    )
 
-    (texture, texture_location) = get_texture(self.ctx, texture_filename)
-
-    self.image_obj = ShadeableObject(
+  def _get_shadeable_object(self):
+    return ShadeableObject(
       self.ctx,
       "image",
       {
         "in_textcoord_0": "2f",
         "in_position": "3f",
       },
-      vertex_data
+      self.vertex_data
     )
-    self.image_obj.shader["m_mvp"].write(self.matrix)
-    self.image_obj.shader["u_texture_0"] = texture_location
+
+
+  def _get_vertex_data(self):
+    square_vertices = super()._get_vertex_data()
+    return np.array([
+        (*UV_VERTICES[ix], *square_vertices[ix])
+        for ix in range(len(square_vertices))
+      ],
+      dtype="f4"
+    )
 
 
   def render(self, delta_time: int, opacity=1.0):
-    self.image_obj.shader['opacity'] = opacity
-    self.image_obj.render(mode=moderngl.TRIANGLE_STRIP)
-
-  def destroy(self):
-    self.image_obj.destroy()
+    self.obj.shader['opacity'] = opacity
+    super().render()
