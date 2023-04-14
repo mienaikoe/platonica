@@ -26,10 +26,8 @@ class Fader():
 
   def _on_stop(self, value: float):
     if value == 0.0:
-      print("Faded In")
       emit_event(FADED_IN)
     elif value == 1.0:
-      print("Faded Out")
       emit_event(FADED_OUT)
 
   def set(self, value: float):
@@ -38,17 +36,14 @@ class Fader():
 
   def handle_event(self, event: pygame.event.Event, _world_time: int):
     if event.type == FADE_IN:
-      print("Fading IN")
       self.animator.start(0.0)
     elif event.type == FADE_OUT:
-      print("Fading Out")
       self.animator.start(1.0)
 
   def render(self, delta_time: int):
     if self.animator.is_animating:
         fade_opacity = self.animator.frame(delta_time)
         fade_color = glm.vec4(WHITE_RGB, fade_opacity)
-        print(fade_color)
         self.plane.render(delta_time, fade_color)
     elif self.animator.current_value == 0.0:
         # no need to render if transparent
