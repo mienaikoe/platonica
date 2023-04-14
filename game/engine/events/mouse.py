@@ -65,7 +65,6 @@ class ClickDetector:
             if self.mouse_down_time is None:
                 return
             if world_time - self.mouse_down_time < CLICK_MAX_TIME and event.button == self.mouse_button:
-                print(event.button, pygame.BUTTON_LEFT, pygame.BUTTON_RIGHT)
                 self.on_click(
                     pygame.mouse.get_pos(),
                     event.button
