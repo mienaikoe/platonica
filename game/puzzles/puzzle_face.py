@@ -35,8 +35,6 @@ class PuzzleFace:
     # Associate Active Polygons
     for polygon_a in list(self.active_polygons):
       for polygon_b in list(self.active_polygons):
-        if polygon_a.key == '3,2,12-3,3,19-3,3,20':
-          print("woo", polygon_a.key, polygon_b.key, polygon_a.mates_with(polygon_b))
         if polygon_a == polygon_b:
           continue
         if polygon_a.mates_with(polygon_b):

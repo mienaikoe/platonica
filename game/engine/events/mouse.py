@@ -53,17 +53,23 @@ CLICK_MAX_TIME = 200 # ms
 class ClickDetector:
     def __init__(self, on_click: callable):
         self.mouse_down_time = None
+        self.mouse_button = None
         self.on_click = on_click
 
     def handle_event(self, event: pygame.event.Event, world_time: int):
         if event.type == pygame.MOUSEBUTTONDOWN:
             self.mouse_down_time = world_time
+            self.mouse_button = event.button
 
         elif event.type == pygame.MOUSEBUTTONUP:
-            if self.mouse_down_time is not None:
-                if world_time - self.mouse_down_time < CLICK_MAX_TIME:
-                    self.on_click(
-                        pygame.mouse.get_pos()
-                    )
-                self.mouse_down_time = None
+            if self.mouse_down_time is None:
+                return
+            if world_time - self.mouse_down_time < CLICK_MAX_TIME and event.button == self.mouse_button:
+                print(event.button, pygame.BUTTON_LEFT, pygame.BUTTON_RIGHT)
+                self.on_click(
+                    pygame.mouse.get_pos(),
+                    event.button
+                )
+            self.mouse_down_time = None
+            self.mouse_button = None
 

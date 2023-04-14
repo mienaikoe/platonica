@@ -18,7 +18,7 @@ from engine.arcball import ArcBall
 from engine.events import (
     FACE_ACTIVATED, FACE_ROTATED, ARCBALL_DONE,
     PUZZLE_SOLVED, NEXT_PUZZLE, DONE_RESONATE,
-    emit_face_activated, emit_event)
+    emit_event)
 from engine.events.mouse import find_mouse_face, ClickDetector
 
 
@@ -76,7 +76,7 @@ class Polyhedron(Renderable):
         self.underside_shader["v_color"] = style.underside_color
 
         self.click_detector = ClickDetector(
-            on_click=self.handle_click
+            on_click=self.handle_click,
         )
 
         self.faces = []
@@ -151,12 +151,15 @@ class Polyhedron(Renderable):
             for face in self.faces:
                 face.scramble()
 
-    def handle_click(self, _mouse_pos):
+    def handle_click(self, _mouse_pos, mouse_button: int):
         if self.is_face_rotating:
             return
 
         if self.hovered_face_idx is not None:
-            emit_face_activated(self.hovered_face_idx)
+            emit_event(FACE_ACTIVATED, {
+                'face_index': self.hovered_face_idx,
+                'mouse_button': mouse_button,
+            })
 
     def handle_move(self, mouse_pos):
         if self.is_puzzle_solved or self.arcball.is_dragging:
@@ -202,8 +205,12 @@ class Polyhedron(Renderable):
             self.handle_move(pygame.mouse.get_pos())
         elif event.type == FACE_ACTIVATED:
             face_index = event.__dict__["face_index"]
+            mouse_button = event.__dict__["mouse_button"]
             self.is_face_rotating = True
-            self.faces[face_index].rotate()
+            if mouse_button == pygame.BUTTON_LEFT:
+                self.faces[face_index].rotate(1)
+            elif mouse_button == pygame.BUTTON_RIGHT:
+                self.faces[face_index].rotate(-1)
             self.sounds["rumble"].play()
         elif event.type == FACE_ROTATED:
             self.is_face_rotating = False

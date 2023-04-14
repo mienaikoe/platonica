@@ -44,7 +44,6 @@ class Stage:
         self.intro.init()
 
     def _to_tutorial(self):
-        print("To Tutorial")
         self.to_scene(self.tutorial)
 
     def _on_intro_opaque(self):

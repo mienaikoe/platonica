@@ -61,7 +61,7 @@ class Plane(Renderable):
         """
         return SQUARE_VERTICES
 
-    def _on_click(self, mouse_pos):
+    def _on_click(self, mouse_pos, _mouse_button):
         if find_mouse_face(mouse_pos, self.click_vertices) == 0:
             self.on_click()
 
