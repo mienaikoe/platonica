@@ -198,7 +198,7 @@ class Polyhedron(Renderable):
     def handle_event(self, event: pygame.event.Event, world_time: int):
         if not self.is_alive:
             return
-        if event.type == pygame.MOUSEMOTION:
+        if event.type == pygame.MOUSEMOTION or event.type == ARCBALL_DONE:
             self.handle_move(pygame.mouse.get_pos())
         elif event.type == FACE_ACTIVATED:
             face_index = event.__dict__["face_index"]
@@ -211,9 +211,6 @@ class Polyhedron(Renderable):
             if is_resonant:
                 self.set_is_resonant(is_resonant)
                 pygame.time.set_timer(DONE_RESONATE, RESONATE_RUNTIME, loops=1)
-        elif event.type == ARCBALL_DONE:
-            mouse_pos = face_index = event.__dict__["face_index"]
-            self.handle_move(mouse_pos)
         elif event.type == DONE_RESONATE:
             for face in self.faces:
                 face.explode()
