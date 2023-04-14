@@ -100,7 +100,10 @@ class Polyhedron(Renderable):
         self.is_puzzle_solved = False
         self.hovered_face_idx = None
 
-        self.sounds = {"rumble": SoundEffect("rumble")}
+        self.sounds = {
+            "rumble": SoundEffect("rumble"),
+            "shimmer": SoundEffect("shimmer")
+        }
 
         self.resonance_animator = Animator(
             lerper=AnimationLerper(
@@ -219,6 +222,7 @@ class Polyhedron(Renderable):
                 self.set_is_resonant(is_resonant)
                 pygame.time.set_timer(DONE_RESONATE, RESONATE_RUNTIME, loops=1)
         elif event.type == DONE_RESONATE:
+            self.sounds["shimmer"].play()
             for face in self.faces:
                 face.explode()
             self.start_exploding()
