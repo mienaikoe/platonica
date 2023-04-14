@@ -22,9 +22,13 @@ class Progress(ColorPlane):
             ProgressDot(ctx, self.matrix, shader, 270),
         ]
 
-    def complete_level(self, index):
+    def complete_puzzle(self, index):
         if index < len(self.dots):
             self.dots[index].mark_done()
+    
+    def reset(self):
+        for dot in self.dots:
+            dot.reset()
 
     def render(self, delta_time: int):
         for dot in self.dots:

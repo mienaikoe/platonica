@@ -47,3 +47,6 @@ class ProgressDot(ShadeableObject):
 
     def mark_done(self):
         self.done = True
+    
+    def reset(self):
+        self.done = False

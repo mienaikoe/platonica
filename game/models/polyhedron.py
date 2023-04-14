@@ -99,6 +99,7 @@ class Polyhedron(Renderable):
         self.is_alive = False
         self.is_puzzle_solved = False
         self.hovered_face_idx = None
+        self.is_last_puzzle_in_level = kwargs.get('is_last_puzzle', False)
 
         self.sounds = {
             "rumble": SoundEffect("rumble"),
@@ -223,10 +224,13 @@ class Polyhedron(Renderable):
                 pygame.time.set_timer(DONE_RESONATE, RESONATE_RUNTIME, loops=1)
         elif event.type == DONE_RESONATE:
             self.sounds["shimmer"].play()
-            for face in self.faces:
-                face.explode()
-            self.start_exploding()
-            pygame.time.set_timer(PUZZLE_SOLVED, EXPLOSION_RUNTIME, loops=1)
+            if self.is_last_puzzle_in_level:
+                for face in self.faces:
+                    face.explode()
+                self.start_exploding()
+                pygame.time.set_timer(PUZZLE_SOLVED, EXPLOSION_RUNTIME, loops=1)
+            else:
+                emit_event(NEXT_PUZZLE, {})
         elif event.type == PUZZLE_SOLVED:
             # let game scene know to go to next level
             emit_event(NEXT_PUZZLE, {})

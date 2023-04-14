@@ -49,13 +49,16 @@ class GameplayScene(Renderable):
     def _load_puzzles(self):
         level = LEVELS[self.current_level_index]
         self.puzzles = []
-        for puzzle in level['puzzles']:
+        puzzles_in_level = level['puzzles']
+        puzzles_count = len(puzzles_in_level)
+        for index, puzzle in enumerate(puzzles_in_level):
             level_poly = Polyhedron(
                 self.ctx,
                 self.camera,
                 SHAPE_VERTICES[level["shape"]],
                 PuzzleGraph.from_file_name(puzzle),
                 style=level["style"],
+                is_last_puzzle=(index == puzzles_count - 1)
             )
             level_poly.scramble()
             self.puzzles.append(level_poly)
@@ -72,7 +75,6 @@ class GameplayScene(Renderable):
         return self.puzzles[self.current_puzzle_index]
 
     def advance(self):
-        self.progress.complete_level(self.current_puzzle_index)
         self.current_puzzle().destroy()
         if self.current_puzzle_index < len(self.puzzles) - 1:
             self.current_puzzle_index += 1
@@ -82,6 +84,7 @@ class GameplayScene(Renderable):
                 puzzle.destroy()
             self.current_puzzle_index = 0
             self.current_level_index += 1
+            self.progress.reset()
             self._load_puzzles()
             self._start_puzzle()
         else:
@@ -89,6 +92,7 @@ class GameplayScene(Renderable):
 
     def handle_event(self, event: pygame.event.Event, world_time: int):
         if event.type == NEXT_PUZZLE:
+            self.progress.complete_puzzle(self.current_puzzle_index)
             self._end_puzzle()
         elif event.type == FADED_OUT:
             if self.current_puzzle().is_puzzle_solved:
