@@ -7,6 +7,7 @@ from engine.renderable import Renderable
 from scenes.tutorial_scene import TutorialScene
 from scenes.gameplay_scene import GameplayScene
 from scenes.test_scene import TestScene
+from ui.action_menu import ActionMenu
 from ui.fader import Fader
 from ui.intro_plane import IntroPlane
 from engine.events import SCENE_FINISH, FADE_IN, emit_event
@@ -30,11 +31,10 @@ class Stage:
         self.delta_time = 0  # Time since last frame
         self.world_time = 0  # Time since beginning of game
 
-
         camera_matrix = self.camera.view_projection_matrix
 
         self.fader = Fader(self.ctx, camera_matrix)
-
+        self.action_menu = ActionMenu(self.ctx, camera_matrix, to_tutorial=self._to_tutorial)
         self.intro = IntroPlane(
             self.ctx,
             camera_matrix,
@@ -43,6 +43,9 @@ class Stage:
         )
         self.intro.init()
 
+    def _to_tutorial(self):
+        print("To Tutorial")
+        self.to_scene(self.tutorial)
 
     def _on_intro_opaque(self):
         self.scene.init()
@@ -56,8 +59,9 @@ class Stage:
             self.to_scene(self.gameplay)
 
     def to_scene(self, scene: Renderable):
-        self.scene = scene
-        scene.init()
+        if self.scene != scene:
+            self.scene = scene
+            scene.init()
 
     def handle_event(self, event: pygame.event.Event, world_time: int) -> None:
         if event.type == SCENE_FINISH:
@@ -66,6 +70,7 @@ class Stage:
         else:
             self.scene.handle_event(event, world_time)
             self.fader.handle_event(event, world_time)
+            self.action_menu.handle_event(event, world_time)
 
     def render(self, delta_time: int) -> None:
         if self.intro:
@@ -73,3 +78,11 @@ class Stage:
 
         self.scene.render(delta_time)
         self.fader.render(delta_time)
+        self.action_menu.render(delta_time)
+
+    def destroy(self):
+        if self.intro:
+            self.intro.destroy()
+        self.scene.destroy()
+        self.fader.destroy()
+        self.action_menu.destroy()

@@ -8,6 +8,6 @@ uniform sampler2D u_texture_0;
 uniform float opacity;
 
 void main() {
-  vec3 fillColor = texture(u_texture_0, uv_0).rgb;
-  fragColor = vec4(fillColor, opacity);
+  vec4 textureColor = texture(u_texture_0, uv_0);
+  fragColor = vec4(textureColor.rgb, opacity * textureColor.a);
 }

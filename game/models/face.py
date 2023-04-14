@@ -326,7 +326,7 @@ class Face(Renderable):
         self.terrain_vertex_array.render()
 
         if self.is_puzzle_solved:
-            return
+            return # don't render path when exploding
 
         if self.has_carvings:
             self.carve_shader_ref["m_mvp"].write(m_mvp)
@@ -356,14 +356,11 @@ class Face(Renderable):
 
     def explode(self):
         self.is_puzzle_solved = True
-        if self.has_carvings:
-            self.carve_buffer.release()
-            self.carve_vertex_array.release()
-            self.wall_buffer.release()
-            self.wall_vertex_array.release()
 
-        self.underside_buffer.release()
-        self.underside_vertex_array.release()
+    def reset(self):
+        self.pull_animator.set(0)
+        self.rotation_animator.set(0)
+        self.is_puzzle_solved = False
 
     def destroy(self):
         self.terrain_buffer.release()

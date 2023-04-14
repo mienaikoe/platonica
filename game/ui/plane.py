@@ -41,6 +41,7 @@ class Plane(Renderable):
         )
 
         self.vertex_data = self._get_vertex_data()
+        self.click_vertices = [[self.matrix * v for v in SQUARE_CLIP]]
 
         self.obj = self._get_shadeable_object()
         self.obj.shader["m_mvp"].write(self.matrix)
@@ -61,7 +62,7 @@ class Plane(Renderable):
         return SQUARE_VERTICES
 
     def _on_click(self, mouse_pos):
-        if find_mouse_face(mouse_pos, [[self.matrix * v for v in SQUARE_CLIP]]) == 0:
+        if find_mouse_face(mouse_pos, self.click_vertices) == 0:
             self.on_click()
 
     def handle_event(self, event: pygame.event.Event, world_time: int):

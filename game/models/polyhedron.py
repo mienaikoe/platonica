@@ -121,6 +121,16 @@ class Polyhedron(Renderable):
         self.is_alive = True
         self.introduction_animator.start(0.0)
 
+    def reset(self):
+        self.is_puzzle_solved = False
+        self.is_alive = False
+        self.is_face_rotating = False
+        self.time = 0.0
+        self.resonance_animator.set(LINE_LUMINOSITY_INACTIVE)
+        self.stop_exploding()
+        for face in self.faces:
+            face.reset()
+
     def __update_model_matrix(self, new_transform):
         for x in range(4):
             for y in range(4):
@@ -180,7 +190,7 @@ class Polyhedron(Renderable):
         self.terrain_shader["time"] = self.time / 1000.0
 
     def stop_exploding(self):
-        self.terrain_shader["explode"] = True
+        self.terrain_shader["explode"] = False
 
     def handle_event(self, event: pygame.event.Event, world_time: int):
         if not self.is_alive:

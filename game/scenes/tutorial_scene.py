@@ -44,6 +44,8 @@ class TutorialScene(Renderable):
         self.step = None
 
     def init(self):
+        self.subject.reset()
+        self.subject.scramble({2: 1})
         self.subject.introduce()
         self.init_rotation_step()
         self.step = 0

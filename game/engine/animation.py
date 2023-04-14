@@ -72,6 +72,13 @@ class Animator:
     self.on_frame = kwargs.get("on_frame", None)
     self.on_stop = kwargs.get("on_stop", None)
 
+  def set(self, value: float):
+    self.current_value = value
+    self.target_value = value
+    self.time_elapsed = 0
+    self.delay_time = 0
+    self.is_animating = False
+
   def delay(self, target_value: float, delay_time: int):
     if self.is_animating:
       if self.target_value == target_value:
