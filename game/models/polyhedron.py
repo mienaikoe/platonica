@@ -93,7 +93,7 @@ class Polyhedron(Renderable):
         self.arcball = ArcBall(self.__update_model_matrix, emit_events=kwargs.get("emit_arcball_events", False))
 
         self.is_face_rotating = False
-        self.is_alive = True
+        self.is_alive = False
         self.is_puzzle_solved = False
         self.hovered_face_idx = None
 
@@ -118,6 +118,7 @@ class Polyhedron(Renderable):
         )
 
     def introduce(self):
+        self.is_alive = True
         self.introduction_animator.start(0.0)
 
     def __update_model_matrix(self, new_transform):

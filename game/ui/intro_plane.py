@@ -5,7 +5,7 @@ from ui.image_plane import ImagePlane
 from constants.colors import Colors
 from engine.animation import Animator, AnimationLerper, AnimationLerpFunction
 
-DEFAULT_FADE_TIME = 3000 # ms
+DEFAULT_FADE_TIME = 2000 # ms
 DEFAULT_STAY_TIME = 3000 # ms
 
 class IntroPlane():
@@ -23,12 +23,14 @@ class IntroPlane():
         on_stop=self._on_stop
     )
     self.stay_time = kwargs.get("stay_time", DEFAULT_STAY_TIME)
-    self.is_opaque = False
+
     self.on_stop = kwargs.get("on_stop", None)
+    self.on_opaque = kwargs.get("on_opaque", None)
 
   def _on_stop(self, opacity: float):
     if opacity == 1.0:
-      self.is_opaque = True
+      if self.on_opaque:
+        self.on_opaque()
       self.animator.delay(0.0, self.stay_time)
     elif self.on_stop:
       self.on_stop()

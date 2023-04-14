@@ -41,6 +41,7 @@ class TutorialScene(Renderable):
             emit_arcball_events=True
         )
         self.subject.scramble({2: 1})
+        self.step = None
 
     def init(self):
         self.subject.introduce()
@@ -96,7 +97,7 @@ class TutorialScene(Renderable):
       emit_event(FADE_OUT)
 
     def render(self, delta_time: int):
-        self.ctx.clear(color=Colors.WHITE)
+      if self.step is not None:
         self.subject.render(delta_time)
         if self.tutorial_obj is not None:
           self.tutorial_obj.render(delta_time, self.subject.m_model)

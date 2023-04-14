@@ -66,7 +66,6 @@ class GameplayScene(Renderable):
         self.current_puzzle().introduce()
 
     def _end_puzzle(self):
-        print("end puzzle")
         emit_event(FADE_OUT)
 
     def current_puzzle(self):

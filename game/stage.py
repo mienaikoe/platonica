@@ -26,7 +26,6 @@ class Stage:
             self.scene = self.gameplay
         else:
             self.scene = self.tutorial
-        self.scene.init()
 
         self.delta_time = 0  # Time since last frame
         self.world_time = 0  # Time since beginning of game
@@ -39,10 +38,14 @@ class Stage:
         self.intro = IntroPlane(
             self.ctx,
             camera_matrix,
+            on_opaque=self._on_intro_opaque,
             on_stop=self._on_intro_stop,
         )
         self.intro.init()
 
+
+    def _on_intro_opaque(self):
+        self.scene.init()
 
     def _on_intro_stop(self):
         self.intro.destroy()
@@ -68,6 +71,5 @@ class Stage:
         if self.intro:
             self.intro.render(delta_time)
 
-        if not self.intro or self.intro.is_opaque:
-            self.fader.render(delta_time)
-            self.scene.render(delta_time)
+        self.scene.render(delta_time)
+        self.fader.render(delta_time)
