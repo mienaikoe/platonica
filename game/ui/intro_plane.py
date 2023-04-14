@@ -1,5 +1,6 @@
 import moderngl
 import glm
+from engine.audio.sound_effect import SoundEffect
 from ui.color_plane import ColorPlane
 from ui.image_plane import ImagePlane
 from constants.colors import Colors
@@ -26,6 +27,7 @@ class IntroPlane():
 
     self.on_stop = kwargs.get("on_stop", None)
     self.on_opaque = kwargs.get("on_opaque", None)
+    self.intro_sound = SoundEffect("intro", volume=0.5)
 
   def _on_stop(self, opacity: float):
     if opacity == 1.0:
@@ -37,6 +39,7 @@ class IntroPlane():
 
   def init(self):
     self.animator.start(1.0)
+    self.intro_sound.play()
 
   def render(self, delta_time: int):
     if not self.plane:
