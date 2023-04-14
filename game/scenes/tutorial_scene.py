@@ -10,20 +10,20 @@ from models.polyhedron import Polyhedron
 from puzzles.puzzle_graph import PuzzleGraph
 from engine.renderable import Renderable
 from engine.camera import Camera
-from engine.events import FACE_ACTIVATED, DONE_RESONATE, ARCBALL_MOVE, PUZZLE_SOLVED, SCENE_FINISH, emit_event
+from engine.events import FADE_OUT, FADED_OUT, FACE_ACTIVATED, DONE_RESONATE, ARCBALL_MOVE, PUZZLE_SOLVED, SCENE_FINISH, emit_event
 
 
 class TutorialScene(Renderable):
-    def __init__(self, ctx: moderngl.Context):
+    def __init__(self, ctx: moderngl.Context, camera: Camera):
         self.ctx = ctx
+        self.camera = camera
+
         self.center = (
             SCREEN_DIMENSIONS[0] / 2,
             SCREEN_DIMENSIONS[1] / 2,
         )
         self.tutorial_obj = None
 
-    def init(self):
-        self.camera = Camera(self.ctx)
         puzzle = PuzzleGraph.from_file_name("4_tutorial")
 
         self.subject = Polyhedron(
@@ -41,6 +41,9 @@ class TutorialScene(Renderable):
             emit_arcball_events=True
         )
         self.subject.scramble({2: 1})
+
+    def init(self):
+        self.subject.introduce()
         self.init_rotation_step()
         self.step = 0
 
@@ -76,7 +79,7 @@ class TutorialScene(Renderable):
         target_face = self.subject.faces[2]
         self.tutorial_obj = FaceHighlight(
           self.ctx,
-          self.camera.view_projection_matrix(),
+          self.camera.view_projection_matrix,
           target_face
         )
 
@@ -84,12 +87,13 @@ class TutorialScene(Renderable):
       self._destroy_tutorial_obj()
       self.tutorial_obj = PathHighlight(
         self.ctx,
-        self.camera.view_projection_matrix(),
+        self.camera.view_projection_matrix,
         self.subject.faces
       )
 
     def finish(self):
       self._destroy_tutorial_obj()
+      emit_event(FADE_OUT)
 
     def render(self, delta_time: int):
         self.ctx.clear(color=Colors.WHITE)

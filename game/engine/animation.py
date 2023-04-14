@@ -73,6 +73,12 @@ class Animator:
     self.on_stop = kwargs.get("on_stop", None)
 
   def delay(self, target_value: float, delay_time: int):
+    if self.is_animating:
+      if self.target_value == target_value:
+        return
+    elif self.current_value == target_value:
+      return
+
     self.is_animating = True
     self.time_elapsed = 0
     self.target_value = target_value
@@ -80,6 +86,12 @@ class Animator:
     self.delay_time = delay_time
 
   def start(self, target_value: float):
+    if self.is_animating:
+      if self.target_value == target_value:
+        return
+    elif self.current_value == target_value:
+      return
+
     self.is_animating = True
     self.time_elapsed = 0
     self.delay_time = 0

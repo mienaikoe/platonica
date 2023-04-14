@@ -31,7 +31,7 @@ class Ghost:
                 self.matrix[x][y] = new_transform[x][y]
 
     def render(self, camera):
-        m_mvp = camera.view_projection_matrix() * self.matrix
+        m_mvp = camera.view_projection_matrix * self.matrix
         self.shader["m_mvp"].write(m_mvp)
         self.vao.render()
 

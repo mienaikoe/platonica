@@ -320,7 +320,7 @@ class Face(Renderable):
             self.__pull_by_distance(pull_distance)
 
 
-        m_mvp = camera.view_projection_matrix() * model_matrix * self.rot_matrix * self.pull_matrix
+        m_mvp = camera.view_projection_matrix * model_matrix * self.rot_matrix * self.pull_matrix
         self.terrain_shader_ref["m_mvp"].write(m_mvp)
         self.terrain_shader_ref["v_nv"].write(self.nv)
         self.terrain_vertex_array.render()

@@ -1,11 +1,16 @@
 # Example file showing a basic pygame "game loop"
-import os
 import pygame
 import moderngl as mgl
 from constants.dimensions import SCREEN_DIMENSIONS
+from constants.colors import Colors
+from engine.camera import Camera
+from engine.renderable import Renderable
+from stage import Stage
 from scenes.tutorial_scene import TutorialScene
 from scenes.gameplay_scene import GameplayScene
 from scenes.test_scene import TestScene
+from ui.fader import Fader
+from ui.intro_plane import IntroPlane
 from engine.events import PUZZLE_SOLVED, SCENE_FINISH
 from dotenv import load_dotenv
 
@@ -33,18 +38,11 @@ class Main:
         )
         self.ctx = mgl.create_context()  # OpenGL
         self.ctx.enable(flags=mgl.DEPTH_TEST | mgl.BLEND)
-        if os.environ['SKIP_TUTORIAL'] == '1':
-            self.scene = GameplayScene(self.ctx)
-        else:
-            self.scene = TutorialScene(self.ctx)
-        self.scene.init()
-        self.delta_time = 0  # Time since last frame
-        self.world_time = 0
 
-    def next_scene(self):
-        if self.scene.__class__ == TutorialScene:
-            self.scene = GameplayScene(self.ctx)
-            self.scene.init()
+        self.stage = Stage(self.ctx)
+
+        self.delta_time = 0
+        self.world_time = 0
 
     def quit(self):
         self.scene.destroy()
@@ -55,14 +53,12 @@ class Main:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.quit()
-            elif event.type == SCENE_FINISH:
-                print("Scene Finish")
-                self.next_scene()
             else:
-                self.scene.handle_event(event, self.world_time)
+                self.stage.handle_event(event, self.world_time)
 
     def render(self) -> None:
-        self.scene.render(self.delta_time)
+        self.ctx.clear(color=Colors.WHITE)
+        self.stage.render(self.delta_time)
         pygame.display.flip()
 
     def run(self):

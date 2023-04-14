@@ -12,7 +12,13 @@ ARCBALL_MOVE = pygame.USEREVENT + 7
 
 SCENE_FINISH = pygame.USEREVENT + 8
 
-def emit_event(event_type: int, payload: any):
+FADE_IN = pygame.USEREVENT + 9
+FADED_IN = pygame.USEREVENT + 10
+FADE_OUT = pygame.USEREVENT + 11
+FADED_OUT = pygame.USEREVENT + 12
+
+
+def emit_event(event_type: int, payload: any = {}):
     evt = pygame.event.Event(event_type, payload)
     pygame.event.post(evt)
 

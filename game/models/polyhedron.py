@@ -126,7 +126,7 @@ class Polyhedron(Renderable):
                 self.m_model[x][y] = new_transform[x][y]
 
     def projected_face_vertices(self) -> list[list[glm.vec4]]:
-        m_mvp = self.camera.view_projection_matrix() * self.m_model
+        m_mvp = self.camera.view_projection_matrix * self.m_model
         return [face.projected_vertices(m_mvp) for face in self.faces]
 
     def scramble(self, face_rotations=None):
@@ -182,6 +182,8 @@ class Polyhedron(Renderable):
         self.terrain_shader["explode"] = True
 
     def handle_event(self, event: pygame.event.Event, world_time: int):
+        if not self.is_alive:
+            return
         if event.type == pygame.MOUSEMOTION:
             self.handle_move(pygame.mouse.get_pos())
         elif event.type == FACE_ACTIVATED:
@@ -209,6 +211,9 @@ class Polyhedron(Renderable):
 
 
     def render(self, delta_time: int):
+        if not self.is_alive:
+            return
+
         if self.introduction_animator.is_animating:
             introduction_progress = self.introduction_animator.frame(delta_time)
             self.m_model = glm.translate(

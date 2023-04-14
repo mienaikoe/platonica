@@ -6,46 +6,33 @@ from constants.colors import Colors, set_opacity, BlendModes, ShapeStyle
 from constants.dimensions import SCREEN_DIMENSIONS
 from constants.shape import Shape, SHAPE_VERTICES
 from ui.color_plane import ColorPlane
-from ui.intro_plane import IntroPlane
 from puzzles.puzzle_graph import PuzzleGraph
-from engine.events import NEXT_PUZZLE
+from engine.camera import Camera
+from engine.events import NEXT_PUZZLE, emit_event, FADE_IN, FADE_OUT, FADED_OUT
 from engine.renderable import Renderable
 from models.polyhedron import Polyhedron
-from engine.camera import Camera
-from ui.fader import Fader
 from ui.progress import Progress
 from scenes.gameplay_levels import LEVELS
 
 
-
-INTRO_FADE = 2000  # ms
-INTRO_STAY = 2000  # ms
-
 class GameplayScene(Renderable):
-    def __init__(self, ctx: moderngl.Context):
+    def __init__(self, ctx: moderngl.Context, camera: Camera):
         self.ctx = ctx
+        self.camera = camera
         self.center = (
             SCREEN_DIMENSIONS[0] / 2,
             SCREEN_DIMENSIONS[1] / 2,
         )
-        self.camera = Camera(self.ctx)
+
         self.current_level_index = 0
         self.current_puzzle_index = 0
-        self.puzzles = []
+        self._load_puzzles()
 
-        self.intro = IntroPlane(
-            self.ctx,
-            self.camera.view_projection_matrix(),
-            on_stop=self._on_intro_stop,
-            fade_time=INTRO_FADE,
-            stay_time=INTRO_STAY,
-        )
-        self.progress = Progress(self.ctx, self.camera.view_projection_matrix())
-        self.fader = Fader(self.ctx, self.camera.view_projection_matrix(), on_stop=self._fade_stopped)
+        self.progress = Progress(self.ctx, camera.view_projection_matrix)
         # Example of a button
         # self.button = ColorPlane(
         #     self.ctx,
-        #     self.camera.view_projection_matrix(),
+        #     self.camera.view_projection_matrix,
         #     position=glm.vec3(1.6, -1.15, -2.1),
         #     dimensions=glm.vec2(1.0,1.0),
         #     color=Colors.LIME,
@@ -57,14 +44,7 @@ class GameplayScene(Renderable):
 
 
     def init(self):
-        self.intro.init()
-        self._load_puzzles()
         self._start_puzzle()
-        self.fader.set(0.0)
-
-    def _on_intro_stop(self):
-        self.intro.destroy()
-        self.intro = None
 
     def _load_puzzles(self):
         level = LEVELS[self.current_level_index]
@@ -82,19 +62,15 @@ class GameplayScene(Renderable):
 
 
     def _start_puzzle(self):
-        self.fader.fade_in()
+        emit_event(FADE_IN)
         self.current_puzzle().introduce()
 
     def _end_puzzle(self):
-        self.fader.fade_out()
+        print("end puzzle")
+        emit_event(FADE_OUT)
 
     def current_puzzle(self):
         return self.puzzles[self.current_puzzle_index]
-
-    def _fade_stopped(self, _fade_amount: float):
-        if self.current_puzzle().is_puzzle_solved:
-            self.advance()
-
 
     def advance(self):
         self.progress.complete_level(self.current_puzzle_index)
@@ -115,24 +91,19 @@ class GameplayScene(Renderable):
     def handle_event(self, event: pygame.event.Event, world_time: int):
         if event.type == NEXT_PUZZLE:
             self._end_puzzle()
+        elif event.type == FADED_OUT:
+            if self.current_puzzle().is_puzzle_solved:
+                self.advance()
 
         if self.current_puzzle().is_alive:
             self.current_puzzle().handle_event(event, world_time)
 
     def render(self, delta_time: int):
-        self.ctx.clear(color=Colors.WHITE)
-        if self.intro:
-            if self.intro.is_opaque:
-                self.current_puzzle().render(delta_time)
-            self.intro.render(delta_time)
-        else:
-            if self.current_puzzle().is_alive:
-                self.current_puzzle().render(delta_time)
-            self.fader.render(delta_time)
-            self.progress.render(delta_time)
+        if self.current_puzzle().is_alive:
+            self.current_puzzle().render(delta_time)
+        self.progress.render(delta_time)
 
     def destroy(self):
         self.progress.destroy()
-        self.fader.destroy()
         for puzzle in self.puzzles:
             puzzle.destroy()

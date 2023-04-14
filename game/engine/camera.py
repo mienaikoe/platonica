@@ -17,6 +17,5 @@ class Camera:
         self.projection_matrix = glm.infinitePerspective(
             glm.radians(FOV), ASPECT_RATIO, NEAR
         )
+        self.view_projection_matrix = self.projection_matrix * self.view_matrix
 
-    def view_projection_matrix(self):
-        return self.projection_matrix * self.view_matrix

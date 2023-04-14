@@ -31,7 +31,7 @@ class RotationArrow(Renderable):
     )
     self.arrow.shader['m_mvp'].write(
       glm.translate(
-        self.camera.view_projection_matrix(),
+        self.camera.view_projection_matrix,
         glm.vec3(1.0, 1.0, 0.0)
       ) *
       glm.scale(
