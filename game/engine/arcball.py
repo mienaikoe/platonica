@@ -16,7 +16,7 @@ Copied from https://github.com/zishun/pyqt-meshviewer/blob/master/ArcBall.py
 
 import pygame
 import numpy as np
-from engine.events import emit_event, ARCBALL_MOVE
+from engine.events import emit_event, ARCBALL_MOVE, ARCBALL_DONE
 
 from constants.dimensions import SCREEN_DIMENSIONS
 __all__ = ['ArcBall', 'ArcBallUtil']
@@ -108,6 +108,9 @@ class ArcBall:
             return
         self.is_dragging = False
         self._last_rot3x3 = self._rot3x3
+
+        if self.emit_events:
+            emit_event(ARCBALL_DONE, { 'mouse_pos': pygame.mouse.get_pos() })
 
     # def reset(self):
         # self._last_rot3x3 = np.identity(3, 'f4')
