@@ -15,7 +15,10 @@ from engine.shader import get_shader_program
 from models.types import Vertex
 from models.face import Face
 from engine.arcball import ArcBall
-from engine.events import FACE_ACTIVATED, FACE_ROTATED, PUZZLE_SOLVED, NEXT_PUZZLE, DONE_RESONATE, emit_face_activated, emit_event
+from engine.events import (
+    FACE_ACTIVATED, FACE_ROTATED, ARCBALL_DONE,
+    PUZZLE_SOLVED, NEXT_PUZZLE, DONE_RESONATE,
+    emit_face_activated, emit_event)
 from engine.events.mouse import find_mouse_face, ClickDetector
 
 
@@ -146,7 +149,7 @@ class Polyhedron(Renderable):
             emit_face_activated(self.hovered_face_idx)
 
     def handle_move(self, mouse_pos):
-        if self.is_puzzle_solved:
+        if self.is_puzzle_solved or self.arcball.is_dragging:
             return
 
         hovered_face_idx = find_mouse_face(
@@ -198,6 +201,9 @@ class Polyhedron(Renderable):
             if is_resonant:
                 self.set_is_resonant(is_resonant)
                 pygame.time.set_timer(DONE_RESONATE, RESONATE_RUNTIME, loops=1)
+        elif event.type == ARCBALL_DONE:
+            mouse_pos = face_index = event.__dict__["face_index"]
+            self.handle_move(mouse_pos)
         elif event.type == DONE_RESONATE:
             for face in self.faces:
                 face.explode()
