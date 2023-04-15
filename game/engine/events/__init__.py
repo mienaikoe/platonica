@@ -18,6 +18,8 @@ FADED_IN = pygame.USEREVENT + 10
 FADE_OUT = pygame.USEREVENT + 11
 FADED_OUT = pygame.USEREVENT + 12
 
+MUSIC_TRACK_END = pygame.USEREVENT + 14
+
 
 def emit_event(event_type: int, payload: any = {}):
     evt = pygame.event.Event(event_type, payload)

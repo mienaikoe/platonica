@@ -52,6 +52,7 @@ class Stage:
     def _on_intro_stop(self):
         self.intro.destroy()
         self.intro = None
+        self.scene.init_music()
 
     def next_scene(self):
         if self.scene.__class__ == TutorialScene:

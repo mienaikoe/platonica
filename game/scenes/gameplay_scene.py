@@ -7,6 +7,7 @@ from constants.dimensions import SCREEN_DIMENSIONS
 from constants.shape import Shape, SHAPE_VERTICES
 from ui.color_plane import ColorPlane
 from puzzles.puzzle_graph import PuzzleGraph
+from engine.audio.soundtrack import Soundtrack, SoundtrackSong
 from engine.camera import Camera
 from engine.events import NEXT_PUZZLE, emit_event, FADE_IN, FADE_OUT, FADED_OUT
 from engine.renderable import Renderable
@@ -29,6 +30,8 @@ class GameplayScene(Renderable):
         self._load_puzzles()
 
         self.progress = Progress(self.ctx, camera.view_projection_matrix)
+
+        self.soundtrack = Soundtrack()
         # Example of a button
         # self.button = ColorPlane(
         #     self.ctx,
@@ -44,7 +47,12 @@ class GameplayScene(Renderable):
 
 
     def init(self):
+        self.soundtrack.set_song(SoundtrackSong.water)
+        self.soundtrack.set_volume(0.5)
         self._start_puzzle()
+
+    def init_music(self):
+        self.soundtrack.play()
 
     def _load_puzzles(self):
         level = LEVELS[self.current_level_index]
@@ -76,6 +84,7 @@ class GameplayScene(Renderable):
         self.current_puzzle().destroy()
         if self.current_puzzle_index < len(self.puzzles) - 1:
             self.current_puzzle_index += 1
+            self.soundtrack.advance()
             self._start_puzzle()
         elif self.current_level_index < len(LEVELS) - 1:
             for puzzle in self.puzzles:
@@ -83,8 +92,10 @@ class GameplayScene(Renderable):
             self.current_puzzle_index = 0
             self.current_level_index += 1
             self._load_puzzles()
+            self.soundtrack.advance() # eventually, change song per level
             self._start_puzzle()
         else:
+            self.soundtrack.advance()
             print("GAME WOM")
 
     def handle_event(self, event: pygame.event.Event, world_time: int):
@@ -96,6 +107,8 @@ class GameplayScene(Renderable):
 
         if self.current_puzzle().is_alive:
             self.current_puzzle().handle_event(event, world_time)
+
+        self.soundtrack.handle_event(event, world_time)
 
     def render(self, delta_time: int):
         if self.current_puzzle().is_alive:
