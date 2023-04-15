@@ -1,6 +1,6 @@
 from enum import Enum
 from os import listdir, path
-from engine.events import MUSIC_TRACK_END
+from engine.events import MUSIC_TRACK_END, LEVEL_LOADED, PUZZLE_LOADED
 from pygame import mixer
 import pygame
 
@@ -10,9 +10,6 @@ mixer.init()
 
 class SoundtrackSong(Enum):
   water = "water"
-
-
-FADE_OUT_TIME = 1000
 
 
 MUSIC_DIRECTORY = path.join(dir_path, '..', '..', 'assets', 'music')
@@ -33,8 +30,17 @@ class Soundtrack:
   def handle_event(self, event: pygame.event.Event, world_time: int):
     if event.type == MUSIC_TRACK_END:
       mixer.music.queue(self.tracks[self.track_num])
+    elif event.type == LEVEL_LOADED:
+      mixer.music.fadeout(100)
+      self.set_song(event.__dict__['song'])
+    elif event.type == PUZZLE_LOADED:
+      if mixer.music.get_busy():
+        self.advance()
+      else:
+        self.play()
 
   def set_song(self, song_name: SoundtrackSong):
+    self.track_num = 0
     self.tracks = TRACK_ATLAS[song_name]
     mixer.music.load(self.tracks[self.track_num])
 

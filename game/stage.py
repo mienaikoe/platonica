@@ -2,6 +2,7 @@
 import os
 import pygame
 import moderngl
+from engine.audio.soundtrack import Soundtrack, SoundtrackSong
 from engine.camera import Camera
 from engine.renderable import Renderable
 from scenes.tutorial_scene import TutorialScene
@@ -10,7 +11,7 @@ from scenes.test_scene import TestScene
 from ui.action_menu import ActionMenu
 from ui.fader import Fader
 from ui.intro_plane import IntroPlane
-from engine.events import SCENE_FINISH, FADE_IN, emit_event
+from engine.events import SCENE_FINISH, FADE_IN, LEVEL_LOADED, PUZZLE_LOADED, emit_event
 
 
 class Stage:
@@ -43,6 +44,8 @@ class Stage:
         )
         self.intro.init()
 
+        self.soundtrack = Soundtrack()
+
     def _to_tutorial(self):
         self.to_scene(self.tutorial)
 
@@ -52,7 +55,7 @@ class Stage:
     def _on_intro_stop(self):
         self.intro.destroy()
         self.intro = None
-        self.scene.init_music()
+        self.soundtrack.set_volume(0.5)
 
     def next_scene(self):
         if self.scene.__class__ == TutorialScene:
@@ -71,6 +74,7 @@ class Stage:
             self.scene.handle_event(event, world_time)
             self.fader.handle_event(event, world_time)
             self.action_menu.handle_event(event, world_time)
+            self.soundtrack.handle_event(event, world_time)
 
     def render(self, delta_time: int) -> None:
         if self.intro:

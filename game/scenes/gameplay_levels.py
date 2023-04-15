@@ -1,5 +1,6 @@
 from constants.shape import Shape
 from constants.colors import Colors, ShapeStyle, BlendModes, set_opacity
+from engine.audio.soundtrack import SoundtrackSong
 
 LEVELS = [
   {
@@ -17,6 +18,7 @@ LEVELS = [
         Colors.CHARCOAL,
         BlendModes.Overlay
     ),
+    "song": SoundtrackSong.water
   },{
     "shape": Shape.cube,
     "puzzles": [
@@ -29,6 +31,7 @@ LEVELS = [
       Colors.CHARCOAL,
       BlendModes.Reflect
     ),
+    "song": SoundtrackSong.water
   }, {
     "shape": Shape.octahedron,
     "puzzles": [
@@ -41,6 +44,7 @@ LEVELS = [
       Colors.CHARCOAL,
       BlendModes.Opaque
     ),
+    "song": SoundtrackSong.water
   }, {
     "shape": Shape.icosahedron,
     "puzzles": [
@@ -53,6 +57,7 @@ LEVELS = [
       Colors.CHARCOAL,
       BlendModes.Opaque
     ),
+    "song": SoundtrackSong.water
   }, {
     "shape": Shape.dodecahedron,
     "puzzles": [
@@ -65,5 +70,6 @@ LEVELS = [
       Colors.CHARCOAL,
       BlendModes.Opaque
     ),
+    "song": SoundtrackSong.water
   },
 ]
