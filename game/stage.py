@@ -47,6 +47,7 @@ class Stage:
         self.intro.init()
 
         self.soundtrack = Soundtrack()
+        self.soundtrack.set_volume(0.5)
 
     def _to_tutorial(self):
         self.to_scene(self.tutorial)
@@ -57,7 +58,6 @@ class Stage:
     def _on_intro_stop(self):
         self.intro.destroy()
         self.intro = None
-        self.soundtrack.set_volume(0.5)
 
     def queue_next_scene(self):
         if self.scene.__class__ == TutorialScene:

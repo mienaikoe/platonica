@@ -10,6 +10,7 @@ mixer.init()
 
 class SoundtrackSong(Enum):
   water = "water"
+  fire = "fire"
 
 
 MUSIC_DIRECTORY = path.join(dir_path, '..', '..', 'assets', 'music')

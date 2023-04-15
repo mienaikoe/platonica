@@ -18,7 +18,7 @@ LEVELS = [
         Colors.CHARCOAL,
         BlendModes.Overlay
     ),
-    "song": SoundtrackSong.water
+    "song": SoundtrackSong.fire
   },{
     "shape": Shape.cube,
     "puzzles": [
