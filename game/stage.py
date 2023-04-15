@@ -73,14 +73,14 @@ class Stage:
         if event.type == SCENE_FINISH:
             print("Scene Finish")
             self.queue_next_scene()
-        if event.type == FADED_OUT:
+        elif event.type == FADED_OUT:
             if self.next_scene_queued is not None:
                 self.to_scene(self.next_scene_queued)
-        else:
-            self.scene.handle_event(event, world_time)
-            self.fader.handle_event(event, world_time)
-            self.action_menu.handle_event(event, world_time)
-            self.soundtrack.handle_event(event, world_time)
+
+        self.scene.handle_event(event, world_time)
+        self.fader.handle_event(event, world_time)
+        self.action_menu.handle_event(event, world_time)
+        self.soundtrack.handle_event(event, world_time)
 
     def render(self, delta_time: int) -> None:
         if self.intro:

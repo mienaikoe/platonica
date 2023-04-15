@@ -100,6 +100,7 @@ class Polyhedron(Renderable):
         self.m_model = glm.mat4()
 
         self.arcball = ArcBall(self.__update_model_matrix, emit_events=kwargs.get("emit_arcball_events", False))
+        self.last_model = self.m_model
 
         self.is_face_rotating = False
         self.is_alive = False
@@ -152,6 +153,7 @@ class Polyhedron(Renderable):
     
     def exit_scene(self):
         self.exit_scene_dx = 0
+        self.last_model = glm.mat4(self.m_model)
         self.exit_scene_animator.start(EXIT_SCENE_TARGET_POS)
 
     def reset(self):
@@ -283,9 +285,7 @@ class Polyhedron(Renderable):
 
         if self.exit_scene_animator.is_animating:
             x = self.exit_scene_animator.frame(delta_time)
-            dx = x - self.exit_scene_dx
-            self.m_model =  self.m_model * glm.translate(glm.vec3(dx, 0, 0.03))
-            self.exit_scene_dx = x
+            self.m_model = self.last_model * glm.translate(glm.vec3(x, 0, -x))
 
         self.terrain_shader['m_model'].write(self.m_model)
         self.carve_shader['v_color'].write(self.style.path_color)
