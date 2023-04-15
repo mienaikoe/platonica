@@ -15,9 +15,9 @@ class NextButton(ImagePlane):
         self.matrix = self.matrix
         self.animate_matrix = glm.mat4()
         self.position_animator = Animator(
-            AnimationLerper(AnimationLerpFunction.ease_in_out, 1000),
+            AnimationLerper(AnimationLerpFunction.linear, 1000),
             start_value=-DISPLACE,
-            on_stop=self._reverse_animator,
+            reversible=True
         )
         self.position_animator.start(DISPLACE)
     
@@ -26,10 +26,6 @@ class NextButton(ImagePlane):
     
     def is_active(self):
         return self.click_detector.is_enabled
-
-    def _reverse_animator(self, old_target):
-        new_target = -DISPLACE if old_target == DISPLACE else DISPLACE
-        self.position_animator.start(new_target)
     
     def render(self, delta_time: int, opacity=1.0):
         d = self.position_animator.frame(delta_time)

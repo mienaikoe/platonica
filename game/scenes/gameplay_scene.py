@@ -27,11 +27,12 @@ class GameplayScene(Renderable):
             SCREEN_DIMENSIONS[1] / 2,
         )
 
+        self.progress = Progress(self.ctx, camera.view_projection_matrix)
+
         self.current_level_index = 0
         self.current_puzzle_index = 0
         self._load_puzzles()
 
-        self.progress = Progress(self.ctx, camera.view_projection_matrix)
 
         self.next_button = NextButton(
             self.ctx,
@@ -55,6 +56,9 @@ class GameplayScene(Renderable):
     def init(self):
         self._start_puzzle(True)
 
+    def show_skybox(self):
+        self.skybox.start(0)
+
     def _load_puzzles(self):
         level = LEVELS[self.current_level_index]
         self.puzzles = []
@@ -73,6 +77,7 @@ class GameplayScene(Renderable):
         emit_event(LEVEL_LOADED, {
             'song': level['song']
         })
+        self.progress.set_colors(level["style"].wall_color, level["style"].path_color)
 
 
     def _start_puzzle(self, is_introduce = False):
