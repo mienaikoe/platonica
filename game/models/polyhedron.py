@@ -17,7 +17,7 @@ from models.face import Face
 from engine.arcball import ArcBall
 from engine.events import (
     FACE_ACTIVATED, FACE_ROTATED, ARCBALL_DONE,
-    PUZZLE_SOLVED, NEXT_PUZZLE, DONE_RESONATE,
+    PUZZLE_SOLVED, NEXT_PUZZLE, NEXT_LEVEL,
     emit_event)
 from engine.events.mouse import find_mouse_face, ClickDetector
 
@@ -133,7 +133,7 @@ class Polyhedron(Renderable):
         self.is_face_rotating = False
         self.time = 0.0
         self.resonance_animator.set(LINE_LUMINOSITY_INACTIVE)
-        self.stop_exploding()
+        self.__stop_exploding()
         for face in self.faces:
             face.reset()
 
@@ -189,16 +189,22 @@ class Polyhedron(Renderable):
     def __animate_resonance(self, new_value: float):
         # self.path_color = self.base_path_color * new_value
         self.carve_shader["lumin"] = new_value
+    
+    def explode(self):
+        for face in self.faces:
+            face.explode()
+        self.__start_exploding()
 
-    def start_exploding(self):
+    def __start_exploding(self):
         self.terrain_shader["explode"] = True
         self.terrain_shader["time"] = 0.0
+        pygame.time.set_timer(NEXT_LEVEL, EXPLOSION_RUNTIME, loops=1)
 
-    def render_exploding(self, delta_time):
+    def __render_exploding(self, delta_time):
         self.time += delta_time
         self.terrain_shader["time"] = self.time / 1000.0
 
-    def stop_exploding(self):
+    def __stop_exploding(self):
         self.terrain_shader["explode"] = False
 
     def handle_event(self, event: pygame.event.Event, world_time: int):
@@ -220,16 +226,8 @@ class Polyhedron(Renderable):
             is_resonant = self.puzzle.is_resonant()
             if is_resonant:
                 self.set_is_resonant(is_resonant)
-                pygame.time.set_timer(DONE_RESONATE, RESONATE_RUNTIME, loops=1)
-        elif event.type == DONE_RESONATE:
-            self.sounds["shimmer"].play()
-            for face in self.faces:
-                face.explode()
-            self.start_exploding()
-            pygame.time.set_timer(PUZZLE_SOLVED, EXPLOSION_RUNTIME, loops=1)
-        elif event.type == PUZZLE_SOLVED:
-            # let game scene know to go to next level
-            emit_event(NEXT_PUZZLE, {})
+                emit_event(PUZZLE_SOLVED)
+                print('puzzle solved')
         if not self.introduction_animator.is_animating:
             self.click_detector.handle_event(event, world_time)
             self.arcball.handle_event(event)
@@ -251,7 +249,7 @@ class Polyhedron(Renderable):
         self.terrain_shader['m_model'].write(self.m_model)
         self.carve_shader['v_color'].write(self.style.path_color)
         if self.is_puzzle_solved:
-            self.render_exploding(delta_time)
+            self.__render_exploding(delta_time)
         for face in self.faces:
             face.renderFace(self.camera, self.m_model, delta_time)
         self.resonance_animator.frame(delta_time)
