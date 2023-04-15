@@ -44,13 +44,10 @@ class RotationArrow(Renderable):
     self.brightness_animator = Animator(
       AnimationLerper(AnimationLerpFunction.linear, 1000),
       0.0,
-      on_stop=self._reverse_animator
+      reversible=True
     )
     self.brightness_animator.start(1.0)
 
-  def _reverse_animator(self, old_target):
-    new_target = 1.0 if old_target == 0.0 else 0.0
-    self.brightness_animator.start(new_target)
 
   def render(self, delta_time: int, m_mvp: glm.mat4):
     brightness = self.brightness_animator.frame(delta_time)

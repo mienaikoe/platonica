@@ -64,6 +64,7 @@ class Animator:
   ):
     self.is_animating = False
     self.current_value = start_value
+    self.start_value = start_value
     self.target_value = start_value
     self.time_elapsed = 0
     self.delay_time = 0
@@ -71,6 +72,7 @@ class Animator:
     self.difference = 0
     self.on_frame = kwargs.get("on_frame", None)
     self.on_stop = kwargs.get("on_stop", None)
+    self.reversible = kwargs.get("reversible", False)
 
   def set(self, value: float):
     self.current_value = value
@@ -120,10 +122,21 @@ class Animator:
     progression = self.lerper.interpolate(self.time_elapsed)
     new_value = self.current_value + (progression * self.difference)
     if progression >= 1:
-      self.stop()
+      if self.reversible:
+        self.reverse()
+      else:
+        self.stop()
     elif self.on_frame:
       self.on_frame(new_value)
+    
     return new_value
+
+  def reverse(self):
+    self.current_value = self.target_value
+    new_start = self.target_value
+    new_target = self.start_value
+    self.start_value = new_start
+    self.start(new_target)
 
   def stop(self):
     self.current_value = self.target_value
