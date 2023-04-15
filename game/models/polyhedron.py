@@ -145,12 +145,12 @@ class Polyhedron(Renderable):
     def introduce(self):
         self.is_alive = True
         self.introduction_animator.start(0.0)
-    
+
     def enter_scene(self):
         self.is_alive = True
         self.m_model = glm.translate(glm.vec3(ENTER_SCENE_STARTING_POS, 0, 0))
         self.enter_scene_animator.start(ENTER_SCENE_TARGET_POS)
-    
+
     def exit_scene(self):
         self.exit_scene_dx = 0
         self.last_model = glm.mat4(self.m_model)
@@ -278,14 +278,14 @@ class Polyhedron(Renderable):
                 INTRODUCTION_ROTATION * introduction_progress,
                 (0.0, 1.0, 0.0)
             )
-        
+
         if self.enter_scene_animator.is_animating:
             px = self.enter_scene_animator.frame(delta_time)
             self.m_model = glm.translate(glm.vec3(px, 0, 0))
 
         if self.exit_scene_animator.is_animating:
             x = self.exit_scene_animator.frame(delta_time)
-            self.m_model = self.last_model * glm.translate(glm.vec3(x, 0, -x))
+            self.m_model = glm.translate(glm.vec3(x, 0, -x)) * self.last_model
 
         self.terrain_shader['m_model'].write(self.m_model)
         self.carve_shader['v_color'].write(self.style.path_color)
