@@ -75,9 +75,7 @@ class Polyhedron(Renderable):
         self.underside_shader = get_shader_program(ctx, "uniform_color")
         self.underside_shader["v_color"] = style.underside_color
 
-        self.click_detector = ClickDetector(
-            on_click=self.handle_click,
-        )
+        self.click_detector = ClickDetector(on_click=self.handle_click)
 
         self.faces = []
         puzzle_faces = puzzle.faces
@@ -228,9 +226,10 @@ class Polyhedron(Renderable):
                 self.set_is_resonant(is_resonant)
                 emit_event(PUZZLE_SOLVED)
                 self.sounds["shimmer"].play()
-                print('puzzle solved')
+                self.click_detector.is_enabled = False
         if not self.introduction_animator.is_animating:
-            self.click_detector.handle_event(event, world_time)
+            if self.click_detector.is_enabled:
+                self.click_detector.handle_event(event, world_time)
             self.arcball.handle_event(event)
 
 

@@ -55,6 +55,7 @@ class ClickDetector:
         self.mouse_down_time = None
         self.mouse_button = None
         self.on_click = on_click
+        self.is_enabled = True
 
     def handle_event(self, event: pygame.event.Event, world_time: int):
         if event.type == pygame.MOUSEBUTTONDOWN:

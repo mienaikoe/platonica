@@ -22,6 +22,12 @@ class NextButton(ImagePlane):
         )
         self.position_animator.start(DISPLACE)
     
+    def set_active(self, active):
+        self.click_detector.is_enabled = active
+    
+    def is_active(self):
+        return self.click_detector.is_enabled
+
     def _reverse_animator(self, old_target):
         new_target = -DISPLACE if old_target == DISPLACE else DISPLACE
         self.position_animator.start(new_target)
