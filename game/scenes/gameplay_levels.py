@@ -47,7 +47,19 @@ LEVELS = [
       "20_stars",
     ],
     "style":  ShapeStyle(
-      "david-jorre-unsplash_lighter.png",
+      "ice-opaque.png",
+      Colors.GRAY,
+      Colors.CHARCOAL,
+      Colors.CHARCOAL,
+      BlendModes.Opaque
+    ),
+  }, {
+    "shape": Shape.dodecahedron,
+    "puzzles": [
+      "12_pointy",
+    ],
+    "style": ShapeStyle(
+      "ice-opaque.png",
       Colors.GRAY,
       Colors.CHARCOAL,
       Colors.CHARCOAL,
