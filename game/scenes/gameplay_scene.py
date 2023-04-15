@@ -55,6 +55,9 @@ class GameplayScene(Renderable):
     def init(self):
         self._start_puzzle(True)
 
+    def show_skybox(self):
+        self.skybox.start(0)
+
     def _load_puzzles(self):
         level = LEVELS[self.current_level_index]
         self.puzzles = []
@@ -126,7 +129,7 @@ class GameplayScene(Renderable):
 
 
     def render(self, delta_time: int):
-        # self.skybox.render(delta_time)
+        self.skybox.render(delta_time)
         if self.current_puzzle().is_alive:
             self.current_puzzle().render(delta_time)
         self.progress.render(delta_time)

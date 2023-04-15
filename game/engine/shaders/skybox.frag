@@ -12,6 +12,10 @@ float dist(vec2 p0, vec2 pf){
 void main() {
     vec2 pos = gl_FragCoord.xy;
     vec2 origin = vec2(screen.x*0.5, screen.y*-0.1);
-    float d = dist(origin, pos)*(sin(time)+1.5)*0.003;
-	frag_color = mix(vec4(1.0, 1.0, 1.0, 1.0), vec4(0.0, 0.0, 0.0, 1.0), d);
+
+    vec3 bg_color = vec3(239. / 256. , 227. / 256. , 198. / 256.);
+    vec3 core_color = vec3(233. / 256. , 206. / 256., 99. / 256.);
+
+    float d = dist(origin, pos) * (sin(time)+1.5) * 0.003;
+	frag_color = vec4(mix(bg_color, core_color, d), 1.0);
 }

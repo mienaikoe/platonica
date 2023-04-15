@@ -1,5 +1,7 @@
-import moderngl
+import math
 import glm
+
+from engine.animation import Animator, AnimationLerpFunction, AnimationLerper
 from engine.shader import get_shader_program
 from engine.shadeable_object import ShadeableObject
 from constants.dimensions import SCREEN_DIMENSIONS
@@ -16,8 +18,13 @@ class Skybox(Plane):
         position = glm.vec3(0, 0, 20)
         dimensions = glm.vec2(9.65, 7.25)
         super().__init__(ctx, camera_matrix, position, dimensions)
-        self.time = 0
         self.obj.shader["screen"].write(glm.vec2(SCREEN_DIMENSIONS))
+        self.ready = False
+
+        self.animator = Animator(
+            AnimationLerper(AnimationLerpFunction.ease_in_out, LOOP_TIME * 0.5),
+            0.0, # start value
+            reversible=True)
     
     def _get_shadeable_object(self):
         return ShadeableObject(
@@ -29,9 +36,13 @@ class Skybox(Plane):
             self.vertex_data
         )
     
+    def start(self, level = 0):
+        self.ready = True
+        self.animator.start(1.0)
+        # TODO put level into uniforms
+
     def render(self, delta_time: int):
-        self.time += delta_time
-        if self.time > LOOP_TIME:
-            self.time = 0.0
-        self.obj.shader["time"] = self.time / LOOP_TIME
-        return super().render()
+        if self.ready:
+            t = self.animator.frame(delta_time) 
+            self.obj.shader["time"] = t * math.pi
+            return super().render()
