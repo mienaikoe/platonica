@@ -71,7 +71,7 @@ class GameplayScene(Renderable):
                 PuzzleGraph.from_file_name(puzzle),
                 style=level["style"]
             )
-            if os.environ['OVER_EASY'] != '1':
+            if os.environ.get('OVER_EASY', None) != '1':
                 level_poly.scramble()
             self.puzzles.append(level_poly)
 

@@ -23,7 +23,7 @@ class Stage:
         self.tutorial = TutorialScene(self.ctx, self.camera)
         self.gameplay = GameplayScene(self.ctx, self.camera)
 
-        if os.environ['SKIP_TUTORIAL'] == '1':
+        if os.environ.get('SKIP_TUTORIAL', None) == '1':
             self.scene = self.gameplay
         else:
             self.scene = self.tutorial

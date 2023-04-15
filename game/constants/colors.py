@@ -10,6 +10,7 @@ class Colors:
     APPLE_GREEN = glm.vec4(0.285, 0.898, 0.305, 1.0)
     RED         = glm.vec4(1.0, 0, 0, 1.0)
     DARK_RED    = glm.vec4(0.95, 0.3, 0.2, 1.0)
+    PALE_BLUE   = glm.vec4(0.5, 0.7, 1.0, 1.0)
 
 class BlendModes:
     Opaque      = 0
