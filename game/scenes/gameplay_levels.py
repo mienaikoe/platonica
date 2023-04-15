@@ -31,7 +31,7 @@ LEVELS = [
       Colors.CHARCOAL,
       BlendModes.Reflect
     ),
-    "song": SoundtrackSong.water
+    "song": SoundtrackSong.earth
   }, {
     "shape": Shape.octahedron,
     "puzzles": [
