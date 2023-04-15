@@ -1,3 +1,4 @@
+import os
 import moderngl
 import pygame
 import glm
@@ -36,7 +37,7 @@ class GameplayScene(Renderable):
         self.next_button = NextButton(
             self.ctx,
             self.camera.view_projection_matrix,
-            glm.vec3(0, 1.1, -2.1),
+            glm.vec3(0, 1.2, -2.1),
             on_click=self._go_to_next_puzzle
         )
         self.show_next_button = False
@@ -47,7 +48,8 @@ class GameplayScene(Renderable):
             if self.is_last_puzzle_on_level:
                 self.current_puzzle().explode()
             else:
-                emit_event(NEXT_PUZZLE, {})
+                self._end_puzzle()
+            self.show_next_button = False
 
     def init(self):
         self.soundtrack.set_song(SoundtrackSong.water)
@@ -61,8 +63,7 @@ class GameplayScene(Renderable):
         level = LEVELS[self.current_level_index]
         self.puzzles = []
         puzzles_in_level = level['puzzles']
-        puzzles_count = len(puzzles_in_level)
-        for index, puzzle in enumerate(puzzles_in_level):
+        for puzzle in puzzles_in_level:
             level_poly = Polyhedron(
                 self.ctx,
                 self.camera,
@@ -70,7 +71,8 @@ class GameplayScene(Renderable):
                 PuzzleGraph.from_file_name(puzzle),
                 style=level["style"]
             )
-            level_poly.scramble()
+            if os.environ['OVER_EASY'] != '1':
+                level_poly.scramble()
             self.puzzles.append(level_poly)
 
 
@@ -86,7 +88,6 @@ class GameplayScene(Renderable):
 
     def advance(self):
         self.current_puzzle().destroy()
-        self.show_next_button = False
         puzzles_count = len(self.puzzles)
         if self.current_puzzle_index < puzzles_count - 1: # next puzzle
             self.current_puzzle_index += 1

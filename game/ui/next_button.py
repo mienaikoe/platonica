@@ -9,7 +9,7 @@ class NextButton(ImagePlane):
     def __init__( self, ctx, camera_matrix, position, **kwargs):
         super().__init__(
             ctx, camera_matrix,
-            position, glm.vec2(0.1, 0.1),
+            position, glm.vec2(0.08, 0.08),
             "next_button.png", **kwargs)
         
         self.matrix = self.matrix * glm.rotate(
