@@ -4,9 +4,6 @@ import glm
 from constants.colors import Colors
 from engine.shadeable_object import ShadeableObject
 
-EMPTY_COLOR = Colors.LIGHT_GRAY
-FILL_COLOR = Colors.LIME
-
 vertices = [
     glm.vec3(0.0, 0.0, 0.0),
     glm.vec3(0.2, 0.0, 0.0),
@@ -38,9 +35,9 @@ class ProgressDot(ShadeableObject):
         self.matrix = matrix
         self.done = False
 
-    def render(self):
+    def render(self, color):
         uniforms = {
-            "v_color": FILL_COLOR if self.done else EMPTY_COLOR,
+            "v_color": color,
             "m_mvp": self.matrix,
         }
         super().render(uniforms)

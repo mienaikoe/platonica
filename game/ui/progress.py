@@ -2,7 +2,7 @@ import glm
 from ui.color_plane import ColorPlane
 from ui.progress_dot import ProgressDot
 from engine.shader import get_shader_program
-
+from constants.colors import Colors
 
 class Progress(ColorPlane):
     def __init__(self, ctx, camera_matrix):
@@ -22,17 +22,26 @@ class Progress(ColorPlane):
             ProgressDot(ctx, self.matrix, shader, 270),
         ]
 
+        self.puzzles_completed = 0
+        self.empty_color = Colors.GRAY
+        self.fill_color = Colors.LIME
+
+    def set_colors(self, empty_color, fill_color):
+        self.empty_color = empty_color
+        self.fill_color = fill_color
+
     def complete_puzzle(self, index):
-        if index < len(self.dots):
-            self.dots[index].mark_done()
+        self.puzzles_completed = index + 1
     
     def reset(self):
+        self.puzzles_completed = 0
         for dot in self.dots:
             dot.reset()
 
     def render(self, delta_time: int):
-        for dot in self.dots:
-            dot.render()
+        for idx, dot in enumerate(self.dots):
+            color = self.fill_color if self.puzzles_completed > idx else self.empty_color
+            dot.render(color)
 
     def destroy(self):
         self.dot.destroy()

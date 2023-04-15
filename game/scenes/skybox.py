@@ -10,7 +10,7 @@ from ui.plane import Plane
 
 # 30 seconds per loop
 
-LOOP_TIME = 5000
+LOOP_TIME = 6000
 #30000
 
 class Skybox(Plane):
@@ -44,5 +44,5 @@ class Skybox(Plane):
     def render(self, delta_time: int):
         if self.ready:
             t = self.animator.frame(delta_time) 
-            self.obj.shader["time"] = t * math.pi
+            self.obj.shader["time"] = t
             return super().render()
