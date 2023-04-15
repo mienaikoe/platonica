@@ -138,6 +138,7 @@ class Polyhedron(Renderable):
             lerper=AnimationLerper(AnimationLerpFunction.ease_in, EXIT_SCENE_RUNTIME),
             start_value=EXIT_SCENE_STARTING_POS
         )
+        self.exit_scene_dx = 0
 
 
     def introduce(self):
@@ -146,9 +147,11 @@ class Polyhedron(Renderable):
     
     def enter_scene(self):
         self.is_alive = True
+        self.m_model = glm.translate(glm.vec3(ENTER_SCENE_STARTING_POS, 0, 0))
         self.enter_scene_animator.start(ENTER_SCENE_TARGET_POS)
     
     def exit_scene(self):
+        self.exit_scene_dx = 0
         self.exit_scene_animator.start(EXIT_SCENE_TARGET_POS)
 
     def reset(self):
@@ -211,7 +214,6 @@ class Polyhedron(Renderable):
         )
 
     def __animate_resonance(self, new_value: float):
-        # self.path_color = self.base_path_color * new_value
         self.carve_shader["lumin"] = new_value
 
     def explode(self):
@@ -220,6 +222,7 @@ class Polyhedron(Renderable):
         self.__start_exploding()
 
     def __start_exploding(self):
+        self.time = 0.0
         self.terrain_shader["explode"] = True
         self.terrain_shader["time"] = 0.0
         pygame.time.set_timer(NEXT_LEVEL, EXPLOSION_RUNTIME, loops=1)
@@ -275,12 +278,14 @@ class Polyhedron(Renderable):
             )
         
         if self.enter_scene_animator.is_animating:
-            dx = self.enter_scene_animator.frame(delta_time)
-            self.m_model = glm.translate(glm.vec3(dx, 0, 0))
+            px = self.enter_scene_animator.frame(delta_time)
+            self.m_model = glm.translate(glm.vec3(px, 0, 0))
 
         if self.exit_scene_animator.is_animating:
-            dx = self.exit_scene_animator.frame(delta_time)
-            self.m_model = glm.translate(glm.vec3(dx, 0, 0))
+            x = self.exit_scene_animator.frame(delta_time)
+            dx = x - self.exit_scene_dx
+            self.m_model =  self.m_model * glm.translate(glm.vec3(dx, 0, 0.03))
+            self.exit_scene_dx = x
 
         self.terrain_shader['m_model'].write(self.m_model)
         self.carve_shader['v_color'].write(self.style.path_color)
