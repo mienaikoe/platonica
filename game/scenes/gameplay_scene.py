@@ -38,7 +38,7 @@ class GameplayScene(Renderable):
         self.next_button = NextButton(
             self.ctx,
             self.camera.view_projection_matrix,
-            glm.vec3(0, 1.2, -2.1),
+            glm.vec3(-1.5, 0, -2.1),
             on_click=self._go_to_next_puzzle
         )
         self.next_button.set_active(False)
@@ -57,7 +57,7 @@ class GameplayScene(Renderable):
     def init(self):
         self.soundtrack.set_song(SoundtrackSong.water)
         self.soundtrack.set_volume(0.5)
-        self._start_puzzle()
+        self._start_puzzle(True)
 
     def init_music(self):
         self.soundtrack.play()
@@ -79,11 +79,16 @@ class GameplayScene(Renderable):
             self.puzzles.append(level_poly)
 
 
-    def _start_puzzle(self):
+    def _start_puzzle(self, is_introduce = False):
         emit_event(FADE_IN)
-        self.current_puzzle().introduce()
+        if is_introduce:
+            self.current_puzzle().introduce()
+        else:
+            self.current_puzzle().enter_scene()
 
     def _end_puzzle(self):
+        if not self.is_last_puzzle_on_level:
+            self.current_puzzle().exit_scene()
         emit_event(FADE_OUT)
 
     def current_puzzle(self):
@@ -105,7 +110,7 @@ class GameplayScene(Renderable):
             self.progress.reset()
             self._load_puzzles()
             self.soundtrack.advance() # eventually, change song per level
-            self._start_puzzle()
+            self._start_puzzle(True)
         else:
             self.soundtrack.advance()
             print("GAME WOM")
