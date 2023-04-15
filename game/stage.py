@@ -11,7 +11,7 @@ from scenes.test_scene import TestScene
 from ui.action_menu import ActionMenu
 from ui.fader import Fader
 from ui.intro_plane import IntroPlane
-from engine.events import SCENE_FINISH, FADE_IN, LEVEL_LOADED, PUZZLE_LOADED, emit_event
+from engine.events import SCENE_FINISH, FADE_IN, FADE_OUT, FADED_OUT, LEVEL_LOADED, PUZZLE_LOADED, emit_event
 
 
 class Stage:
@@ -28,6 +28,8 @@ class Stage:
             self.scene = self.gameplay
         else:
             self.scene = self.tutorial
+
+        self.next_scene_queued = None
 
         self.delta_time = 0  # Time since last frame
         self.world_time = 0  # Time since beginning of game
@@ -57,9 +59,10 @@ class Stage:
         self.intro = None
         self.soundtrack.set_volume(0.5)
 
-    def next_scene(self):
+    def queue_next_scene(self):
         if self.scene.__class__ == TutorialScene:
-            self.to_scene(self.gameplay)
+            self.next_scene_queued = self.gameplay
+        emit_event(FADE_OUT)
 
     def to_scene(self, scene: Renderable):
         if self.scene != scene:
@@ -69,7 +72,10 @@ class Stage:
     def handle_event(self, event: pygame.event.Event, world_time: int) -> None:
         if event.type == SCENE_FINISH:
             print("Scene Finish")
-            self.next_scene()
+            self.queue_next_scene()
+        if event.type == FADED_OUT:
+            if self.next_scene_queued is not None:
+                self.to_scene(self.next_scene_queued)
         else:
             self.scene.handle_event(event, world_time)
             self.fader.handle_event(event, world_time)
