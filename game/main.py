@@ -54,7 +54,6 @@ class Main:
             if event.type == pygame.QUIT:
                 self.quit()
             else:
-                print("Event", event.type)
                 self.stage.handle_event(event, self.world_time)
 
     def render(self) -> None:

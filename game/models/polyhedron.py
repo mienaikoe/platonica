@@ -189,7 +189,7 @@ class Polyhedron(Renderable):
     def __animate_resonance(self, new_value: float):
         # self.path_color = self.base_path_color * new_value
         self.carve_shader["lumin"] = new_value
-    
+
     def explode(self):
         for face in self.faces:
             face.explode()
@@ -227,6 +227,7 @@ class Polyhedron(Renderable):
             if is_resonant:
                 self.set_is_resonant(is_resonant)
                 emit_event(PUZZLE_SOLVED)
+                self.sounds["shimmer"].play()
                 print('puzzle solved')
         if not self.introduction_animator.is_animating:
             self.click_detector.handle_event(event, world_time)
