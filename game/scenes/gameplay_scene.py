@@ -38,26 +38,26 @@ class GameplayScene(Renderable):
         self.next_button = NextButton(
             self.ctx,
             self.camera.view_projection_matrix,
-            glm.vec3(0, 1.2, -2.1),
+            glm.vec3(-1.5, 0, -2.1),
             on_click=self._go_to_next_puzzle
         )
-        self.show_next_button = False
+        self.next_button.set_active(False)
+
         self.is_last_puzzle_on_level = False
         
         self.skybox = Skybox(ctx, camera.view_projection_matrix)
 
     def _go_to_next_puzzle(self):
-        if self.show_next_button:
-            if self.is_last_puzzle_on_level:
-                self.current_puzzle().explode()
-            else:
-                self._end_puzzle()
-            self.show_next_button = False
+        if self.is_last_puzzle_on_level:
+            self.current_puzzle().explode()
+        else:
+            self._end_puzzle()
+        self.next_button.set_active(False)
 
     def init(self):
         self.soundtrack.set_song(SoundtrackSong.water)
         self.soundtrack.set_volume(0.5)
-        self._start_puzzle()
+        self._start_puzzle(True)
 
     def init_music(self):
         self.soundtrack.play()
@@ -79,11 +79,16 @@ class GameplayScene(Renderable):
             self.puzzles.append(level_poly)
 
 
-    def _start_puzzle(self):
+    def _start_puzzle(self, is_introduce = False):
         emit_event(FADE_IN)
-        self.current_puzzle().introduce()
+        if is_introduce:
+            self.current_puzzle().introduce()
+        else:
+            self.current_puzzle().enter_scene()
 
     def _end_puzzle(self):
+        if not self.is_last_puzzle_on_level:
+            self.current_puzzle().exit_scene()
         emit_event(FADE_OUT)
 
     def current_puzzle(self):
@@ -105,7 +110,7 @@ class GameplayScene(Renderable):
             self.progress.reset()
             self._load_puzzles()
             self.soundtrack.advance() # eventually, change song per level
-            self._start_puzzle()
+            self._start_puzzle(True)
         else:
             self.soundtrack.advance()
             print("GAME WOM")
@@ -113,7 +118,7 @@ class GameplayScene(Renderable):
     def handle_event(self, event: pygame.event.Event, world_time: int):
         if event.type == PUZZLE_SOLVED:
             self.progress.complete_puzzle(self.current_puzzle_index)
-            self.show_next_button = True
+            self.next_button.set_active(True)
         elif event.type == NEXT_PUZZLE:
             self._end_puzzle()
         elif event.type == FADED_OUT or event.type == NEXT_LEVEL:
@@ -132,7 +137,7 @@ class GameplayScene(Renderable):
         if self.current_puzzle().is_alive:
             self.current_puzzle().render(delta_time)
         self.progress.render(delta_time)
-        if self.show_next_button:
+        if self.next_button.is_active():
             self.next_button.render(delta_time)
 
     def destroy(self):

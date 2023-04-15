@@ -6,8 +6,8 @@ LEVELS = [
     "shape": Shape.tetrahedron,
     "puzzles": [
       "4_4",
-      "4_5a",
-      "4_6a",
+      # "4_5a",
+      # "4_6a",
       "4_alien",
     ],
     "style": ShapeStyle(

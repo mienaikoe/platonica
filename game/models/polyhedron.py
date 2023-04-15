@@ -29,6 +29,14 @@ EXPLOSION_RUNTIME = 4000 # in ms
 RESONATE_RUNTIME = 1000 # in ms
 INTRODUCTION_RUNTIME = 4000 # ms
 
+ENTER_SCENE_STARTING_POS = 5.0
+ENTER_SCENE_TARGET_POS = 0.0
+ENTER_SCENE_RUNTIME = 2500
+
+EXIT_SCENE_STARTING_POS = 0.0
+EXIT_SCENE_TARGET_POS = -5.0
+EXIT_SCENE_RUNTIME = 2500
+
 LINE_LUMINOSITY_INACTIVE = 0.6
 LINE_LUMINOSITY_ACTIVE = 1.0
 INTRODUCTION_ROTATION = -np.deg2rad(360) * 2
@@ -75,9 +83,7 @@ class Polyhedron(Renderable):
         self.underside_shader = get_shader_program(ctx, "uniform_color")
         self.underside_shader["v_color"] = style.underside_color
 
-        self.click_detector = ClickDetector(
-            on_click=self.handle_click,
-        )
+        self.click_detector = ClickDetector(on_click=self.handle_click)
 
         self.faces = []
         puzzle_faces = puzzle.faces
@@ -123,9 +129,27 @@ class Polyhedron(Renderable):
             start_value=1.0,
         )
 
+        self.enter_scene_animator = Animator(
+            lerper=AnimationLerper(AnimationLerpFunction.ease_out, ENTER_SCENE_RUNTIME),
+            start_value=ENTER_SCENE_STARTING_POS
+        )
+
+        self.exit_scene_animator = Animator(
+            lerper=AnimationLerper(AnimationLerpFunction.ease_in, EXIT_SCENE_RUNTIME),
+            start_value=EXIT_SCENE_STARTING_POS
+        )
+
+
     def introduce(self):
         self.is_alive = True
         self.introduction_animator.start(0.0)
+    
+    def enter_scene(self):
+        self.is_alive = True
+        self.enter_scene_animator.start(ENTER_SCENE_TARGET_POS)
+    
+    def exit_scene(self):
+        self.exit_scene_animator.start(EXIT_SCENE_TARGET_POS)
 
     def reset(self):
         self.is_puzzle_solved = False
@@ -228,9 +252,12 @@ class Polyhedron(Renderable):
                 self.set_is_resonant(is_resonant)
                 emit_event(PUZZLE_SOLVED)
                 self.sounds["shimmer"].play()
-                print('puzzle solved')
-        if not self.introduction_animator.is_animating:
-            self.click_detector.handle_event(event, world_time)
+                self.click_detector.is_enabled = False
+        if not (self.introduction_animator.is_animating or
+                self.enter_scene_animator.is_animating or
+                self.exit_scene_animator.is_animating):
+            if self.click_detector.is_enabled:
+                self.click_detector.handle_event(event, world_time)
             self.arcball.handle_event(event)
 
 
@@ -246,6 +273,14 @@ class Polyhedron(Renderable):
                 INTRODUCTION_ROTATION * introduction_progress,
                 (0.0, 1.0, 0.0)
             )
+        
+        if self.enter_scene_animator.is_animating:
+            dx = self.enter_scene_animator.frame(delta_time)
+            self.m_model = glm.translate(glm.vec3(dx, 0, 0))
+
+        if self.exit_scene_animator.is_animating:
+            dx = self.exit_scene_animator.frame(delta_time)
+            self.m_model = glm.translate(glm.vec3(dx, 0, 0))
 
         self.terrain_shader['m_model'].write(self.m_model)
         self.carve_shader['v_color'].write(self.style.path_color)
