@@ -16,6 +16,7 @@ from engine.renderable import Renderable
 from models.polyhedron import Polyhedron
 from ui.progress import Progress
 from scenes.gameplay_levels import LEVELS
+from scenes.skybox import Skybox
 
 
 class GameplayScene(Renderable):
@@ -42,6 +43,8 @@ class GameplayScene(Renderable):
         )
         self.show_next_button = False
         self.is_last_puzzle_on_level = False
+        
+        self.skybox = Skybox(ctx, camera.view_projection_matrix)
 
     def _go_to_next_puzzle(self):
         if self.show_next_button:
@@ -125,6 +128,7 @@ class GameplayScene(Renderable):
         self.soundtrack.handle_event(event, world_time)
 
     def render(self, delta_time: int):
+        self.skybox.render(delta_time)
         if self.current_puzzle().is_alive:
             self.current_puzzle().render(delta_time)
         self.progress.render(delta_time)
