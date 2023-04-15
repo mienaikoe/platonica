@@ -2,21 +2,26 @@ import moderngl
 import glm
 from engine.shader import get_shader_program
 from engine.shadeable_object import ShadeableObject
+from game.constants.dimensions import SCREEN_DIMENSIONS
 
 from ui.plane import Plane
+
+# 30 seconds per loop
+
+LOOP_TIME = 30000
 
 class Skybox(Plane):
     def __init__(self, ctx, camera_matrix):
         position = glm.vec3(0, 0, 20)
-        dimensions = glm.vec2(10.0, 10.0)
+        dimensions = glm.vec2(9.65, 7.25)
         super().__init__(ctx, camera_matrix, position, dimensions)
-        self.obj.shader["v_color"].write(glm.vec4(1.0, 1.0, 1.0, 1.0))
+        self.time = 0
+        self.obj.shader["resolution"].write(glm.vec2(SCREEN_DIMENSIONS))
     
     def _get_shadeable_object(self):
-        # TODO give the skybox it's own shader
         return ShadeableObject(
             self.ctx,
-            "uniform_color",
+            "skybox",
             {
                 "in_position": "3f",
             },
@@ -24,4 +29,8 @@ class Skybox(Plane):
         )
     
     def render(self, delta_time: int):
+        self.time += delta_time
+        if self.time > LOOP_TIME:
+            self.time = 0.0
+        self.obj.shader["time"] = self.time / LOOP_TIME
         return super().render()
