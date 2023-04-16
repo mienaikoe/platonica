@@ -10,7 +10,17 @@ from ui.image_plane import ImagePlane
 from ui.next_button import NextButton
 from puzzles.puzzle_graph import PuzzleGraph
 from engine.camera import Camera
-from engine.events import NEXT_PUZZLE, emit_event, FADE_IN, FADE_OUT, FADED_OUT, PUZZLE_SOLVED, NEXT_LEVEL, LEVEL_LOADED, PUZZLE_LOADED
+from engine.events import (
+    NEXT_PUZZLE,
+    emit_event,
+    FADE_IN,
+    FADE_OUT,
+    FADED_OUT,
+    PUZZLE_SOLVED,
+    NEXT_LEVEL,
+    LEVEL_LOADED,
+    PUZZLE_LOADED,
+)
 from engine.renderable import Renderable
 from models.polyhedron import Polyhedron
 from ui.progress import Progress
@@ -34,12 +44,11 @@ class GameplayScene(Renderable):
         self.current_puzzle_index = 0
         self._load_puzzles()
 
-
         self.next_button = NextButton(
             self.ctx,
             self.camera.view_projection_matrix,
             glm.vec3(-1.5, 0, -2.1),
-            on_click=self._go_to_next_puzzle
+            on_click=self._go_to_next_puzzle,
         )
         self.next_button.set_active(False)
 
@@ -61,25 +70,22 @@ class GameplayScene(Renderable):
     def _load_puzzles(self):
         level = LEVELS[self.current_level_index]
         self.puzzles = []
-        puzzles_in_level = level['puzzles']
+        puzzles_in_level = level["puzzles"]
         for puzzle in puzzles_in_level:
             level_poly = Polyhedron(
                 self.ctx,
                 self.camera,
                 SHAPE_VERTICES[level["shape"]],
                 PuzzleGraph.from_file_name(puzzle),
-                style=level["style"]
+                style=level["style"],
             )
-            if os.environ.get('OVER_EASY', None) != '1':
+            if os.environ.get("OVER_EASY", None) != "1":
                 level_poly.scramble()
             self.puzzles.append(level_poly)
-        emit_event(LEVEL_LOADED, {
-            'song': level['song']
-        })
+        emit_event(LEVEL_LOADED, {"song": level["song"]})
         self.progress.set_colors(level["style"].wall_color, level["style"].path_color)
 
-
-    def _start_puzzle(self, is_introduce = False):
+    def _start_puzzle(self, is_introduce=False):
         emit_event(FADE_IN)
         emit_event(PUZZLE_LOADED)
         if is_introduce:
@@ -98,11 +104,13 @@ class GameplayScene(Renderable):
     def advance(self):
         self.current_puzzle().destroy()
         puzzles_count = len(self.puzzles)
-        if not self.is_last_puzzle_on_level: # next puzzle
+        if not self.is_last_puzzle_on_level:  # next puzzle
             self.current_puzzle_index += 1
-            self.is_last_puzzle_on_level = self.current_puzzle_index == puzzles_count - 1
+            self.is_last_puzzle_on_level = (
+                self.current_puzzle_index == puzzles_count - 1
+            )
             self._start_puzzle()
-        elif self.current_level_index < len(LEVELS) - 1: # next level
+        elif self.current_level_index < len(LEVELS) - 1:  # next level
             for puzzle in self.puzzles:
                 puzzle.destroy()
             self.current_puzzle_index = 0
@@ -128,7 +136,6 @@ class GameplayScene(Renderable):
             self.current_puzzle().handle_event(event, world_time)
 
         self.next_button.handle_event(event, world_time)
-
 
     def render(self, delta_time: int):
         self.skybox.render(delta_time)
