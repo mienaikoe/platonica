@@ -12,6 +12,10 @@ float dist(vec2 p0, vec2 pf) {
     return sqrt((pf.x - p0.x) * (pf.x - p0.x) + (pf.y - p0.y) * (pf.y - p0.y));
 }
 
+float clamp_normal(float i) {
+    return clamp(i, 0.0, 1.0);
+}
+
 vec4 lv0(float t) {
     vec2 pos = gl_FragCoord.xy;
     vec2 origin = vec2(u_resolution.x * 0.5, u_resolution.y *- 0.1);
@@ -19,7 +23,7 @@ vec4 lv0(float t) {
     vec3 core_color = vec3(0.9686, 0.8118, 0.502);
     vec3 bg_color = vec3(0.7059, 0.5255, 0.4314);
     
-    float d = clamp(dist(origin, pos) * cos(t) * 0.003, 0.0, 1.0);
+    float d = clamp_normal(dist(origin, pos) * cos(t) * 0.003);
     vec3 new_color = mix(core_color, bg_color, d);
     return vec4(new_color, 1.0);
 }
@@ -33,10 +37,24 @@ vec4 lv1(float t) {
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     
     float curve = 0.1 * sin((t * uv.x) + (4.0 * uv.y));
-    float d = clamp(distance(curve + uv.y, 0.5) * 1.0, 0.0, 1.0);
+    float d = clamp_normal(distance(curve + uv.y, 0.5) * 1.0);
     float line_width_variation = t * 0.005;
     float line_shape = smoothstep(1.0 - d, 1.0, 0.94 + line_width_variation);
     vec3 line_color = vec3(mix(colors[1], colors[0], line_shape));
+    
+    return vec4(line_color, 1.0);
+}
+
+vec4 lv2(float t) {
+    vec3 base_color = vec3(0.6902, 0.9137, 0.8941);
+    // vec3(0.8, 0.9333, 0.8863);
+    vec3 effect_color = vec3(0.8667, 0.9686, 0.9608);
+    
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    float curve = -0.1 * tan((t * uv.y) + (3.0 * uv.x));
+    float d = clamp_normal(distance(curve + uv.y, 0.5));
+    float line_shape = smoothstep(1.0 - d, 1.0, 0.95);
+    vec3 line_color = vec3(mix(effect_color, base_color, line_shape));
     
     return vec4(line_color, 1.0);
 }
@@ -54,7 +72,7 @@ vec4 lv3(float t) {
     
     //float r = -sqrt(x*x + y*y); //uncoment this line to symmetric ripples
     float r = - 0.5 * (x * x + y * y);
-    float z = clamp(0.3 * sin((r + t * speed) / 0.02), 0.0, 1.0);
+    float z = clamp_normal(0.3 * sin((r + t * speed) / 0.02));
     
     vec3 ripple_color = mix(bg_color, color, z);
     return vec4(ripple_color, 1.0);
@@ -65,6 +83,8 @@ void main() {
         frag_color = lv0(u_time);
     } else if (level == 1) {
         frag_color = lv1(u_time);
+    } else if (level == 2) {
+        frag_color = lv2(u_time);
     } else if (level == 3) {
         frag_color = lv3(u_time);
     } else {

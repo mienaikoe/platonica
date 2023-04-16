@@ -9,6 +9,10 @@ float dist(vec2 p0, vec2 pf) {
     return sqrt((pf.x - p0.x) * (pf.x - p0.x) + (pf.y - p0.y) * (pf.y - p0.y));
 }
 
+float clamp_normal(float i) {
+    return clamp(i, 0.0, 1.0);
+}
+
 /*
 vec4 lv0(float t) {
     vec2 pos = gl_FragCoord.xy;
@@ -41,6 +45,19 @@ vec4 lv1(float t) {
 
 // float rand(float co) { return fract(sin(co*(91.3458)) * 47453.5453); }
 
+vec4 lv2(float t){
+    vec3 base_color = vec3(0.8, 0.9333, 0.8863);
+    vec3 effect_color = vec3(0.8667, 0.9686, 0.9608);
+    
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    float curve = -0.1 * tan((t * uv.y) + (3.0 * uv.x));
+    float d = clamp_normal(distance(curve + uv.y, 0.5));
+    float line_shape = smoothstep(1.0 - d, 1.0, 0.95);
+    vec3 line_color = vec3(mix(effect_color, base_color, line_shape));
+    
+    return vec4(line_color, 1.0);
+}
+/*
 vec4 lv3(float t) {
     vec2 center = vec2(0.1, 0.1); // TODO pass in random position
     
@@ -65,7 +82,8 @@ vec4 lv3(float t) {
     
     return vec4(ripple_color, 1.0);
 }
+*/
 
 void main() {
-    gl_FragColor = lv3(mod(u_time, 6.28) - 3.14);
+    gl_FragColor = lv2(mod(u_time, 6.28) - 3.14);
 }
