@@ -23,7 +23,10 @@ LEVELS = [
   {
       "shape": Shape.cube,
       "puzzles": [
+          "6_lanes",
           "6_sudoku",
+          "6_giftbox",
+          "6_eagles_robins",
       ],
       "style": ShapeStyle(
           "cube06a.png",
