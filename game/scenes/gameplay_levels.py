@@ -74,6 +74,6 @@ LEVELS = [
           Colors.CHARCOAL,
           BlendModes.Opaque,
       ),
-      "song": SoundtrackSong.water,
+      "song": SoundtrackSong.cosmos,
   },
 ]

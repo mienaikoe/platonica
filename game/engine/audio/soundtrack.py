@@ -13,6 +13,7 @@ class SoundtrackSong(Enum):
   earth = "earth"
   wind = "wind"
   water = "water"
+  cosmos = "cosmos"
 
 
 
