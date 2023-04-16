@@ -3,6 +3,8 @@
 layout(location = 0)out vec4 frag_color;
 
 uniform int level;
+uniform vec2 random_pos;
+
 uniform float u_time; // in seconds
 uniform vec2 u_resolution;
 
@@ -39,11 +41,32 @@ vec4 lv1(float t) {
     return vec4(line_color, 1.0);
 }
 
+vec4 lv3(float t) {
+    float speed = 0.05;
+    float aspect_ratio = u_resolution.y / u_resolution.x;
+    vec2 uv = gl_FragCoord.xy / u_resolution.xy;
+    
+    vec3 color = vec3(0.3176, 0.3333, 0.4588);
+    vec3 bg_color = vec3(0.2627, 0.2627, 0.3294);
+    
+    float x = (random_pos.x - uv.x);
+    float y = (random_pos.y - uv.y) * aspect_ratio;
+    
+    //float r = -sqrt(x*x + y*y); //uncoment this line to symmetric ripples
+    float r = - 0.5 * (x * x + y * y);
+    float z = clamp(0.3 * sin((r + t * speed) / 0.02), 0.0, 1.0);
+    
+    vec3 ripple_color = mix(bg_color, color, z);
+    return vec4(ripple_color, 1.0);
+}
+
 void main() {
     if (level == 0) {
         frag_color = lv0(u_time);
     } else if (level == 1) {
         frag_color = lv1(u_time);
+    } else if (level == 3) {
+        frag_color = lv3(u_time);
     } else {
         frag_color = vec4(0.9, 0.9, 0.9, 1.0);
     }
