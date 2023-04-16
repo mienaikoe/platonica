@@ -41,6 +41,9 @@ LEVELS = [
       "shape": Shape.octahedron,
       "puzzles": [
           "8_chevron",
+          "8_beats",
+          "8_symbols",
+          "8_Xs_and_Os",
       ],
       "style": ShapeStyle(
           "david-jorre-unsplash_lighter.png",
