@@ -51,13 +51,12 @@ class ArcBall:
         self.emit_events = kwargs.get("emit_events", False)
 
     def handle_event(self, event: pygame.event.Event):
-        match event.type:
-          case pygame.MOUSEBUTTONDOWN:
-              self.on_down(pygame.mouse.get_pos())
-          case pygame.MOUSEBUTTONUP:
-              self.on_up()
-          case pygame.MOUSEMOTION:
-              self.on_move(pygame.mouse.get_pos())
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            self.on_down(pygame.mouse.get_pos())
+        elif event.type == pygame.MOUSEBUTTONUP:
+            self.on_up()
+        elif event.type == pygame.MOUSEMOTION:
+            self.on_move(pygame.mouse.get_pos())
 
     def on_down(self, click_coordinates: tuple[int, int]):  # Mouse down
         self.is_dragging = True

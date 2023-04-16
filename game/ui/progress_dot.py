@@ -15,13 +15,12 @@ PAD = 0.02
 class ProgressDot(ShadeableObject):
     def __init__(self, ctx, matrix, shader, degrees):
         offset = glm.vec3(PAD, PAD, 0.0)
-        match degrees:
-            case 90:
-                offset = glm.vec3(-PAD, PAD, 0.0)
-            case 180:
-                offset = glm.vec3(-PAD, -PAD, 0.0)
-            case 270:
-                offset = glm.vec3(PAD, -PAD, 0.0)
+        if degrees == 90:
+            offset = glm.vec3(-PAD, PAD, 0.0)
+        elif degrees == 180:
+            offset = glm.vec3(-PAD, -PAD, 0.0)
+        elif degrees == 270:
+            offset = glm.vec3(PAD, -PAD, 0.0)
         transform = glm.translate(offset) * glm.rotate(
             glm.radians(degrees), glm.vec3(0, 0, 1)
         )
@@ -44,6 +43,6 @@ class ProgressDot(ShadeableObject):
 
     def mark_done(self):
         self.done = True
-    
+
     def reset(self):
         self.done = False
