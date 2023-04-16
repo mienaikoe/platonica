@@ -1,3 +1,4 @@
+from typing import Union
 import numpy as np
 import moderngl
 from engine.shader import get_shader_program
@@ -23,7 +24,7 @@ class ShadeableObject:
     def __init__(
         self,
         ctx: moderngl.Context,
-        shader: moderngl.Program | str,
+        shader: Union[moderngl.Program, str],
         shader_inputs: dict,
         shader_vertices: np.ndarray,
     ):
