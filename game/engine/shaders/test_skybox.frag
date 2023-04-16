@@ -31,7 +31,8 @@ vec4 lv1(float t) {
     
     float curve = 0.1 * sin((t * uv.x) + (4.0 * uv.y));
     float d = clamp(distance(curve + uv.y, 0.5) * 1.0, 0.0, 1.0);
-    float line_shape = smoothstep(1.0 - d, 1.0, 0.95);
+    float line_width = t * 0.005;
+    float line_shape = smoothstep(1.0 - d, 1.0, 0.95 - line_width);
     vec3 line_color = vec3(mix(c1, c0, line_shape));
     
     return vec4(line_color, 1.0);
