@@ -18,14 +18,13 @@ class AnimationLerper:
     self.duration_ms = duration_ms
 
   def __set_function(self, function: AnimationLerpFunction):
-    match(function):
-      case AnimationLerpFunction.linear:
+      if function == AnimationLerpFunction.linear:
         self._interpolator = self._interpolate_linear
-      case AnimationLerpFunction.ease_out:
+      elif function == AnimationLerpFunction.ease_out:
         self._interpolator = self._interpolate_ease_out
-      case AnimationLerpFunction.ease_in:
+      elif function ==  AnimationLerpFunction.ease_in:
         self._interpolator = self._interpolate_ease_in
-      case AnimationLerpFunction.ease_in_out:
+      elif function == AnimationLerpFunction.ease_in_out:
         self._interpolator = self._interpolate_ease_in_out
 
   def _interpolate_ease_in(self, time_elapsed: float):
@@ -128,7 +127,7 @@ class Animator:
         self.stop()
     elif self.on_frame:
       self.on_frame(new_value)
-    
+
     return new_value
 
   def reverse(self):

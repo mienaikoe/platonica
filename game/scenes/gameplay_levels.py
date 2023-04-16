@@ -75,6 +75,7 @@ LEVELS = [
       "shape": Shape.dodecahedron,
       "puzzles": [
           "12_pointy",
+          "12_diamond_path",
       ],
       "style": ShapeStyle(
           "ice-opaque.png",
