@@ -56,6 +56,19 @@ vec3 screen(vec3 base, vec3 blend, float opacity) {
 }
 
 
+float burn(float base, float blend) {
+	return (blend==0.0)?blend:max((1.0-((1.0-base)/blend)),0.0);
+}
+
+vec3 burn(vec3 base, vec3 blend) {
+	return vec3(burn(base.r,blend.r),burn(base.g,blend.g),burn(base.b,blend.b));
+}
+
+vec3 burn(vec3 base, vec3 blend, float opacity) {
+	return (burn(base, blend) * opacity + base * (1.0 - opacity));
+}
+
+
 void main() {
   vec3 imageColor = texture(u_texture_0, uv_0).rgb;
   vec3 fillColor;
@@ -67,6 +80,8 @@ void main() {
     fillColor = reflects(imageColor, v_color.rgb, v_color.a);
   } else if (blend_mode == 4) {
     fillColor = screen(imageColor, v_color.rgb, v_color.a);
+  } else if (blend_mode == 5) {
+    fillColor = burn(imageColor, v_color.rgb, v_color.a);
   } else {
     fillColor = v_color.rgb;
   }
