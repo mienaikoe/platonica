@@ -40,7 +40,7 @@ class GameplayScene(Renderable):
         self.progress = Progress(self.ctx, camera.view_projection_matrix)
         self.skybox = Skybox(ctx, camera.view_projection_matrix)
 
-        self.current_level_index = 0
+        self.current_level_index = int(os.environ.get("START_LEVEL", 0))
         self.current_puzzle_index = 0
         self._load_puzzles()
 
@@ -63,9 +63,7 @@ class GameplayScene(Renderable):
 
     def init(self):
         self._start_puzzle(True)
-
-    def show_skybox(self):
-        self.skybox.start(0)
+        self.skybox.start(self.current_level_index)
 
     def _load_puzzles(self):
         level = LEVELS[self.current_level_index]

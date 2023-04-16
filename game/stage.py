@@ -11,7 +11,15 @@ from scenes.test_scene import TestScene
 from ui.action_menu import ActionMenu
 from ui.fader import Fader
 from ui.intro_plane import IntroPlane
-from engine.events import SCENE_FINISH, FADE_IN, FADE_OUT, FADED_OUT, LEVEL_LOADED, PUZZLE_LOADED, emit_event
+from engine.events import (
+    SCENE_FINISH,
+    FADE_IN,
+    FADE_OUT,
+    FADED_OUT,
+    LEVEL_LOADED,
+    PUZZLE_LOADED,
+    emit_event,
+)
 
 
 class Stage:
@@ -24,7 +32,7 @@ class Stage:
         self.tutorial = TutorialScene(self.ctx, self.camera)
         self.gameplay = GameplayScene(self.ctx, self.camera)
 
-        if os.environ.get('SKIP_TUTORIAL', None) == '1':
+        if os.environ.get("SKIP_TUTORIAL", None) == "1":
             self.scene = self.gameplay
         else:
             self.scene = self.tutorial
@@ -37,7 +45,9 @@ class Stage:
         camera_matrix = self.camera.view_projection_matrix
 
         self.fader = Fader(self.ctx, camera_matrix)
-        self.action_menu = ActionMenu(self.ctx, camera_matrix, to_tutorial=self._to_tutorial)
+        self.action_menu = ActionMenu(
+            self.ctx, camera_matrix, to_tutorial=self._to_tutorial
+        )
         self.intro = IntroPlane(
             self.ctx,
             camera_matrix,
@@ -54,8 +64,6 @@ class Stage:
 
     def _on_intro_opaque(self):
         self.scene.init()
-        if type(self.scene) == GameplayScene:
-            self.scene.show_skybox()
 
     def _on_intro_stop(self):
         self.intro.destroy()
