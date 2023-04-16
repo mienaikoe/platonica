@@ -10,23 +10,24 @@ from ui.plane import Plane
 
 # 30 seconds per loop
 
-LOOP_TIME = 6000
-#30000
+LOOP_TIME = 30000
+
 
 class Skybox(Plane):
     def __init__(self, ctx, camera_matrix):
         position = glm.vec3(0, 0, 21)
         dimensions = glm.vec2(SCREEN_DIMENSIONS)
         super().__init__(ctx, camera_matrix, position, dimensions)
-        self.obj.shader["screen"].write(dimensions)
+        self.obj.shader["u_resolution"].write(dimensions)
         self.obj.shader["level"] = 0
         self.ready = False
 
         self.animator = Animator(
-            AnimationLerper(AnimationLerpFunction.ease_in_out, LOOP_TIME * 0.5),
-            0.0, # start value
-            reversible=True)
-    
+            AnimationLerper(AnimationLerpFunction.ease_in_out, LOOP_TIME),
+            -math.pi,  # start value
+            reversible=True,
+        )
+
     def _get_shadeable_object(self):
         return ShadeableObject(
             self.ctx,
@@ -34,12 +35,12 @@ class Skybox(Plane):
             {
                 "in_position": "3f",
             },
-            self.vertex_data
+            self.vertex_data,
         )
-    
-    def start(self, level = 0):
+
+    def start(self, level=0):
         self.ready = True
-        self.animator.start(1.0)
+        self.animator.start(math.pi)
         self.obj.shader["level"] = level
 
     def stop(self):
@@ -47,6 +48,6 @@ class Skybox(Plane):
 
     def render(self, delta_time: int):
         if self.ready:
-            t = self.animator.frame(delta_time) 
-            self.obj.shader["time"] = t
+            t = self.animator.frame(delta_time)
+            self.obj.shader["u_time"] = t
             return super().render()
