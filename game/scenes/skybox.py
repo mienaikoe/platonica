@@ -1,4 +1,5 @@
 import math
+import random
 import glm
 
 from engine.animation import Animator, AnimationLerpFunction, AnimationLerper
@@ -20,6 +21,7 @@ class Skybox(Plane):
         super().__init__(ctx, camera_matrix, position, dimensions)
         self.obj.shader["u_resolution"].write(dimensions)
         self.obj.shader["level"] = 0
+        self.obj.shader["random_pos"].write(glm.vec2(random.random(), random.random()))
         self.ready = False
 
         self.animator = Animator(
