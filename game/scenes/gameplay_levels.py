@@ -58,6 +58,9 @@ LEVELS = [
       "shape": Shape.icosahedron,
       "puzzles": [
           "20_stars",
+          "20_swirls",
+          "20_parallels",
+          "20_jagged",
       ],
       "style": ShapeStyle(
           "water_02.jpeg",
