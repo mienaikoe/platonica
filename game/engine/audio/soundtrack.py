@@ -11,6 +11,7 @@ mixer.init()
 class SoundtrackSong(Enum):
   fire = "fire"
   earth = "earth"
+  wind = "wind"
   water = "water"
 
 
