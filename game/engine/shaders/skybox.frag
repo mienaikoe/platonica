@@ -64,8 +64,8 @@ vec4 lv3(float t) {
     float aspect_ratio = u_resolution.y / u_resolution.x;
     vec2 uv = gl_FragCoord.xy / u_resolution.xy;
     
-    vec3 color = vec3(0.3176, 0.3333, 0.4588);
-    vec3 bg_color = vec3(0.2627, 0.2627, 0.3294);
+    vec3 color = vec3(0.153, 0.153, 0.737);
+    vec3 bg_color = vec3(0.0, 0.118, 0.353);
     
     float x = (random_pos.x - uv.x);
     float y = (random_pos.y - uv.y) * aspect_ratio;
