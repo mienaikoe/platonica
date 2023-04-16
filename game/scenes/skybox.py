@@ -15,10 +15,11 @@ LOOP_TIME = 6000
 
 class Skybox(Plane):
     def __init__(self, ctx, camera_matrix):
-        position = glm.vec3(0, 0, 20)
-        dimensions = glm.vec2(9.65, 7.25)
+        position = glm.vec3(0, 0, 21)
+        dimensions = glm.vec2(SCREEN_DIMENSIONS)
         super().__init__(ctx, camera_matrix, position, dimensions)
-        self.obj.shader["screen"].write(glm.vec2(SCREEN_DIMENSIONS))
+        self.obj.shader["screen"].write(dimensions)
+        self.obj.shader["level"] = 0
         self.ready = False
 
         self.animator = Animator(
@@ -39,7 +40,10 @@ class Skybox(Plane):
     def start(self, level = 0):
         self.ready = True
         self.animator.start(1.0)
-        # TODO put level into uniforms
+        self.obj.shader["level"] = level
+
+    def stop(self):
+        self.animator.stop()
 
     def render(self, delta_time: int):
         if self.ready:

@@ -54,12 +54,12 @@ class Stage:
 
     def _on_intro_opaque(self):
         self.scene.init()
+        if type(self.scene) == GameplayScene:
+            self.scene.show_skybox()
 
     def _on_intro_stop(self):
         self.intro.destroy()
         self.intro = None
-        if type(self.scene) == GameplayScene:
-            self.scene.show_skybox()
 
     def queue_next_scene(self):
         if self.scene.__class__ == TutorialScene:
@@ -85,10 +85,10 @@ class Stage:
         self.soundtrack.handle_event(event, world_time)
 
     def render(self, delta_time: int) -> None:
-        if self.intro:
-            self.intro.render(delta_time)
         self.scene.render(delta_time)
         self.fader.render(delta_time)
+        if self.intro:
+            self.intro.render(delta_time)
         self.action_menu.render(delta_time)
 
     def destroy(self):

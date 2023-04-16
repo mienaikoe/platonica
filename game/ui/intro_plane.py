@@ -15,7 +15,7 @@ class IntroPlane():
         ctx,
         m_vp,
         glm.vec3(0.0, 0.0, 20.0),
-        glm.vec2(8., 6.),
+        glm.vec2(10, 7.5),
         "logo.png",
     )
     self.animator = Animator(

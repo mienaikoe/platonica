@@ -28,6 +28,7 @@ class GameplayScene(Renderable):
         )
 
         self.progress = Progress(self.ctx, camera.view_projection_matrix)
+        self.skybox = Skybox(ctx, camera.view_projection_matrix)
 
         self.current_level_index = 0
         self.current_puzzle_index = 0
@@ -43,8 +44,6 @@ class GameplayScene(Renderable):
         self.next_button.set_active(False)
 
         self.is_last_puzzle_on_level = False
-
-        self.skybox = Skybox(ctx, camera.view_projection_matrix)
 
     def _go_to_next_puzzle(self):
         if self.is_last_puzzle_on_level:
@@ -111,6 +110,7 @@ class GameplayScene(Renderable):
             self.progress.reset()
             self._load_puzzles()
             self._start_puzzle(True)
+            self.skybox.start(self.current_level_index)
         else:
             print("GAME WOM")
 
