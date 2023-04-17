@@ -14,7 +14,10 @@ class SoundtrackSong(Enum):
   wind = "wind"
   water = "water"
   cosmos = "cosmos"
+  win = "win"
 
+
+FADE_IN_TIME = 2000
 
 
 MUSIC_DIRECTORY = path.join(dir_path, '..', '..', 'assets', 'music')
@@ -39,10 +42,7 @@ class Soundtrack:
       mixer.music.fadeout(100)
       self.set_song(event.__dict__['song'])
     elif event.type == PUZZLE_LOADED:
-      if mixer.music.get_busy():
-        self.advance()
-      else:
-        self.play()
+      self.play()
 
   def set_song(self, song_name: SoundtrackSong):
     self.track_num = 0
@@ -53,8 +53,11 @@ class Soundtrack:
     mixer.music.set_volume(vol)
 
   def play(self):
-    mixer.music.play()
-    mixer.music.queue(self.tracks[self.track_num])
+    if mixer.music.get_busy():
+      self.advance()
+    else:
+      mixer.music.play(fade_ms=FADE_IN_TIME)
+      mixer.music.queue(self.tracks[self.track_num])
 
   def advance(self):
     if self.track_num >= len(self.tracks) - 1:

@@ -6,6 +6,8 @@ from engine.camera import Camera
 from engine.animation import Animator
 from engine.animation import AnimationLerpFunction, AnimationLerper
 from models.starfield import make_starfield
+from engine.events import emit_event, LEVEL_LOADED, PUZZLE_LOADED
+from engine.audio.soundtrack import SoundtrackSong
 
 INTRO_DURATION = 10000 # ms
 
@@ -22,8 +24,9 @@ class WinScene(Renderable):
 
 
     def init(self):
+      emit_event(LEVEL_LOADED, {"song": SoundtrackSong.win})
+      emit_event(PUZZLE_LOADED)
       self.camera_animator.start(-4.0)
-
 
     # def handle_event(self, event: pygame.event.Event, world_time: int):
     #     self.subject.handle_event(event, world_time)
