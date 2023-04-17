@@ -9,6 +9,7 @@ from puzzles.puzzle_graph import PuzzleGraph
 from models.polyhedron import Polyhedron
 from scenes.gameplay_levels import LEVELS
 from engine.animation import AnimationLerper, AnimationLerpFunction, Animator
+from models.star import Star
 
 ORIGIN = glm.vec3(0.0, 0.0, 0.0)
 
@@ -36,6 +37,7 @@ class Planet:
 
     def start(self):
         self.animator.start(2.0 * math.pi)
+        self.obj.set_is_resonant(True)
 
     def translation_matrix(self, delta_time):
         angle = self.animator.frame(delta_time)
@@ -75,12 +77,14 @@ class SolarSystem:
                 )
             )
             revolve_radius += random.randrange(3, 6)
+        self.star = Star(ctx, camera)
 
     def start(self):
         for p in self.planets:
             p.start()
 
     def render(self, delta_time: int):
+        self.star.render(delta_time)
         for p in self.planets:
             p.obj.m_model = self.scale_matrix * p.translation_matrix(delta_time)
             p.obj.render(delta_time)
