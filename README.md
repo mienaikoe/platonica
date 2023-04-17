@@ -26,3 +26,12 @@ We use some environment variables to run with special game modifiers. These are 
 - Sometimes, clicking on the screen will stop working. To fix this, click out of the game window and back into it. We tried to fix this for several hours and nothing seemed to work. It could be a bug with pygame on mac?
 
 - Sometimes rotation will stop working. This is probably our bug, but we couldn't get it to happen often enough to figure out how to solve it. You'll have to quit the game and restart it to fix this.
+
+## Special Thanks
+
+Special thanks to our playtesters!
+
+- Percy Hsu
+- Denise Sison
+- Kevin Rejko
+- Alex Browne
