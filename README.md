@@ -35,3 +35,20 @@ Special thanks to our playtesters!
 - Denise Sison
 - Kevin Rejko
 - Alex Browne
+- Chase Moores
+
+### Resources used
+
+Big thanks to [Coder Space: Let's code 3D Engine in Python. OpenGL Pygame Tutorial](https://www.youtube.com/watch?v=eJDIsFJN4OQ&ab_channel=CoderSpace) for helping us get started
+
+**Shaders**
+
+[Blending Functions](https://github.com/jamieowen/glsl-blend) used for polyhedrons
+
+[Noise from Book of Shaders](https://thebookofshaders.com/edit.php#11/3d-snoise.frag) used for star in end scene
+
+[How to draw a sine wave](https://shader.how/to/draw-a-sine-wave/) used for skybox textures
+
+[Hypnotic ripples](https://www.shadertoy.com/view/ldX3zr) used for water skybox
+
+[Stars background](https://www.shadertoy.com/view/lsfGWH) used for last level skybox
