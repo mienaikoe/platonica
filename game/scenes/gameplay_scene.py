@@ -42,7 +42,6 @@ class GameplayScene(Renderable):
 
         self.current_level_index = int(os.environ.get("START_LEVEL", 0))
         self.current_puzzle_index = 0
-        self._load_puzzles()
 
         self.next_button = NextButton(
             self.ctx,
@@ -53,6 +52,7 @@ class GameplayScene(Renderable):
         self.next_button.set_active(False)
 
         self.is_last_puzzle_on_level = False
+        self._load_puzzles()
 
     def _go_to_next_puzzle(self):
         if self.is_last_puzzle_on_level:
@@ -82,6 +82,7 @@ class GameplayScene(Renderable):
             self.puzzles.append(level_poly)
         emit_event(LEVEL_LOADED, {"song": level["song"]})
         self.progress.set_colors(level["style"].wall_color, level["style"].path_color)
+        self.next_button.set_color(glm.vec3(level["style"].wall_color.xyz))
 
     def _start_puzzle(self, is_introduce=False):
         emit_event(FADE_IN)
