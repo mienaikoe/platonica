@@ -1,8 +1,10 @@
+from math import pi
 import glm
 import numpy as np
 
 from engine.shadeable_object import ShadeableObject
 from models.helpers import triangle_vertices_from_indices
+from engine.animation import AnimationLerper, AnimationLerpFunction, Animator
 
 vertex_palette = [
     (0.0, 0.0, -1.0),
@@ -132,20 +134,31 @@ face_vertices = [
     (13, 1, 14),
 ]
 
-RESOLUTION = 50
+RESOLUTION = 5
 
 class Star(ShadeableObject):
-    def __init__(self, ctx, camera):
+    def __init__(self, ctx, camera, scale):
         shader_name = "star"
         shader_inputs = {"in_position": "3f"}
         vertices = triangle_vertices_from_indices(vertex_palette, face_vertices)
         super().__init__(ctx, shader_name, shader_inputs, vertices)
-        self.matrix = camera.view_projection_matrix * glm.scale(glm.vec3(0.1, 0.1, 0.1))
-        self.set_uniform("m_mvp", self.matrix)
+        self.camera = camera
+        self.scale_matrix = glm.scale(2 * glm.vec3(scale, scale, scale))
         self.set_uniform("u_resolution", glm.vec2(RESOLUTION, RESOLUTION))
         self.time = 0.0
+
+        self.rotate_animator = Animator(
+            lerper=AnimationLerper(AnimationLerpFunction.linear, 1500),
+            start_value=0.0,
+            infinite=True,
+        )
+        self.rotate_animator.start(2.0 * pi)
 
     def render(self, delta_time):
         self.time += delta_time
         self.shader["u_time"] = self.time * 0.01
+        angle = self.rotate_animator.frame(delta_time)
+        matrix = self.camera.view_projection_matrix * self.scale_matrix * glm.rotate(angle, glm.vec3(0, 0, 1))
+        self.set_uniform("m_mvp", matrix)
+
         super().render()
