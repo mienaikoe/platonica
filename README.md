@@ -2,6 +2,10 @@
 
 A game of puzzles with platonic solids
 
+Created By:
+Alice Wong: https://github.com/9ae
+Jesse Lee: https://github.com/mienaikoe
+
 ## Running the Game
 
 - We're using Python 3 (This was built with Python 3.10.7)
