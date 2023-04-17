@@ -34,8 +34,10 @@ class Stage:
         self.gameplay = GameplayScene(self.ctx, self.camera)
         self.win = WinScene(self.ctx, self.camera)
 
-        if os.environ.get("SKIP_TUTORIAL", None) == "1":
+        if os.environ.get("WINNER", None) == "1":
             self.scene = self.win
+        elif os.environ.get("SKIP_TUTORIAL", None) == "1":
+            self.scene = self.gameplay
         else:
             self.scene = self.tutorial
 
