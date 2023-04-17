@@ -352,6 +352,8 @@ class Face(Renderable):
 
     def scramble(self):
         num_rotations = random.randint(0, len(self.coordinate_system.segment_vectors))
+        if num_rotations == 0: # Roll Again to decrease the odds of zero to 1/9
+            num_rotations = random.randint(0, len(self.coordinate_system.segment_vectors))
         self.rotate(num_rotations)
 
     def explode(self):

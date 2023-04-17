@@ -26,7 +26,7 @@ LEVELS = [
             "6_lanes",
             "6_sudoku",
             "6_giftbox",
-            "6_eagles_robins",
+            "6_box_corners",
         ],
         "style": ShapeStyle(
             "cube06a.png",
