@@ -78,6 +78,45 @@ vec4 lv3(float t) {
     return vec4(ripple_color, 1.0);
 }
 
+float rand(vec2 co)
+{
+    return fract(sin(dot(co.xy , vec2(12.9898, 78.233))) * 43758.5453);
+}
+
+vec4 lv4(float t) {
+    float sizeDelta = 5.0;
+    float size = 20.0 + t * sizeDelta;
+    float prob = 0.99;
+    
+    vec2 pos = floor(1.0 / size * gl_FragCoord.xy);
+    
+    float color = 0.0;
+    float starValue = rand(pos);
+    
+    if (starValue > prob)
+    {
+        vec2 center = size * pos + vec2(size, size) * 0.5;
+        
+        float ti = 0.9 + 0.2 * sin(t + (starValue - prob) / (1.0 - prob) * 45.0);
+        
+        color = 1.0 - distance(gl_FragCoord.xy, center) / (0.5 * size);
+        color = color * ti / (abs(gl_FragCoord.y - center.y)) * ti / (abs(gl_FragCoord.x - center.x));
+    }
+    else if (rand(gl_FragCoord.xy / u_resolution.xy) > 0.996)
+    {
+        float r = rand(gl_FragCoord.xy);
+        color = r * (0.25 * sin(t * (r * 5.0) + 720.0 * r) + 0.75);
+    }
+    
+    vec3 color_a = vec3(0.0471, 0.0471, 0.1176);
+    vec3 color_b = vec3(0.0706, 0.0, 0.2314);
+    vec3 bg_color = mix(color_b, color_a, gl_FragCoord.y / u_resolution.y);
+    
+    vec3 pix_color = bg_color + vec3(color);
+    
+    return vec4(pix_color, 1.0);
+}
+
 void main() {
     if (level == 0) {
         frag_color = lv0(u_time);
@@ -87,6 +126,8 @@ void main() {
         frag_color = lv2(u_time);
     } else if (level == 3) {
         frag_color = lv3(u_time);
+    } else if (level == 4) {
+        frag_color = lv4(u_time * 0.01);
     } else {
         frag_color = vec4(0.9, 0.9, 0.9, 1.0);
     }

@@ -19,6 +19,8 @@ class Colors:
     CYAN = glm.vec4(0.157, 0.812, 1.0, 1.0)
     SKY_BLUE = glm.vec4(0.518, 0.894, 1.0, 1.0)
     TEAL_GRAY = glm.vec4(0.286, 0.325, 0.318, 1.0)
+    MOON_SHAODW = glm.vec4(0.447, 0.427, 0.471, 1.0)
+    MOON_DUST = glm.vec4(0.745, 0.62, 1.0, 1.0)
 
 
 class BlendModes:
