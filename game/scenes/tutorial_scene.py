@@ -66,11 +66,11 @@ class TutorialScene(Renderable):
             self.step = 2
         elif event.type == DONE_RESONATE:
           if self.step < 3:
-            self.finish()
+            # self.finish()
             self.step = 4
         elif event.type == PUZZLE_SOLVED:
           print("level won")
-          emit_event(SCENE_FINISH, {})
+          # emit_event(SCENE_FINISH, {})
 
     def _destroy_tutorial_obj(self):
         if self.tutorial_obj is not None:
@@ -108,11 +108,11 @@ class TutorialScene(Renderable):
 
     def init_close_step(self):
       self._destroy_tutorial_obj()
-      self.tutorial_obj = PathHighlight(
-        self.ctx,
-        self.camera.view_projection_matrix,
-        self.subject.faces
-      )
+      # self.tutorial_obj = PathHighlight(
+      #   self.ctx,
+      #   self.camera.view_projection_matrix,
+      #   self.subject.faces
+      # )
       self.message = ImagePlane(
         self.ctx,
         self.camera.view_projection_matrix,
