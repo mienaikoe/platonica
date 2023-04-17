@@ -1,11 +1,14 @@
 import pygame
 import moderngl
+import glm
 from constants.colors import Colors, ShapeStyle, BlendModes
 from constants.dimensions import SCREEN_DIMENSIONS
 from constants.shape import Shape, SHAPE_VERTICES
 from ui.tutorial.path_highlight import PathHighlight
 from ui.tutorial.rotation_arrow import RotationArrow
 from ui.tutorial.face_highlight import FaceHighlight
+from ui.image_plane import ImagePlane
+from ui.color_plane import ColorPlane
 from models.polyhedron import Polyhedron
 from puzzles.puzzle_graph import PuzzleGraph
 from engine.renderable import Renderable
@@ -23,6 +26,7 @@ class TutorialScene(Renderable):
             SCREEN_DIMENSIONS[1] / 2,
         )
         self.tutorial_obj = None
+        self.message = None
 
         puzzle = PuzzleGraph.from_file_name("4_tutorial")
 
@@ -72,10 +76,19 @@ class TutorialScene(Renderable):
         if self.tutorial_obj is not None:
             self.tutorial_obj.destroy()
             self.tutorial_obj = None
+        if self.message is not None:
+            self.message.destroy()
+            self.message = None
 
     def init_rotation_step(self):
         self._destroy_tutorial_obj()
-        self.tutorial_obj = RotationArrow(self.ctx, self.camera)
+        self.message = ImagePlane(
+          self.ctx,
+          self.camera.view_projection_matrix,
+          glm.vec3(2.6, 1.9, 2.0),
+          glm.vec2(1.0, 1.0),
+          'arcball-mouse.png',
+        )
 
     def init_face_step(self):
         self._destroy_tutorial_obj()
@@ -85,6 +98,13 @@ class TutorialScene(Renderable):
           self.camera.view_projection_matrix,
           target_face
         )
+        self.message = ImagePlane(
+          self.ctx,
+          self.camera.view_projection_matrix,
+          glm.vec3(2.2, 1.7, 2.0),
+          glm.vec2(1.0, 1.0),
+          'rotate-mouse.png',
+        )
 
     def init_close_step(self):
       self._destroy_tutorial_obj()
@@ -92,6 +112,13 @@ class TutorialScene(Renderable):
         self.ctx,
         self.camera.view_projection_matrix,
         self.subject.faces
+      )
+      self.message = ImagePlane(
+        self.ctx,
+        self.camera.view_projection_matrix,
+        glm.vec3(2.2, 1.7, 2.0),
+        glm.vec2(1.0, 1.0),
+        'path-edge.png',
       )
 
     def finish(self):
@@ -103,6 +130,8 @@ class TutorialScene(Renderable):
         self.subject.render(delta_time)
         if self.tutorial_obj is not None:
           self.tutorial_obj.render(delta_time, self.subject.m_model)
+        if self.message is not None:
+          self.message.render(delta_time)
 
     def destroy(self):
         self.subject.destroy()
