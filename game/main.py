@@ -37,7 +37,7 @@ class Main:
             flags=pygame.OPENGL | pygame.DOUBLEBUF | pygame.GL_CONTEXT_DEBUG_FLAG,
         )
         self.ctx = mgl.create_context()  # OpenGL
-        self.ctx.enable(flags=mgl.DEPTH_TEST | mgl.BLEND)
+        self.ctx.enable(flags=mgl.DEPTH_TEST | mgl.BLEND | mgl.PROGRAM_POINT_SIZE)
 
         self.stage = Stage(self.ctx)
 

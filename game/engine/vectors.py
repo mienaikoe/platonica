@@ -10,6 +10,9 @@ def normalize_vector(vector: np.ndarray, target_magnitude: float):
     magnitude_ratio = (vector_magnitude / target_magnitude)
     return vector / magnitude_ratio
 
+
+ORIGIN = glm.vec3(0,0,0)
+
 class UnitVector:
     UP = glm.vec3(0, 1, 0)
     RIGHT = glm.vec3(1, 0, 0)
