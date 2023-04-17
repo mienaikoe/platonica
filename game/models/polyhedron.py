@@ -17,7 +17,7 @@ from models.face import Face
 from engine.arcball import ArcBall
 from engine.events import (
     FACE_ACTIVATED, FACE_ROTATED, ARCBALL_DONE,
-    PUZZLE_SOLVED, NEXT_PUZZLE, NEXT_LEVEL,
+    PUZZLE_SOLVED, NEXT_PUZZLE, NEXT_LEVEL, PUZZLE_EXITED,
     emit_event)
 from engine.events.mouse import find_mouse_face, ClickDetector
 
@@ -34,7 +34,7 @@ ENTER_SCENE_TARGET_POS = 0.0
 ENTER_SCENE_RUNTIME = 2500
 
 EXIT_SCENE_STARTING_POS = 0.0
-EXIT_SCENE_TARGET_POS = -5.0
+EXIT_SCENE_TARGET_POS = -7.0
 EXIT_SCENE_RUNTIME = 2500
 
 LINE_LUMINOSITY_INACTIVE = 0.6
@@ -137,7 +137,8 @@ class Polyhedron(Renderable):
 
         self.exit_scene_animator = Animator(
             lerper=AnimationLerper(AnimationLerpFunction.ease_in, EXIT_SCENE_RUNTIME),
-            start_value=EXIT_SCENE_STARTING_POS
+            start_value=EXIT_SCENE_STARTING_POS,
+            on_stop=self._on_exit
         )
         self.exit_scene_dx = 0
 
@@ -155,6 +156,9 @@ class Polyhedron(Renderable):
         self.exit_scene_dx = 0
         self.last_model = glm.mat4(self.m_model)
         self.exit_scene_animator.start(EXIT_SCENE_TARGET_POS)
+
+    def _on_exit(self, _value):
+        emit_event(PUZZLE_EXITED)
 
     def reset(self):
         self.is_puzzle_solved = False

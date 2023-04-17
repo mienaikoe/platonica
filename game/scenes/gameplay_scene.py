@@ -17,6 +17,7 @@ from engine.events import (
     FADE_OUT,
     FADED_OUT,
     PUZZLE_SOLVED,
+    PUZZLE_EXITED,
     NEXT_LEVEL,
     LEVEL_LOADED,
     PUZZLE_LOADED,
@@ -57,6 +58,7 @@ class GameplayScene(Renderable):
     def _go_to_next_puzzle(self):
         if self.is_last_puzzle_on_level:
             self.current_puzzle().explode()
+            emit_event(FADE_OUT)
         else:
             self._end_puzzle()
         self.next_button.set_active(False)
@@ -95,7 +97,6 @@ class GameplayScene(Renderable):
     def _end_puzzle(self):
         if not self.is_last_puzzle_on_level:
             self.current_puzzle().exit_scene()
-        emit_event(FADE_OUT)
 
     def current_puzzle(self):
         return self.puzzles[self.current_puzzle_index]
@@ -128,7 +129,7 @@ class GameplayScene(Renderable):
             self.next_button.set_active(True)
         elif event.type == NEXT_PUZZLE:
             self._end_puzzle()
-        elif event.type == FADED_OUT or event.type == NEXT_LEVEL:
+        elif event.type == PUZZLE_EXITED or event.type == NEXT_LEVEL:
             if self.current_puzzle().is_puzzle_solved:
                 self.advance()
 
