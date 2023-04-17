@@ -7,6 +7,7 @@ from engine.camera import Camera
 from engine.renderable import Renderable
 from scenes.tutorial_scene import TutorialScene
 from scenes.gameplay_scene import GameplayScene
+from scenes.win_scene import WinScene
 from scenes.test_scene import TestScene
 from ui.action_menu import ActionMenu
 from ui.fader import Fader
@@ -31,9 +32,10 @@ class Stage:
 
         self.tutorial = TutorialScene(self.ctx, self.camera)
         self.gameplay = GameplayScene(self.ctx, self.camera)
+        self.win = WinScene(self.ctx, self.camera)
 
         if os.environ.get("SKIP_TUTORIAL", None) == "1":
-            self.scene = self.gameplay
+            self.scene = self.win
         else:
             self.scene = self.tutorial
 
@@ -72,6 +74,8 @@ class Stage:
     def queue_next_scene(self):
         if self.scene.__class__ == TutorialScene:
             self.next_scene_queued = self.gameplay
+        if self.scene.__class__ == GameplayScene:
+            self.next_scene_queued = self.win
         emit_event(FADE_OUT)
 
     def to_scene(self, scene: Renderable):
