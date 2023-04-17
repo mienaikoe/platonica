@@ -23,16 +23,19 @@ class Fader():
         0.0,
         on_stop=self._on_stop
     )
+    self.is_faded = False
 
   def _on_stop(self, value: float):
     if value == 0.0:
+      self.is_faded = False
       emit_event(FADED_IN)
     elif value == 1.0:
+      self.is_faded = True
       emit_event(FADED_OUT)
 
-  def set(self, value: float):
-    self.animator.current_value = value
-    self.animator.target_value = value
+  # def set(self, value: float):
+  #   self.animator.current_value = value
+  #   self.animator.target_value = value
 
   def handle_event(self, event: pygame.event.Event, _world_time: int):
     if event.type == FADE_IN:

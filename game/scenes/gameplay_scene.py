@@ -15,7 +15,7 @@ from engine.events import (
     emit_event,
     FADE_IN,
     FADE_OUT,
-    FADED_OUT,
+    SCENE_FINISH,
     PUZZLE_SOLVED,
     PUZZLE_EXITED,
     NEXT_LEVEL,
@@ -42,7 +42,7 @@ class GameplayScene(Renderable):
         self.skybox = Skybox(ctx, camera.view_projection_matrix)
 
         self.current_level_index = int(os.environ.get("START_LEVEL", 0))
-        self.current_puzzle_index = 0
+        self.current_puzzle_index = int(os.environ.get("START_PUZZLE", 0))
 
         self.next_button = NextButton(
             self.ctx,
@@ -52,8 +52,11 @@ class GameplayScene(Renderable):
         )
         self.next_button.set_active(False)
 
-        self.is_last_puzzle_on_level = False
         self._load_puzzles()
+        puzzles_count = len(self.puzzles)
+        self.is_last_puzzle_on_level = (
+            self.current_puzzle_index == puzzles_count - 1
+        )
 
     def _go_to_next_puzzle(self):
         if self.is_last_puzzle_on_level:
@@ -122,6 +125,7 @@ class GameplayScene(Renderable):
             self.skybox.start(self.current_level_index)
         else:
             print("GAME WOM")
+            emit_event(SCENE_FINISH)
 
     def handle_event(self, event: pygame.event.Event, world_time: int):
         if event.type == PUZZLE_SOLVED:

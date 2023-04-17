@@ -78,7 +78,11 @@ class Stage:
             self.next_scene_queued = self.gameplay
         if self.scene.__class__ == GameplayScene:
             self.next_scene_queued = self.win
-        emit_event(FADE_OUT)
+
+        if self.fader.is_faded:
+            self.to_scene(self.next_scene_queued)
+        else:
+            emit_event(FADE_OUT)
 
     def to_scene(self, scene: Renderable):
         if self.scene != scene:

@@ -5,7 +5,7 @@ from engine.camera import Camera
 from engine.animation import Animator
 from engine.animation import AnimationLerpFunction, AnimationLerper
 from models.starfield import make_starfield
-from engine.events import emit_event, LEVEL_LOADED, PUZZLE_LOADED
+from engine.events import emit_event, LEVEL_LOADED, PUZZLE_LOADED, FADE_IN
 from engine.audio.soundtrack import SoundtrackSong
 from models.planets import SolarSystem
 
@@ -30,6 +30,7 @@ class WinScene(Renderable):
         emit_event(PUZZLE_LOADED)
         self.camera_animator.start(-4.0)
         self.planets.start()
+        emit_event(FADE_IN)
 
     # def handle_event(self, event: pygame.event.Event, world_time: int):
     #     self.subject.handle_event(event, world_time)
