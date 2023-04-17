@@ -40,10 +40,10 @@ LEVELS = [
     {
         "shape": Shape.octahedron,
         "puzzles": [
+            "8_para",
             "8_chevron",
             "8_beats",
             "8_symbols",
-            "8_Xs_and_Os",
         ],
         "style": ShapeStyle(
             "wind09.png",
