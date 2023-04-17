@@ -13,7 +13,7 @@ from models.star import Star
 
 ORIGIN = glm.vec3(0.0, 0.0, 0.0)
 
-SCALE = 0.1
+SCALE = 0.02
 
 
 class Planet:
@@ -26,23 +26,39 @@ class Planet:
         self.obj = polyhedron
         self.radius = radius
         self.speed = speed
+        self.angle_offset = random.random()*2*math.pi
 
         runtime = (2 * math.pi * radius / speed) * 1000
 
-        self.animator = Animator(
+        self.revolve_animator = Animator(
             lerper=AnimationLerper(AnimationLerpFunction.linear, runtime),
             start_value=0.0,
             infinite=True,
         )
 
+        self.rotate_animator = Animator(
+            lerper=AnimationLerper(AnimationLerpFunction.linear, random.randint(5, 10)*1000),
+            start_value=0.0,
+            infinite=True,
+        )
+
+
     def start(self):
-        self.animator.start(2.0 * math.pi)
+        self.revolve_animator.start(2.0 * math.pi)
+        self.rotate_animator.start(2.0 * math.pi)
         self.obj.set_is_resonant(True)
 
-    def translation_matrix(self, delta_time):
-        angle = self.animator.frame(delta_time)
-        t = glm.vec3(self.radius * math.cos(angle), 0, self.radius * math.sin(angle))
+    def _translation_matrix(self, delta_time):
+        angle = self.angle_offset + self.revolve_animator.frame(delta_time)
+        t = glm.vec3(self.radius * math.cos(angle), self.radius * math.sin(angle), 0)
         return glm.translate(t)
+    
+    def _rotatation_matrix(self, delta_time):
+        angle = self.rotate_animator.frame(delta_time)
+        return glm.rotate(angle, glm.vec3(0, 0, 1))
+    
+    def transform_matrix(self, delta_time):
+        return self._translation_matrix(delta_time) * self._rotatation_matrix(delta_time)
 
 
 class SolarSystem:
@@ -73,11 +89,11 @@ class SolarSystem:
                 Planet(
                     hedron,
                     revolve_radius,
-                    revolve_radius * float(random.randint(3, 6)) * 0.1,
+                    float(random.randint(20, 60)) / revolve_radius,
                 )
             )
-            revolve_radius += random.randrange(3, 6)
-        self.star = Star(ctx, camera)
+            revolve_radius += random.randrange(5, 10)
+        self.star = Star(ctx, camera, SCALE)
 
     def start(self):
         for p in self.planets:
@@ -86,5 +102,5 @@ class SolarSystem:
     def render(self, delta_time: int):
         self.star.render(delta_time)
         for p in self.planets:
-            p.obj.m_model = self.scale_matrix * p.translation_matrix(delta_time)
+            p.obj.m_model = self.scale_matrix * p.transform_matrix(delta_time)
             p.obj.render(delta_time)
