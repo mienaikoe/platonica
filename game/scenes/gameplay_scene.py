@@ -114,6 +114,7 @@ class GameplayScene(Renderable):
                 puzzle.destroy()
             self.current_puzzle_index = 0
             self.current_level_index += 1
+            self.is_last_puzzle_on_level = False
             self.progress.reset()
             self._load_puzzles()
             self._start_puzzle(True)
