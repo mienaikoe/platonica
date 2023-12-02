@@ -1,0 +1,52 @@
+[gd_scene load_steps=10 format=3 uid="uid://cpewy1rbmhlrv"]
+
+[ext_resource type="FontFile" uid="uid://df50vgenyi3rk" path="res://fonts/DancingintheMinefields.ttf" id="1_hbwky"]
+[ext_resource type="Script" path="res://Label.gd" id="2_8ppdy"]
+[ext_resource type="Script" path="res://Puzzle.gd" id="2_pjnsi"]
+
+[sub_resource type="Environment" id="Environment_qr8wh"]
+background_mode = 1
+background_color = Color(1, 1, 1, 1)
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_7alqf"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_c1uee"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_w0ywe"]
+in_3d_space = true
+noise = SubResource("FastNoiseLite_c1uee")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lei65"]
+albedo_color = Color(0.203922, 0.662745, 0.835294, 1)
+metallic = 0.4
+metallic_texture = SubResource("NoiseTexture2D_7alqf")
+roughness_texture = SubResource("NoiseTexture2D_w0ywe")
+roughness_texture_channel = 2
+
+[sub_resource type="SphereMesh" id="SphereMesh_apdyf"]
+material = SubResource("StandardMaterial3D_lei65")
+radius = 0.1
+height = 0.2
+radial_segments = 4
+rings = 4
+
+[node name="Node3D" type="Node3D"]
+
+[node name="Label" type="Label3D" parent="."]
+modulate = Color(0, 0, 0, 1)
+outline_modulate = Color(0, 0, 0, 0)
+text = "PLATONICA"
+font = ExtResource("1_hbwky")
+script = ExtResource("2_8ppdy")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_qr8wh")
+
+[node name="Puzzle" type="StaticBody3D" parent="."]
+script = ExtResource("2_pjnsi")
+
+[node name="PuzzleMesh" type="MeshInstance3D" parent="Puzzle"]
+mesh = SubResource("SphereMesh_apdyf")
